@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "3.2.0",
+  "appName": "Diag-IT-UAA3 Suite Enterprise",
+  "settings": {
+    "history": {
+      "storage_path": "%LOCALAPPDATA%\\DiagIT\\history_db.json",
+      "max_runs_retention": 30,
+      "max_days_retention": 90,
+      "score_baseline_threshold": 75
+    },
+    "cve_scanner": {
+      "cvss_min_severity": 7.0,
+      "offline_db_enabled": true,
+      "api_fallback_url": "https://api.osv.dev/v1/query",
+      "api_timeout_seconds": 3,
+      "scheduled_task_day": "Wednesday",
+      "scheduled_task_time": "02:00"
+    },
+    "security_heuristics": {
+      "alert_threshold_score": 6,
+      "trusted_paths": [
+        "C:\\Program Files",
+        "C:\\Program Files (x86)",
+        "C:\\Windows\\System32",
+        "AppData\\Local\\Microsoft",
+        "AppData\\Local\\Programs"
+      ],
+      "trusted_processes": [
+        "msiexec",
+        "vcredist",
+        "dotnet",
+        "powershell",
+        "node",
+        "code",
+        "winget",
+        "update",
+        "git",
+        "python",
+        "cisco",
+        "anyconnect",
+        "forticlient",
+        "openvpn",
+        "wireguard",
+        "tailscale",
+        "zerotier",
+        "anydesk",
+        "teamviewer",
+        "rustdesk",
+        "screenconnect",
+        "logmein",
+        "veeam",
+        "acronis",
+        "synology",
+        "duplicati",
+        "kopia",
+        "nextcloud"
+      ],
+      "ignore_domains": [
+        "microsoft.com",
+        "adobe.com",
+        "mozilla.org",
+        "google.com"
+      ]
+    },
+    "belgian_ecosystem": {
+      "scan_eid_middleware": true,
+      "scan_isabel": true,
+      "scan_winbooks": true,
+      "scan_sage_bob": true,
+      "scan_silverfin": true,
+      "cert_store_alert_days": 30,
+      "cert_critical_alert_days": 7,
+      "audit_mode": "alert_only"
+    },
+    "performance_benchmark": {
+      "mode": "safe_light",
+      "max_duration_seconds": 1.5,
+      "prime_calculation_limit": 12000
+    },
+    "rmm_integrations": {
+      "webhook_enabled": true,
+      "trigger_conditions": {
+        "min_error_count": 2,
+        "max_health_score": 60,
+        "cve_critical_count": 1
+      },
+      "export_formats": ["json", "csv", "pdf_print"]
+    }
+  }
+}

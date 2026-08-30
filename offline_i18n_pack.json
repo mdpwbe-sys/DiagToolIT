@@ -1,0 +1,1100 @@
+{
+  "🛠️ CENTRE DE DIAGNOSTIC, DÉPANNAGE & GESTION IT // NIVEAU 3": {
+    "nl": "🛠️ IT-DIAGNOSE-, PROBLEEMOPLOSSINGS- & BEHEERCENTRUM // NIVEAU 3",
+    "en": "🛠️ IT DIAGNOSTIC, TROUBLESHOOTING & MANAGEMENT CENTER // LEVEL 3",
+    "de": "🛠️ IT-DIAGNOSE-, FEHLERBEHEBUNGS- & VERWALTUNGSZENTRUM // STUFE 3",
+    "es": "🛠️ CENTRO DE DIAGNÓSTICO, RESOLUCIÓN & GESTIÓN TI // NIVEL 3",
+    "pt": "🛠️ CENTRO DE DIAGNÓSTICO, RESOLUÇÃO & GESTÃO TI // NÍVEL 3",
+    "it": "🛠️ CENTRO DI DIAGNOSTICA, RISOLUZIONE & GESTIONE IT // LIVELLO 3",
+    "pl": "🛠️ CENTRUM DIAGNOSTYKI, ROZWIĄZYWANIA PROBLEMÓW I ZARZĄDZANIA IT // POZIOM 3"
+  },
+  "Console d'Ingénierie PC, Réseaux & Systèmes • Référentiel IT Niveau 3 (Observer ➔ Tester ➔ Corriger ➔ Valider ➔ Expliquer)": {
+    "nl": "PC-, Netwerk- & Systeemonderhoudsconsole • IT Niveau 3 Standaard (Observeren ➔ Testen ➔ Corrigeren ➔ Valideren ➔ Uitleggen)",
+    "en": "PC, Network & Systems Engineering Console • IT Level 3 Framework (Observe ➔ Test ➔ Fix ➔ Validate ➔ Explain)",
+    "de": "PC-, Netzwerk- & Systemwartungskonsole • IT Stufe 3 Referenz (Beobachten ➔ Testen ➔ Korrigieren ➔ Validieren ➔ Erklären)",
+    "es": "Consola de Ingeniería de PC, Redes y Sistemas • Estándar TI Nivel 3 (Observar ➔ Probar ➔ Corregir ➔ Validar ➔ Explicar)",
+    "pt": "Consola de Engenharia de PC, Redes e Sistemas • Padrão TI Nível 3 (Observar ➔ Testar ➔ Corrigir ➔ Validar ➔ Explicar)",
+    "it": "Console di Ingegneria PC, Reti e Sistemi • Standard IT Livello 3 (Osservare ➔ Testare ➔ Correggere ➔ Convalidare ➔ Spiegare)",
+    "pl": "Konsola Inżynierii PC, Sieci i Systemów • Standard IT Poziom 3 (Obserwuj ➔ Testuj ➔ Napraw ➔ Waliduj ➔ Wyjaśnij)"
+  },
+  "DIAGNOSTIC EXÉCUTÉ": {
+    "nl": "DIAGNOSE UITGEVOERD",
+    "en": "DIAGNOSTIC COMPLETED",
+    "de": "DIAGNOSE DURCHGEFÜHRT",
+    "es": "DIAGNÓSTICO EJECUTADO",
+    "pt": "DIAGNÓSTICO EXECUTADO",
+    "it": "DIAGNOSTICA ESEGUITA",
+    "pl": "DIAGNOSTYKA WYKONANA"
+  },
+  "SONDES NIVEAU 3 CONFORMES": {
+    "nl": "NIVEAU 3 SONDERINGEN CONFORM",
+    "en": "LEVEL 3 PROBES CONFORMANT",
+    "de": "STUFE 3 SONDEN KONFORM",
+    "es": "SONDAS DE NIVEL 3 CONFORMES",
+    "pt": "SONDAS DE NÍVEL 3 CONFORMES",
+    "it": "SONDE LIVELLO 3 CONFORMI",
+    "pl": "SONDY POZIOMU 3 ZGODNE"
+  },
+  "DONNÉES LOCALES SÉCURISÉES": {
+    "nl": "LOKALE GEGEVENS BEVEILIGD",
+    "en": "LOCAL DATA SECURED",
+    "de": "LOKALE DATEN GESICHERT",
+    "es": "DATOS LOCALES ASEGURADOS",
+    "pt": "DADOS LOCAIS PROTEGIDOS",
+    "it": "DATI LOCALI PROTETTI",
+    "pl": "DANE LOKALNE BEZPIECZNE"
+  },
+  "CONSOLE D'ADMINISTRATION // TIER-3 PRO": {
+    "nl": "BEHEERSCONSOLE // TIER-3 PRO",
+    "en": "ADMINISTRATION CONSOLE // TIER-3 PRO",
+    "de": "VERWALTUNGSKONSOLE // TIER-3 PRO",
+    "es": "CONSOLA DE ADMINISTRACIÓN // TIER-3 PRO",
+    "pt": "CONSOLA DE ADMINISTRAÇÃO // TIER-3 PRO",
+    "it": "CONSOLE DI AMMINISTRAZIONE // TIER-3 PRO",
+    "pl": "KONSOLA ADMINISTRACYJNA // TIER-3 PRO"
+  },
+  "HORODATAGE": {
+    "nl": "TIJDSTEMPEL",
+    "en": "TIMESTAMP",
+    "de": "ZEITSTEMPEL",
+    "es": "MARCA DE TIEMPO",
+    "pt": "CARIMBO DE DATA/HORA",
+    "it": "DATA E ORA",
+    "pl": "ZNACZNIK CZASU"
+  },
+  "Contrôles L3": {
+    "nl": "L3 Controles",
+    "en": "L3 Checks",
+    "de": "L3 Kontrollen",
+    "es": "Controles L3",
+    "pt": "Controlos L3",
+    "it": "Controlli L3",
+    "pl": "Kontrole L3"
+  },
+  "Conformes (OK)": {
+    "nl": "Conform (OK)",
+    "en": "Compliant (OK)",
+    "de": "Konform (OK)",
+    "es": "Conformes (OK)",
+    "pt": "Conformes (OK)",
+    "it": "Conformi (OK)",
+    "pl": "Zgodne (OK)"
+  },
+  "Avertissements": {
+    "nl": "Waarschuwingen",
+    "en": "Warnings",
+    "de": "Warnungen",
+    "es": "Advertencias",
+    "pt": "Avisos",
+    "it": "Avvisi",
+    "pl": "Ostrzeżenia"
+  },
+  "Pannes Critiques": {
+    "nl": "Kritieke Fouten",
+    "en": "Critical Failures",
+    "de": "Kritische Fehler",
+    "es": "Fallos Críticos",
+    "pt": "Falhas Críticas",
+    "it": "Guasti Critici",
+    "pl": "Awarie Krytyczne"
+  },
+  "Score Santé": {
+    "nl": "Gezondheidsscore",
+    "en": "Health Score",
+    "de": "Gesundheitswert",
+    "es": "Puntuación de Salud",
+    "pt": "Pontuação de Saúde",
+    "it": "Punteggio di Salute",
+    "pl": "Wynik Zdrowia"
+  },
+  "⚡ RELANCER DIAG (.BAT)": {
+    "nl": "⚡ HERSTART DIAG (.BAT)",
+    "en": "⚡ RERUN DIAG (.BAT)",
+    "de": "⚡ DIAG NEUSTARTEN (.BAT)",
+    "es": "⚡ REINICIAR DIAG (.BAT)",
+    "pt": "⚡ REINICIAR DIAG (.BAT)",
+    "it": "⚡ RIAVVIA DIAG (.BAT)",
+    "pl": "⚡ URUCHOM PONOWNIE DIAG (.BAT)"
+  },
+  "🔄 ACTUALISER": {
+    "nl": "🔄 VERNIEUWEN",
+    "en": "🔄 REFRESH",
+    "de": "🔄 AKTUALISIEREN",
+    "es": "🔄 ACTUALIZAR",
+    "pt": "🔄 ATUALIZAR",
+    "it": "🔄 AGGIORNA",
+    "pl": "🔄 ODŚWIEŻ"
+  },
+  "🖨️ IMPRIMER": {
+    "nl": "🖨️ AFDRUKKEN",
+    "en": "🖨️ PRINT",
+    "de": "🖨️ DRUCKEN",
+    "es": "🖨️ IMPRIMIR",
+    "pt": "🖨️ IMPRIMIR",
+    "it": "🖨️ STAMPA",
+    "pl": "🖨️ DRUKUJ"
+  },
+  "🌓 Thème": {
+    "nl": "🌓 Thema",
+    "en": "🌓 Theme",
+    "de": "🌓 Thema",
+    "es": "🌓 Tema",
+    "pt": "🌓 Tema",
+    "it": "🌓 Tema",
+    "pl": "🌓 Motyw"
+  },
+  "🎢 Vue POV": {
+    "nl": "🎢 POV Weergave",
+    "en": "🎢 POV View",
+    "de": "🎢 POV-Ansicht",
+    "es": "🎢 Vista POV",
+    "pt": "🎢 Vista POV",
+    "it": "🎢 Vista POV",
+    "pl": "🎢 Widok POV"
+  },
+  "🛑 Quitter Vue POV": {
+    "nl": "🛑 Sluit POV",
+    "en": "🛑 Exit POV",
+    "de": "🛑 POV Beenden",
+    "es": "🛑 Salir de POV",
+    "pt": "🛑 Sair do POV",
+    "it": "🛑 Esci da POV",
+    "pl": "🛑 Wyjdź z POV"
+  },
+  "🎯 Recentrer": {
+    "nl": "🎯 Centreren",
+    "en": "🎯 Recenter",
+    "de": "🎯 Zentrieren",
+    "es": "🎯 Recentrar",
+    "pt": "🎯 Recentrar",
+    "it": "🎯 Ricentra",
+    "pl": "🎯 Wyśrodkuj"
+  },
+  "🔍 Filtrer par composant, service, test ou commande PowerShell...": {
+    "nl": "🔍 Filter op component, service, test of PowerShell-opdracht...",
+    "en": "🔍 Filter by component, service, test, or PowerShell command...",
+    "de": "🔍 Nach Komponente, Dienst, Test oder PowerShell-Befehl filtern...",
+    "es": "🔍 Filtrar por componente, servicio, prueba o comando de PowerShell...",
+    "pt": "🔍 Filtrar por componente, serviço, teste ou comando do PowerShell...",
+    "it": "🔍 Filtra per componente, servizio, test o comando PowerShell...",
+    "pl": "🔍 Filtruj według komponentu, usługi, testu lub polecenia PowerShell..."
+  },
+  "■ 📊 BILAN & PANNES": {
+    "nl": "■ 📊 OVERZICHT & FOUTEN",
+    "en": "■ 📊 SUMMARY & ISSUES",
+    "de": "■ 📊 ÜBERSICHT & FEHLER",
+    "es": "■ 📊 RESUMEN Y FALLOS",
+    "pt": "■ 📊 RESUMO & FALHAS",
+    "it": "■ 📊 RIEPILOGO & GUASTI",
+    "pl": "■ 📊 PODSUMOWANIE I AWARIE"
+  },
+  "■ 📈 SANTÉ & TENDANCES": {
+    "nl": "■ 📈 GEZONDHEID & TRENDS",
+    "en": "■ 📈 HEALTH & TRENDS",
+    "de": "■ 📈 GESUNDHEIT & TRENDS",
+    "es": "■ 📈 SALUD Y TENDENCIAS",
+    "pt": "■ 📈 SAÚDE & TENDÊNCIAS",
+    "it": "■ 📈 SALUTE & TENDENZE",
+    "pl": "■ 📈 ZDROWIE I TRENDY"
+  },
+  "■ 🔴 VULNÉRABILITÉS CVE": {
+    "nl": "■ 🔴 CVE KWETSBAARHEDEN",
+    "en": "■ 🔴 CVE VULNERABILITIES",
+    "de": "■ 🔴 CVE SCHWACHSTELLEN",
+    "es": "■ 🔴 VULNERABILIDADES CVE",
+    "pt": "■ 🔴 VULNERABILIDADES CVE",
+    "it": "■ 🔴 VULNERABILITÀ CVE",
+    "pl": "■ 🔴 PODATNOŚCI CVE"
+  },
+  "■ 🌐 AUDIT RÉSEAU & RDP": {
+    "nl": "■ 🌐 NETWERK & RDP AUDIT",
+    "en": "■ 🌐 NETWORK & RDP AUDIT",
+    "de": "■ 🌐 NETZWERK & RDP AUDIT",
+    "es": "■ 🌐 AUDITORÍA DE RED Y RDP",
+    "pt": "■ 🌐 AUDITORIA DE REDE E RDP",
+    "it": "■ 🌐 AUDIT RETE & RDP",
+    "pl": "■ 🌐 AUDYT SIECI I RDP"
+  },
+  "■ 💾 ANALYSE DISQUE": {
+    "nl": "■ 💾 SCHIJFANALYSE",
+    "en": "■ 💾 DISK ANALYSIS",
+    "de": "■ 💾 FESTPLATTENANALYSE",
+    "es": "■ 💾 ANÁLISIS DE DISCO",
+    "pt": "■ 💾 ANÁLISE DE DISCO",
+    "it": "■ 💾 ANALISI DISCO",
+    "pl": "■ 💾 ANALIZA DYSKU"
+  },
+  "■ 🚀 DÉMARRAGE & STARTUP": {
+    "nl": "■ 🚀 OPSTARTEN & STARTUP",
+    "en": "■ 🚀 STARTUP & PERF",
+    "de": "■ 🚀 AUTOSTART & LEISTUNG",
+    "es": "■ 🚀 INICIO Y RENDIMIENTO",
+    "pt": "■ 🚀 INÍCIO & DESEMPENHO",
+    "it": "■ 🚀 AVVIO & PRESTAZIONI",
+    "pl": "■ 🚀 URUCHAMIANIE I WYDAJNOŚĆ"
+  },
+  "■ 🇧🇪 LOGICIELS BELGIQUE": {
+    "nl": "■ 🇧🇪 BELGISCHE SOFTWARE & eID",
+    "en": "■ 🇧🇪 BELGIAN SOFTWARE",
+    "de": "■ 🇧🇪 BELGISCHE SOFTWARE & eID",
+    "es": "■ 🇧🇪 SOFTWARE BELGA & eID",
+    "pt": "■ 🇧🇪 SOFTWARE BELGA & eID",
+    "it": "■ 🇧🇪 SOFTWARE BELGA & eID",
+    "pl": "■ 🇧🇪 OPROGRAMOWANIE BELGIJSKIE & eID"
+  },
+  "■ ⚡ BENCHMARKS & SMART": {
+    "nl": "■ ⚡ BENCHMARKS & SMART",
+    "en": "■ ⚡ BENCHMARKS & SMART",
+    "de": "■ ⚡ BENCHMARKS & SMART",
+    "es": "■ ⚡ BENCHMARKS & SMART",
+    "pt": "■ ⚡ BENCHMARKS & SMART",
+    "it": "■ ⚡ BENCHMARK & SMART",
+    "pl": "■ ⚡ BENCHMARKI I SMART"
+  },
+  "■ 👤 SÉCURITÉ & ANOMALIES": {
+    "nl": "■ 👤 BEVEILIGING & GEBRUIKERS",
+    "en": "■ 👤 SECURITY & USERS",
+    "de": "■ 👤 SICHERHEIT & BENUTZER",
+    "es": "■ 👤 SEGURIDAD Y USUARIOS",
+    "pt": "■ 👤 SEGURANÇA & UTILIZADORES",
+    "it": "■ 👤 SICUREZZA & UTENTI",
+    "pl": "■ 👤 BEZPIECZEŃSTWO I UŻYTKOWNICY"
+  },
+  "■ 🌐 ARBRE 3D FOSS": {
+    "nl": "■ 🌐 3D FOSS BOOM",
+    "en": "■ 🌐 3D FOSS TREE",
+    "de": "■ 🌐 3D FOSS BAUM",
+    "es": "■ 🌐 ÁRBOL 3D FOSS",
+    "pt": "■ 🌐 ÁRVORE 3D FOSS",
+    "it": "■ 🌐 ALBERO 3D FOSS",
+    "pl": "■ 🌐 DRZEWO 3D FOSS"
+  },
+  "■ 📋 TOUS LES TESTS (26)": {
+    "nl": "■ 📋 ALLE TESTS (26)",
+    "en": "■ 📋 ALL TESTS (26)",
+    "de": "■ 📋 ALLE TESTS (26)",
+    "es": "■ 📋 TODAS LAS PRUEBAS (26)",
+    "pt": "■ 📋 TODOS OS TESTES (26)",
+    "it": "■ 📋 TUTTI I TEST (26)",
+    "pl": "■ 📋 WSZYSTKIE TESTY (26)"
+  },
+  "■ 📦 PROFILS WINGET": {
+    "nl": "■ 📦 WINGET PROFIELEN",
+    "en": "■ 📦 WINGET PROFILES",
+    "de": "■ 📦 WINGET PROFILE",
+    "es": "■ 📦 PERFILES WINGET",
+    "pt": "■ 📦 PERFIS WINGET",
+    "it": "■ 📦 PROFILI WINGET",
+    "pl": "■ 📦 PROFILE WINGET"
+  },
+  "■ ⌨️ RACCOURCIS PRO": {
+    "nl": "■ ⌨️ PRO SNELKOPPELINGEN",
+    "en": "■ ⌨️ PRO SHORTCUTS",
+    "de": "■ ⌨️ PRO TASTENKÜRZEL",
+    "es": "■ ⌨️ ATAJOS PRO",
+    "pt": "■ ⌨️ ATALHOS PRO",
+    "it": "■ ⌨️ SCORCIATOIE PRO",
+    "pl": "■ ⌨️ SKRÓTY PRO"
+  },
+  "■ 🔗 EXPORT RMM & CLIENT": {
+    "nl": "■ 🔗 EXPORT RMM & KLANT",
+    "en": "■ 🔗 RMM & CLIENT EXPORT",
+    "de": "■ 🔗 RMM & KUNDEN-EXPORT",
+    "es": "■ 🔗 EXPORTACIÓN RMM Y CLIENTE",
+    "pt": "■ 🔗 EXPORTAÇÃO RMM & CLIENTE",
+    "it": "■ 🔗 ESPORTAZIONE RMM & CLIENTE",
+    "pl": "■ 🔗 EKSPORT RMM I KLIENTA"
+  },
+  "■ 📖 DOCUMENTATION & GUIDE": {
+    "nl": "■ 📖 DOCUMENTATIE & GIDS",
+    "en": "■ 📖 DOCS & METHODOLOGY",
+    "de": "■ 📖 DOKUMENTATION & LEITFADEN",
+    "es": "■ 📖 DOCUMENTACIÓN Y GUÍA",
+    "pt": "■ 📖 DOCUMENTAÇÃO & GUIA",
+    "it": "■ 📖 DOCUMENTAZIONE & GUIDA",
+    "pl": "■ 📖 DOKUMENTACJA I PRZEWODNIK"
+  },
+  "🌐 Audit Réseau Avancé, Partages SMB, Connexions RDP & Matrice de Latence": {
+    "nl": "🌐 Geavanceerde Netwerkaudit, SMB-Shares, RDP-Verbindingen & Latentiematrix",
+    "en": "🌐 Advanced Network Audit, SMB Shares, RDP Connections & Latency Matrix",
+    "de": "🌐 Erweiterte Netzwerkprüfung, SMB-Freigaben, RDP-Verbindungen & Latenzmatrix",
+    "es": "🌐 Auditoría Avanzada de Red, Recursos SMB, Conexiones RDP y Matriz de Latencia",
+    "pt": "🌐 Auditoria Avançada de Rede, Partilhas SMB, Conexões RDP e Matriz de Latência",
+    "it": "🌐 Audit Avanzato di Rete, Condivisioni SMB, Connessioni RDP e Matrice di Latenza",
+    "pl": "🌐 Zaawansowany Audyt Sieci, Udziały SMB, Połączenia RDP i Macierz Opóźnień"
+  },
+  "🎛️ Sélectionner la Carte Réseau à Auditer :": {
+    "nl": "🎛️ Selecteer de te Auditeren Netwerkkaart:",
+    "en": "🎛️ Select Network Adapter to Audit:",
+    "de": "🎛️ Zu prüfenden Netzwerkadapter auswählen:",
+    "es": "🎛️ Seleccionar Tarjeta de Red a Auditar:",
+    "pt": "🎛️ Selecionar Placa de Rede a Auditar:",
+    "it": "🎛️ Seleziona Scheda di Rete da Verificare:",
+    "pl": "🎛️ Wybierz Kartę Sieciową do Audytu:"
+  },
+  "Basculez entre vos cartes Ethernet, Wi-Fi, VPN ou commutateurs virtuels (WSL/Hyper-V) :": {
+    "nl": "Schakel tussen uw Ethernet-, Wi-Fi-, VPN-adapters of virtuele switches (WSL/Hyper-V):",
+    "en": "Switch between your Ethernet, Wi-Fi, VPN adapters or virtual switches (WSL/Hyper-V):",
+    "de": "Wechseln Sie zwischen Ethernet-, Wi-Fi-, VPN-Adaptern oder virtuellen Switches (WSL/Hyper-V):",
+    "es": "Cambie entre sus tarjetas Ethernet, Wi-Fi, VPN o conmutadores virtuales (WSL/Hyper-V):",
+    "pt": "Alterne entre as suas placas Ethernet, Wi-Fi, VPN ou comutadores virtuais (WSL/Hyper-V):",
+    "it": "Passa tra le tue schede Ethernet, Wi-Fi, VPN o switch virtuali (WSL/Hyper-V):",
+    "pl": "Przełączaj między kartami Ethernet, Wi-Fi, VPN lub przełącznikami wirtualnymi (WSL/Hyper-V):"
+  },
+  "⚡ Matrice de Latence & Réactivité Réseau (Temps Réel)": {
+    "nl": "⚡ Latentiematrix & Netwerkreactiesnelheid (Real-Time)",
+    "en": "⚡ Latency Matrix & Network Responsiveness (Real-Time)",
+    "de": "⚡ Latenzmatrix & Netzwerkreaktionszeit (Echtzeit)",
+    "es": "⚡ Matriz de Latencia y Reactividad de Red (Tiempo Real)",
+    "pt": "⚡ Matriz de Latência & Reatividade de Rede (Tempo Real)",
+    "it": "⚡ Matrice di Latenza e Reattività di Rete (Tempo Reale)",
+    "pl": "⚡ Macierz Opóźnień i Responsywności Sieci (Czas Rzeczywisty)"
+  },
+  "📁 Partages Réseau Locaux Exécutables (SMB Shares)": {
+    "nl": "📁 Lokale Uitvoerbare Netwerkshares (SMB Shares)",
+    "en": "📁 Local Executable Network Shares (SMB Shares)",
+    "de": "📁 Lokale Ausführbare Netzwerkfreigaben (SMB-Freigaben)",
+    "es": "📁 Recursos Compartidos de Red Locales (SMB Shares)",
+    "pt": "📁 Partilhas de Rede Locais Executáveis (SMB Shares)",
+    "it": "📁 Condivisioni di Rete Locali Eseguibili (SMB Shares)",
+    "pl": "📁 Lokalne Udziały Sieciowe (SMB Shares)"
+  },
+  "Aucun partage SMB personnalisé exposé sur la machine locale.": {
+    "nl": "Geen aangepaste SMB-shares geëxposeerd op de lokale machine.",
+    "en": "No custom SMB shares exposed on the local machine.",
+    "de": "Keine benutzerdefinierten SMB-Freigaben auf dem lokalen Computer freigegeben.",
+    "es": "Ningún recurso compartido SMB personalizado expuesto en la máquina local.",
+    "pt": "Nenhuma partilha SMB personalizada exposta na máquina local.",
+    "it": "Nessuna condivisione SMB personalizzata esposta sul computer locale.",
+    "pl": "Brak niestandardowych udziałów SMB udostępnionych na komputerze lokalnym."
+  },
+  "Sockets TCP en Écoute & Processus Associés": {
+    "nl": "Luisterende TCP-Sockets & Bijbehorende Processen",
+    "en": "Listening TCP Sockets & Associated Processes",
+    "de": "Abhörende TCP-Sockets & Zugehörige Prozesse",
+    "es": "Sockets TCP en Escucha y Procesos Asociados",
+    "pt": "Sockets TCP em Escuta & Processos Associados",
+    "it": "Socket TCP in Ascolto e Processi Associati",
+    "pl": "Nasłuchujące Gniazda TCP i Powiązane Procesy"
+  },
+  "Cartographie des services en attente de connexions entrantes sur cette machine :": {
+    "nl": "Overzicht van services die wachten op inkomende verbindingen op deze machine:",
+    "en": "Mapping of services awaiting incoming connections on this machine:",
+    "de": "Übersicht der Dienste, die auf eingehende Verbindungen auf diesem Computer warten:",
+    "es": "Mapeo de servicios en espera de conexiones entrantes en esta máquina:",
+    "pt": "Mapeamento de serviços à espera de ligações de entrada nesta máquina:",
+    "it": "Mappatura dei servizi in attesa di connessioni in entrata su questa macchina:",
+    "pl": "Mapowanie usług oczekujących na połączenia przychodzące na tej maszynie:"
+  },
+  "port(s) exposé(s) sur le LAN / Public": {
+    "nl": "poort(en) geëxposeerd op het LAN / Publiek",
+    "en": "port(s) exposed on LAN / Public",
+    "de": "Port(s) im LAN / Öffentlich freigegeben",
+    "es": "puerto(s) expuesto(s) en la LAN / Público",
+    "pt": "porta(s) exposta(s) na LAN / Público",
+    "it": "porta/e esposta/e sulla LAN / Pubblica",
+    "pl": "port(ów) wystawiony(ch) w sieci LAN / Publicznej"
+  },
+  "EXPOSÉ LAN (0.0.0.0)": {
+    "nl": "GEËXPOSEERD LAN (0.0.0.0)",
+    "en": "EXPOSED LAN (0.0.0.0)",
+    "de": "LAN FREIGEGEBEN (0.0.0.0)",
+    "es": "EXPUESTO LAN (0.0.0.0)",
+    "pt": "EXPOSTO LAN (0.0.0.0)",
+    "it": "ESPOSTO LAN (0.0.0.0)",
+    "pl": "WYSTAWIONY LAN (0.0.0.0)"
+  },
+  "LOCAL UNIQUEMENT (127.0.0.1)": {
+    "nl": "ALLEEN LOKAAL (127.0.0.1)",
+    "en": "LOCAL ONLY (127.0.0.1)",
+    "de": "NUR LOKAL (127.0.0.1)",
+    "es": "SOLO LOCAL (127.0.0.1)",
+    "pt": "APENAS LOCAL (127.0.0.1)",
+    "it": "SOLO LOCALE (127.0.0.1)",
+    "pl": "TYLKO LOKALNIE (127.0.0.1)"
+  },
+  "Connecté Internet": {
+    "nl": "Internet Verbonden",
+    "en": "Internet Connected",
+    "de": "Mit Internet verbunden",
+    "es": "Conectado a Internet",
+    "pt": "Conectado à Internet",
+    "it": "Connesso a Internet",
+    "pl": "Połączono z Internetem"
+  },
+  "Actif": {
+    "nl": "Actief",
+    "en": "Active",
+    "de": "Aktiv",
+    "es": "Activo",
+    "pt": "Ativo",
+    "it": "Attivo",
+    "pl": "Aktywny"
+  },
+  "Inactif": {
+    "nl": "Inactief",
+    "en": "Inactive",
+    "de": "Inaktiv",
+    "es": "Inactivo",
+    "pt": "Inativo",
+    "it": "Inattivo",
+    "pl": "Nieaktywny"
+  },
+  "PORT LOCAL": {
+    "nl": "LOKALE POORT",
+    "en": "LOCAL PORT",
+    "de": "LOKALER PORT",
+    "es": "PUERTO LOCAL",
+    "pt": "PORTA LOCAL",
+    "it": "PORTA LOCALE",
+    "pl": "PORT LOKALNY"
+  },
+  "ADRESSE D'ÉCOUTE": {
+    "nl": "LUISTERADRES",
+    "en": "LISTENING ADDRESS",
+    "de": "ABHÖRADRESSE",
+    "es": "DIRECCIÓN DE ESCUCHA",
+    "pt": "ENDEREÇO DE ESCUTA",
+    "it": "INDIRIZZO DI ASCOLTO",
+    "pl": "ADRES NASŁUCHIWANIA"
+  },
+  "PROCESSUS / SERVICE": {
+    "nl": "PROCES / SERVICE",
+    "en": "PROCESS / SERVICE",
+    "de": "PROZESS / DIENST",
+    "es": "PROCESO / SERVICIO",
+    "pt": "PROCESSO / SERVIÇO",
+    "it": "PROCESSO / SERVIZIO",
+    "pl": "PROCES / USŁUGA"
+  },
+  "EXPOSITION RÉSEAU": {
+    "nl": "NETWERKBLOOTSTELLING",
+    "en": "NETWORK EXPOSURE",
+    "de": "NETZWERKEXPOSITION",
+    "es": "EXPOSICIÓN DE RED",
+    "pt": "EXPOSIÇÃO DE REDE",
+    "it": "ESPOSIZIONE DI RETE",
+    "pl": "EKSPOZYCJA SIECIOWA"
+  },
+  "Point de contrôle": {
+    "nl": "Controlepunt",
+    "en": "Check Point",
+    "de": "Prüfpunkt",
+    "es": "Punto de Control",
+    "pt": "Ponto de Controlo",
+    "it": "Punto di Controllo",
+    "pl": "Punkt Kontrolny"
+  },
+  "Statut": {
+    "nl": "Status",
+    "en": "Status",
+    "de": "Status",
+    "es": "Estado",
+    "pt": "Estado",
+    "it": "Stato",
+    "pl": "Status"
+  },
+  "Constat technique détaillé": {
+    "nl": "Gedetailleerde Technische Bevinding",
+    "en": "Detailed Technical Finding",
+    "de": "Detaillierter Technischer Befund",
+    "es": "Hallazgo Técnico Detallado",
+    "pt": "Constatação Técnica Detalhada",
+    "it": "Rilevamento Tecnico Dettagliato",
+    "pl": "Szczegółowe Ustalenie Techniczne"
+  },
+  "Solution recommandée": {
+    "nl": "Aanbevolen Oplossing",
+    "en": "Recommended Solution",
+    "de": "Empfohlene Lösung",
+    "es": "Solución Recomendada",
+    "pt": "Solução Recomendada",
+    "it": "Soluzione Consigliata",
+    "pl": "Zalecane Rozwiązanie"
+  },
+  "Remédiation PowerShell": {
+    "nl": "PowerShell Herstel",
+    "en": "PowerShell Remediation",
+    "de": "PowerShell-Behebung",
+    "es": "Remediación de PowerShell",
+    "pt": "Remediação do PowerShell",
+    "it": "Rimedio PowerShell",
+    "pl": "Naprawa PowerShell"
+  },
+  "Raccourci GUI": {
+    "nl": "GUI Snelkoppeling",
+    "en": "GUI Shortcut",
+    "de": "GUI-Verknüpfung",
+    "es": "Atajo GUI",
+    "pt": "Atalho GUI",
+    "it": "Scorciatoia GUI",
+    "pl": "Skrót GUI"
+  },
+  "💾 Analyse Disque & Espace Récupérable": {
+    "nl": "💾 Schijfanalyse & Terugwinbare Ruimte",
+    "en": "💾 Disk Analysis & Reclaimable Space",
+    "de": "💾 Festplattenanalyse & Bereinigbarer Speicherplatz",
+    "es": "💾 Análisis de Disco y Espacio Recuperable",
+    "pt": "💾 Análise de Disco & Espaço Recuperável",
+    "it": "💾 Analisi Disco & Spazio Recuperabile",
+    "pl": "💾 Analiza Dysku i Odzyskiwalne Miejsce"
+  },
+  "Gain de Place Immédiat Potentiel": {
+    "nl": "Onmiddellijke Potentiële Ruimtewinst",
+    "en": "Potential Immediate Space Gain",
+    "de": "Möglicher Sofortiger Speicherplatzgewinn",
+    "es": "Ganancia de Espacio Inmediata Potencial",
+    "pt": "Ganho de Espaço Imediato Potencial",
+    "it": "Potenziale Guadagno Immediato di Spazio",
+    "pl": "Potencjalny Natychmiastowy Zysk Miejsca"
+  },
+  "Caches temporaires, téléchargements Windows Update & logs orphelins.": {
+    "nl": "Tijdelijke caches, Windows Update-downloads & verweesde logboeken.",
+    "en": "Temporary caches, Windows Update downloads & orphaned logs.",
+    "de": "Temporäre Caches, Windows Update-Downloads & verwaiste Protokolle.",
+    "es": "Cachés temporales, descargas de Windows Update y registros huérfanos.",
+    "pt": "Caches temporárias, transferências do Windows Update e registos órfãos.",
+    "it": "Cache temporanee, download di Windows Update e log orfani.",
+    "pl": "Pamięci podręczne, pobrania Windows Update i osierocone dzienniki."
+  },
+  "🔍 Constat technique :": {
+    "nl": "🔍 Technische bevinding :",
+    "en": "🔍 Technical finding :",
+    "de": "🔍 Technischer Befund :",
+    "es": "🔍 Hallazgo técnico :",
+    "pt": "🔍 Constatação técnica :",
+    "it": "🔍 Rilevamento tecnico :",
+    "pl": "🔍 Ustalenie techniczne :"
+  },
+  "🔧 Action corrective :": {
+    "nl": "🔧 Corrigerende maatregel :",
+    "en": "🔧 Corrective action :",
+    "de": "🔧 Korrekturmaßnahme :",
+    "es": "🔧 Acción correctiva :",
+    "pt": "🔧 Ação corretiva :",
+    "it": "🔧 Azione correttiva :",
+    "pl": "🔧 Działanie naprawcze :"
+  },
+  "💡 Explication Formateur / Règle UAA 3 :": {
+    "nl": "💡 Instructeur Tip / Niveau 3 Regel :",
+    "en": "💡 Instructor Tip / Level 3 Rule :",
+    "de": "💡 Ausbilder-Tipp / Stufe 3 Regel :",
+    "es": "💡 Consejo del Instructor / Regla Nivel 3 :",
+    "pt": "💡 Dica do Formador / Regra Nível 3 :",
+    "it": "💡 Suggerimento Formatore / Regola Livello 3 :",
+    "pl": "💡 Wskazówka Instruktora / Zasada Poziomu 3 :"
+  },
+  "🪟 Raccourci GUI :": {
+    "nl": "🪟 GUI Snelkoppeling :",
+    "en": "🪟 GUI Shortcut :",
+    "de": "🪟 GUI Tastenkürzel :",
+    "es": "🪟 Atajo GUI :",
+    "pt": "🪟 Atalho GUI :",
+    "it": "🪟 Scorciatoia GUI :",
+    "pl": "🪟 Skrót GUI :"
+  },
+  "⚡ Copier PowerShell :": {
+    "nl": "⚡ Kopieer PowerShell :",
+    "en": "⚡ Copy PowerShell :",
+    "de": "⚡ PowerShell Kopieren :",
+    "es": "⚡ Copiar PowerShell :",
+    "pt": "⚡ Copiar PowerShell :",
+    "it": "⚡ Copia PowerShell :",
+    "pl": "⚡ Kopiuj PowerShell :"
+  },
+  "Passerelle par défaut": {
+    "nl": "Standaardgateway",
+    "en": "Default Gateway",
+    "de": "Standard-Gateway",
+    "es": "Puerta de enlace predeterminada",
+    "pt": "Gateway predefinido",
+    "it": "Gateway predefinito",
+    "pl": "Brama domyślna"
+  },
+  "Fichier Hosts (Redirection / Détournement)": {
+    "nl": "Hosts-bestand (Omleiding / Kaping)",
+    "en": "Hosts File (Redirection / Hijack)",
+    "de": "Hosts-Datei (Umleitung / Entführung)",
+    "es": "Archivo Hosts (Redirección / Secuestro)",
+    "pt": "Ficheiro Hosts (Redirecionamento / Sequestro)",
+    "it": "File Hosts (Reindirizzamento / Dirottamento)",
+    "pl": "Plik Hosts (Przekierowanie / Przejęcie)"
+  },
+  "Espace Disque": {
+    "nl": "Schijfruimte",
+    "en": "Disk Space",
+    "de": "Festplattenspeicher",
+    "es": "Espacio en Disco",
+    "pt": "Espaço em Disco",
+    "it": "Spazio su Disco",
+    "pl": "Miejsce na Dysku"
+  },
+  "Disposition du Clavier (QWERTY / Inversé)": {
+    "nl": "Toetsenbordindeling (QWERTY / Omgekeerd)",
+    "en": "Keyboard Layout (QWERTY / Inverted)",
+    "de": "Tastaturlayout (QWERTY / Umgekehrt)",
+    "es": "Distribución del Teclado (QWERTY / Invertido)",
+    "pt": "Disposição do Teclado (QWERTY / Invertido)",
+    "it": "Layout della Tastiera (QWERTY / Invertito)",
+    "pl": "Układ Klawiatury (QWERTY / Odwrócony)"
+  },
+  "Réseau": {
+    "nl": "Netwerk",
+    "en": "Network",
+    "de": "Netzwerk",
+    "es": "Red",
+    "pt": "Rede",
+    "it": "Rete",
+    "pl": "Sieć"
+  },
+  "Système & OS": {
+    "nl": "Systeem & OS",
+    "en": "System & OS",
+    "de": "System & OS",
+    "es": "Sistema y SO",
+    "pt": "Sistema & SO",
+    "it": "Sistema & SO",
+    "pl": "System i OS"
+  },
+  "Hardware & Drivers": {
+    "nl": "Hardware & Drivers",
+    "en": "Hardware & Drivers",
+    "de": "Hardware & Treiber",
+    "es": "Hardware y Controladores",
+    "pt": "Hardware & Controladores",
+    "it": "Hardware & Driver",
+    "pl": "Sprzęt i Sterowniki"
+  },
+  "Sécurité & GPO": {
+    "nl": "Beveiliging & GPO",
+    "en": "Security & GPO",
+    "de": "Sicherheit & GPO",
+    "es": "Seguridad y GPO",
+    "pt": "Segurança & GPO",
+    "it": "Sicurezza & GPO",
+    "pl": "Bezpieczeństwo i GPO"
+  },
+  "Logiciel": {
+    "nl": "Software",
+    "en": "Software",
+    "de": "Software",
+    "es": "Software",
+    "pt": "Software",
+    "it": "Software",
+    "pl": "Oprogramowanie"
+  },
+  "La passerelle par défaut (1) est injoignable par ping ICMP.": {
+    "nl": "De standaardgateway (1) is onbereikbaar via ICMP-ping.",
+    "en": "The default gateway (1) is unreachable via ICMP ping.",
+    "de": "Das Standard-Gateway (1) ist über ICMP-Ping nicht erreichbar.",
+    "es": "La puerta de enlace predeterminada (1) es inaccesible mediante ping ICMP.",
+    "pt": "O gateway predefinido (1) está inacessível por ping ICMP.",
+    "it": "Il gateway predefinito (1) non è raggiungibile tramite ping ICMP.",
+    "pl": "Brama domyślna (1) jest nieosiągalna przez ping ICMP."
+  },
+  "Vérifier l'adresse IP de la passerelle, le câble relié au routeur/switch ou le pare-feu du routeur.": {
+    "nl": "Controleer het IP-adres van de gateway, de kabel naar de router/switch of de routerfirewall.",
+    "en": "Check the gateway IP address, cable connected to router/switch, or router firewall.",
+    "de": "Überprüfen Sie die IP-Adresse des Gateways, das Kabel zum Router/Switch oder die Router-Firewall.",
+    "es": "Verifique la dirección IP de la puerta de enlace, el cable conectado al router/conmutador o el firewall del router.",
+    "pt": "Verifique o endereço IP do gateway, o cabo ligado ao router/switch ou a firewall do router.",
+    "it": "Verificare l'indirizzo IP del gateway, il cavo collegato al router/switch o il firewall del router.",
+    "pl": "Sprawdź adres IP bramy, kabel podłączony do routera/przełącznika lub zaporę routera."
+  },
+  "Si la passerelle ne répond pas, le poste ne peut joindre aucun autre réseau ni internet.": {
+    "nl": "Als de gateway niet reageert, kan het werkstation geen enkel ander netwerk of internet bereiken.",
+    "en": "If the gateway does not respond, the workstation cannot reach any other network or the Internet.",
+    "de": "Wenn das Gateway nicht antwortet, kann die Workstation kein anderes Netzwerk oder das Internet erreichen.",
+    "es": "Si la puerta de enlace no responde, la estación de trabajo no puede acceder a ninguna otra red ni a Internet.",
+    "pt": "Se o gateway não responder, a estação de trabalho não conseguirá aceder a nenhuma outra rede nem à Internet.",
+    "it": "Se il gateway non risponde, la postazione non può raggiungere altre reti né Internet.",
+    "pl": "Jeśli brama nie odpowiada, stacja robocza nie może połączyć się z żadną inną siecią ani z Internetem."
+  },
+  "Redirection(s) suspecte(s) détectée(s) :": {
+    "nl": "Verdachte omleiding(en) gedetecteerd :",
+    "en": "Suspicious redirection(s) detected :",
+    "de": "Verdächtige Umleitung(en) erkannt :",
+    "es": "Redirección(es) sospechosa(s) detectada(s) :",
+    "pt": "Redirecionamento(s) suspeito(s) detetado(s) :",
+    "it": "Reindirizzamento/i sospetto/i rilevato/i :",
+    "pl": "Wykryto podejrzane przekierowanie(a) :"
+  },
+  "Nettoyer le fichier hosts en supprimant les lignes suspectes ou réinitialiser le fichier par défaut.": {
+    "nl": "Schoon het hosts-bestand op door verdachte regels te verwijderen of herstel het standaardbestand.",
+    "en": "Clean the hosts file by removing suspicious lines or resetting to default.",
+    "de": "Bereinigen Sie die Hosts-Datei durch Entfernen verdächtiger Zeilen oder Zurücksetzen auf Standard.",
+    "es": "Limpie el archivo hosts eliminando líneas sospechosas o restableciendo el archivo predeterminado.",
+    "pt": "Limpe o ficheiro hosts removendo linhas suspeitas ou repondo o ficheiro predefinido.",
+    "it": "Pulire il file hosts rimuovendo le righe sospette o ripristinando il file predefinito.",
+    "pl": "Wyczyść plik hosts, usuwając podejrzane linie lub przywracając domyślny plik."
+  },
+  "Un fichier hosts modifié peut détourner vos requêtes web vers de faux serveurs (phishing/malware).": {
+    "nl": "Een gewijzigd hosts-bestand kan uw webverzoeken omleiden naar valse servers (phishing/malware).",
+    "en": "A modified hosts file can hijack your web requests to malicious servers (phishing/malware).",
+    "de": "Eine geänderte Hosts-Datei kann Ihre Webanfragen auf bösartige Server umleiten (Phishing/Malware).",
+    "es": "Un archivo hosts modificado puede desviar sus solicitudes web a servidores falsos (phishing/malware).",
+    "pt": "Um ficheiro hosts modificado pode desviar os seus pedidos web para servidores falsos (phishing/malware).",
+    "it": "Un file hosts modificato può deviare le richieste web verso server falsi (phishing/malware).",
+    "pl": "Zmodyfikowany plik hosts może przekierowywać żądania internetowe na fałszywe serwery (phishing/malware)."
+  },
+  "Disposition clavier détectée :": {
+    "nl": "Toetsenbordindeling gedetecteerd :",
+    "en": "Keyboard layout detected :",
+    "de": "Tastaturlayout erkannt :",
+    "es": "Distribución del teclado detectada :",
+    "pt": "Disposição do teclado detetada :",
+    "it": "Layout della tastiera rilevato :",
+    "pl": "Wykryto układ klawiatury :"
+  },
+  "Basculer la disposition avec Alt+Maj ou Windows+Espace, ou reconfigurer la langue dans les paramètres.": {
+    "nl": "Schakel indeling om met Alt+Shift of Windows+Spatie, of configureer de taal in Instellingen.",
+    "en": "Switch layout with Alt+Shift or Win+Space, or configure language in Windows Settings.",
+    "de": "Layout mit Alt+Umschalt oder Win+Leertaste umschalten oder Sprache in den Einstellungen konfigurieren.",
+    "es": "Cambie la distribución con Alt+Mayús o Windows+Espacio, o reconfigure el idioma en la configuración.",
+    "pt": "Alterne a disposição com Alt+Shift ou Windows+Espaço, ou reconfigure o idioma nas Definições.",
+    "it": "Cambia layout con Alt+Maiusc o Windows+Spazio, oppure riconfigura la lingua nelle impostazioni.",
+    "pl": "Przełącz układ za pomocą Alt+Shift lub Win+Spacja, albo skonfiguruj język w Ustawieniach."
+  },
+  "En Belgique, la disposition standard est le clavier AZERTY (Belgique). Une mauvaise disposition bloque la saisie des mots de passe.": {
+    "nl": "In België is de standaardindeling AZERTY (België). Een verkeerde indeling blokkeert de invoer van wachtwoorden.",
+    "en": "In Belgium, standard layout is AZERTY (Belgium). A wrong layout blocks correct password entry.",
+    "de": "In Belgien ist das Standard-Layout AZERTY (Belgien). Ein falsches Layout verhindert die korrekte Passworteingabe.",
+    "es": "En Bélgica, la distribución estándar es AZERTY (Bélgica). Una distribución incorrecta bloquea el ingreso de contraseñas.",
+    "pt": "Na Bélgica, a disposição padrão é AZERTY (Bélgica). Uma disposição errada bloqueia a introdução de palavras-passe.",
+    "it": "In Belgio, il layout standard è AZERTY (Belgio). Un layout errato impedisce l'inserimento corretto della password.",
+    "pl": "W Belgii standardowym układem jest AZERTY (Belgia). Nieprawidłowy układ uniemożliwia wprowadzanie haseł."
+  },
+  "⚡ Actions Prioritaires & Remédiation en 1 Clic": {
+    "nl": "⚡ Prioritaire Acties & 1-Klik Herstel",
+    "en": "⚡ Priority Actions & 1-Click Remediation",
+    "de": "⚡ Prioritäre Maßnahmen & 1-Klick-Behebung",
+    "es": "⚡ Acciones Prioritarias y Remediación en 1 Clic",
+    "pt": "⚡ Ações Prioritárias & Remediação em 1 Clique",
+    "it": "⚡ Azioni Prioritarie e Risoluzione in 1 Clic",
+    "pl": "⚡ Działania Priorytetowe i Naprawa 1 Kliknięciem"
+  },
+  "anomalie(s) détectée(s)": {
+    "nl": "afwijking(en) gedetecteerd",
+    "en": "anomaly(ies) detected",
+    "de": "Auffälligkeit(en) erkannt",
+    "es": "anomalía(s) detectada(s)",
+    "pt": "anomalia(s) detetada(s)",
+    "it": "anomalia/e rilevata/e",
+    "pl": "wykryta(e) anomalia(e)"
+  },
+  "📈 Évolution de la Santé & Tendances Prédictives": {
+    "nl": "📈 Gezondheidsevolutie & Voorspellende Trends",
+    "en": "📈 Health Evolution & Predictive Trends",
+    "de": "📈 Gesundheitsentwicklung & Prognosetrends",
+    "es": "📈 Evolución de la Salud y Tendencias Predictivas",
+    "pt": "📈 Evolução da Saúde & Tendências Preditivas",
+    "it": "📈 Evoluzione della Salute e Tendenze Predittive",
+    "pl": "📈 Ewolucja Zdrowia i Trendy Predykcyjne"
+  },
+  "Historique des 30 derniers diagnostics et prédiction de défaillance matérielle.": {
+    "nl": "Geschiedenis van de laatste 30 diagnoses en voorspelling van hardwarefouten.",
+    "en": "History of the last 30 diagnostics and hardware failure prediction.",
+    "de": "Verlauf der letzten 30 Diagnosen und Vorhersage von Hardwarefehlern.",
+    "es": "Historial de los últimos 30 diagnósticos y predicción de fallos de hardware.",
+    "pt": "Histórico dos últimos 30 diagnósticos e previsão de falhas de hardware.",
+    "it": "Cronologia delle ultime 30 diagnostiche e previsione di guasti hardware.",
+    "pl": "Historia ostatnich 30 diagnoz i przewidywanie awarii sprzętu."
+  },
+  "SCORE GLOBAL": {
+    "nl": "TOTALE SCORE",
+    "en": "OVERALL SCORE",
+    "de": "GESAMTWERT",
+    "es": "PUNTUACIÓN GLOBAL",
+    "pt": "PONTUAÇÃO GLOBAL",
+    "it": "PUNTEGGIO GLOBALE",
+    "pl": "WYNIK OGÓLNY"
+  },
+  "SUR 100 POINTS": {
+    "nl": "OP 100 PUNTEN",
+    "en": "OUT OF 100 POINTS",
+    "de": "VON 100 PUNKTEN",
+    "es": "DE 100 PUNTOS",
+    "pt": "DE 100 PONTOS",
+    "it": "SU 100 PUNTI",
+    "pl": "NA 100 PUNKTÓW"
+  },
+  "Indice de Fiabilité": {
+    "nl": "Betrouwbaarheidsindex",
+    "en": "Reliability Index",
+    "de": "Zuverlässigkeitsindex",
+    "es": "Índice de Fiabilidad",
+    "pt": "Índice de Confiabilidade",
+    "it": "Indice di Affidabilità",
+    "pl": "Wskaźnik Niezawodności"
+  },
+  "🚀 Analyse de la Performance, Démarrage & Throttling CPU": {
+    "nl": "🚀 Prestatieanalyse, Opstarten & CPU-Throttling",
+    "en": "🚀 Performance Analysis, Startup & CPU Throttling",
+    "de": "🚀 Leistungsanalyse, Autostart & CPU-Drosselung",
+    "es": "🚀 Análisis de Rendimiento, Inicio y Throttling CPU",
+    "pt": "🚀 Análise de Desempenho, Início & Throttling da CPU",
+    "it": "🚀 Analisi delle Prestazioni, Avvio e Throttling CPU",
+    "pl": "🚀 Analiza Wydajności, Uruchamiania i Throttlingu CPU"
+  },
+  "Analyse des points de persistance au démarrage, de l'état du CPU (fréquences & throttling) et détection des gigaoctets perdus dans les caches système.": {
+    "nl": "Analyse van persistentiepunten bij opstarten, CPU-status (kloksnelheden & throttling) en detectie van verloren gigabytes in systeemcaches.",
+    "en": "Analysis of startup persistence points, CPU state (clock frequencies & throttling), and identification of gigabytes lost in system caches.",
+    "de": "Analyse von Autostart-Persistenzpunkten, CPU-Status (Taktfrequenzen & Drosselung) und Erkennung verlorener Gigabytes in System-Caches.",
+    "es": "Análisis de puntos de persistencia de inicio, estado de la CPU (frecuencias y throttling) y detección de gigabytes perdidos en cachés del sistema.",
+    "pt": "Análise de pontos de persistência no arranque, estado da CPU (frequências & throttling) e deteção de gigabytes perdidos em caches do sistema.",
+    "it": "Analisi dei punti di persistenza all'avvio, dello stato della CPU (frequenze e throttling) e rilevamento dei gigabyte persi nelle cache di sistema.",
+    "pl": "Analiza punktów trwałości podczas uruchamiania, stanu procesora (częstotliwości i throttling) oraz wykrywanie gigabajtów utraconych w pamięci podręcznej."
+  },
+  "Démarrage Rapide (Fast Startup)": {
+    "nl": "Snel Opstarten (Fast Startup)",
+    "en": "Fast Startup",
+    "de": "Schnellstart (Fast Startup)",
+    "es": "Inicio Rápido (Fast Startup)",
+    "pt": "Arranque Rápido (Fast Startup)",
+    "it": "Avvio Rapido (Fast Startup)",
+    "pl": "Szybkie Uruchamianie (Fast Startup)"
+  },
+  "Throttling Thermique CPU": {
+    "nl": "CPU Thermische Throttling",
+    "en": "CPU Thermal Throttling",
+    "de": "CPU-Thermisches Throttling",
+    "es": "Throttling Térmico de CPU",
+    "pt": "Throttling Térmico da CPU",
+    "it": "Throttling Termico CPU",
+    "pl": "Termiczny Throttling Procesora"
+  },
+  "Mode d'Alimentation": {
+    "nl": "Energiebeheer Modus",
+    "en": "Power Plan",
+    "de": "Energiesparplan",
+    "es": "Plan de Energía",
+    "pt": "Esquema de Energia",
+    "it": "Combinazione per il Risparmio di Energia",
+    "pl": "Plan Zasilania"
+  },
+  "🇧🇪 Écosystème Logiciel Belge & Certificats eID": {
+    "nl": "🇧🇪 Belgisch Software Ecosysteem & eID Certificaten",
+    "en": "🇧🇪 Belgian Software Ecosystem & eID Certificates",
+    "de": "🇧🇪 Belgisches Software-Ökosystem & eID-Zertifikate",
+    "es": "🇧🇪 Ecosistema de Software Belga y Certificados eID",
+    "pt": "🇧🇪 Ecossistema de Software Belga & Certificados eID",
+    "it": "🇧🇪 Ecosistema Software Belga e Certificati eID",
+    "pl": "🇧🇪 Belgijski Ekosystem Oprogramowania i Certyfikaty eID"
+  },
+  "Détection du middleware eID officiel, des certificats d'authentification/signature de carte d'identité belge et applications métiers citoyennes.": {
+    "nl": "Detectie van officiële eID-middleware, authenticatie-/handtekeningcertificaten van de Belgische identiteitskaart en professionele burgerapplicaties.",
+    "en": "Detection of official eID middleware, Belgian identity card authentication/signing certificates, and citizen business applications.",
+    "de": "Erkennung der offiziellen eID-Middleware, Authentifizierungs-/Signaturzertifikate des belgischen Personalausweises und beruflicher Bürgeranwendungen.",
+    "es": "Detección del middleware eID oficial, certificados de autenticación/firma de documento de identidad belga y aplicaciones ciudadanas.",
+    "pt": "Deteção do middleware eID oficial, certificados de autenticação/assinatura do cartão de cidadão belga e aplicações profissionais.",
+    "it": "Rilevamento del middleware eID ufficiale, certificati di autenticazione/firma della carta d'identità belga e applicazioni professionali.",
+    "pl": "Wykrywanie oficjalnego oprogramowania eID, certyfikatów uwierzytelniania/podpisu belgijskiego dowodu tożsamości i aplikacji obywatelskich."
+  },
+  "⚡ Benchmark Processeur & Indice de Performance Multi-Thread": {
+    "nl": "⚡ Processor Benchmark & Multi-Thread Prestatie-index",
+    "en": "⚡ Processor Benchmark & Multi-Thread Performance Index",
+    "de": "⚡ Prozessor-Benchmark & Multi-Thread-Leistungsindex",
+    "es": "⚡ Benchmark de Procesador e Índice de Rendimiento Multi-Hilo",
+    "pt": "⚡ Benchmark de Processador & Índice de Desempenho Multi-Thread",
+    "it": "⚡ Benchmark Processore e Indice di Prestazioni Multi-Thread",
+    "pl": "⚡ Benchmark Procesora i Wskaźnik Wydajności Wielowątkowej"
+  },
+  "Mesure normalisée du temps d'exécution d'algorithmes intensifs et comparaison avec les catégories de référence du marché.": {
+    "nl": "Gestandaardiseerde meting van uitvoeringstijd voor rekenintensieve algoritmen en vergelijking met marktreferentiecategorieën.",
+    "en": "Standardized measurement of execution time for compute-intensive algorithms and comparison with market reference categories.",
+    "de": "Standardisierte Messung der Ausführungszeit rechenintensiver Algorithmen und Vergleich mit Marktreferenzkategorien.",
+    "es": "Medición estandarizada del tiempo de ejecución de algoritmos intensivos y comparación con categorías de referencia del mercado.",
+    "pt": "Medição normalizada do tempo de execução de algoritmos intensivos e comparação com categorias de referência do mercado.",
+    "it": "Misurazione standardizzata del tempo di esecuzione di algoritmi intensivi e confronto con categorie di riferimento del mercato.",
+    "pl": "Znormalizowany pomiar czasu wykonywania intensywnych algorytmów i porównanie z kategoriami referencyjnymi."
+  },
+  "Disque Physique": {
+    "nl": "Fysieke Schijf",
+    "en": "Physical Disk",
+    "de": "Physische Festplatte",
+    "es": "Disco Físico",
+    "pt": "Disco Físico",
+    "it": "Disco Fisico",
+    "pl": "Dysk Fizyczny"
+  },
+  "Type Média": {
+    "nl": "Mediatype",
+    "en": "Media Type",
+    "de": "Medientyp",
+    "es": "Tipo de Medio",
+    "pt": "Tipo de Mídia",
+    "it": "Tipo di Supporto",
+    "pl": "Typ Nośnika"
+  },
+  "Santé SMART": {
+    "nl": "SMART Gezondheid",
+    "en": "SMART Health",
+    "de": "SMART-Gesundheit",
+    "es": "Salud SMART",
+    "pt": "Saúde SMART",
+    "it": "Salute SMART",
+    "pl": "Kondycja SMART"
+  },
+  "Usure (%)": {
+    "nl": "Slijtage (%)",
+    "en": "Wear (%)",
+    "de": "Verschleiß (%)",
+    "es": "Desgaste (%)",
+    "pt": "Desgaste (%)",
+    "it": "Usura (%)",
+    "pl": "Zużycie (%)"
+  },
+  "Température": {
+    "nl": "Temperatuur",
+    "en": "Temperature",
+    "de": "Temperatur",
+    "es": "Temperatura",
+    "pt": "Temperatura",
+    "it": "Temperatura",
+    "pl": "Temperatura"
+  },
+  "Erreurs Lecture": {
+    "nl": "Leesfouten",
+    "en": "Read Errors",
+    "de": "Lesefehler",
+    "es": "Errores de Lectura",
+    "pt": "Erros de Leitura",
+    "it": "Errori di Lettura",
+    "pl": "Błędy Odczytu"
+  },
+  "👤 Audit de Sécurité des Comptes Utilisateurs & Contrôles Système": {
+    "nl": "👤 Beveiligingsaudit van Gebruikersaccounts & Systeembesturing",
+    "en": "👤 Security Audit of User Accounts & System Controls",
+    "de": "👤 Sicherheitsprüfung von Benutzerkonten & Systemsteuerungen",
+    "es": "👤 Auditoría de Seguridad de Cuentas de Usuario y Controles del Sistema",
+    "pt": "👤 Auditoria de Segurança de Contas de Utilizador & Controlos do Sistema",
+    "it": "👤 Audit di Sicurezza degli Account Utente e Controlli di Sistema",
+    "pl": "👤 Audyt Bezpieczeństwa Kont Użytkowników i Kontroli Systemowych"
+  },
+  "Inspection des privilèges administrateur locaux, expiration des mots de passe, état TPM 2.0, SecureBoot, BitLocker et UAC.": {
+    "nl": "Inspectie van lokale beheerdersrechten, wachtwoordverloop, TPM 2.0-status, SecureBoot, BitLocker en UAC.",
+    "en": "Inspection of local administrator privileges, password expiration, TPM 2.0 status, SecureBoot, BitLocker, and UAC.",
+    "de": "Prüfung lokaler Administratorrechte, Passwortablauf, TPM 2.0-Status, SecureBoot, BitLocker und UAC.",
+    "es": "Inspección de privilegios de administrador local, caducidad de contraseñas, estado de TPM 2.0, SecureBoot, BitLocker y UAC.",
+    "pt": "Inspeção de privilégios de administrador local, expiração de palavras-passe, estado do TPM 2.0, SecureBoot, BitLocker e UAC.",
+    "it": "Ispezione dei privilegi di amministratore locale, scadenza della password, stato TPM 2.0, SecureBoot, BitLocker e UAC.",
+    "pl": "Inspekcja lokalnych uprawnień administratora, wygasania haseł, stanu TPM 2.0, SecureBoot, BitLocker i UAC."
+  },
+  "Nom Utilisateur": {
+    "nl": "Gebruikersnaam",
+    "en": "Username",
+    "de": "Benutzername",
+    "es": "Nombre de Usuario",
+    "pt": "Nome de Utilizador",
+    "it": "Nome Utente",
+    "pl": "Nazwa Użytkownika"
+  },
+  "Statut Compte": {
+    "nl": "Accountstatus",
+    "en": "Account Status",
+    "de": "Kontostatus",
+    "es": "Estado de la Cuenta",
+    "pt": "Estado da Conta",
+    "it": "Stato Account",
+    "pl": "Stan Konta"
+  },
+  "Expiration MDP": {
+    "nl": "Wachtwoord Verloop",
+    "en": "Password Expiry",
+    "de": "Passwortablauf",
+    "es": "Caducidad de Contraseña",
+    "pt": "Expiração da Palavra-passe",
+    "it": "Scadenza Password",
+    "pl": "Wygaśnięcie Hasła"
+  },
+  "Dernière Connexion": {
+    "nl": "Laatste Aanmelding",
+    "en": "Last Logon",
+    "de": "Letzte Anmeldung",
+    "es": "Último Inicio de Sesión",
+    "pt": "Último Início de Sessão",
+    "it": "Ultimo Accesso",
+    "pl": "Ostatnie Logowanie"
+  },
+  "🌐 Matrice Open-Source Alternatives (FOSS Tree 3D)": {
+    "nl": "🌐 Open-Source Alternatievenmatrix (3D FOSS Boom)",
+    "en": "🌐 Open-Source Alternative Matrix (3D FOSS Tree)",
+    "de": "🌐 Open-Source-Alternativenmatrix (3D FOSS Baum)",
+    "es": "🌐 Matriz de Alternativas de Código Abierto (Árbol 3D FOSS)",
+    "pt": "🌐 Matriz de Alternativas Open-Source (Árvore 3D FOSS)",
+    "it": "🌐 Matrice Alternative Open Source (Albero 3D FOSS)",
+    "pl": "🌐 Macierz Alternatyw Open Source (Drzewo 3D FOSS)"
+  },
+  "Explorez les alternatives open source souveraines aux solutions propriétaires dans un arbre 3D interactif.": {
+    "nl": "Verken soevereine open-source alternatieven voor propriëtaire oplossingen in een interactieve 3D-boom.",
+    "en": "Explore sovereign open-source alternatives to proprietary solutions in an interactive 3D tree.",
+    "de": "Erkunden Sie souveräne Open-Source-Alternativen zu proprietären Lösungen in einem interaktiven 3D-Baum.",
+    "es": "Explore alternativas soberanas de código abierto a soluciones propietarias en un árbol 3D interactivo.",
+    "pt": "Explore alternativas soberanas de código aberto a soluções proprietárias numa árvore 3D interativa.",
+    "it": "Esplora alternative sovrane open source alle soluzioni proprietarie in un albero 3D interattivo.",
+    "pl": "Odkryj suwerenne alternatywy open source dla rozwiązań komercyjnych w interaktywnym drzewie 3D."
+  },
+  "📦 Packs d'Applications Clé en Main par Profil Métier": {
+    "nl": "📦 Kant-en-klare Softwarepakketten per Beroepsprofiel",
+    "en": "📦 Turnkey Application Bundles by Professional Profile",
+    "de": "📦 Schlüsselfertige Anwendungspakete nach Berufsprofil",
+    "es": "📦 Paquetes de Aplicaciones Llave en Mano por Perfil Profesional",
+    "pt": "📦 Pacotes de Aplicações Prontos a Usar por Perfil Profissional",
+    "it": "📦 Pacchetti di Applicazioni Chiavi in Mano per Profilo Professionale",
+    "pl": "📦 Gotowe Pakiety Aplikacji według Profilu Zawodowego"
+  },
+  "Générez et déployez des suites complètes d'applications professionnelles via Winget en 1 clic.": {
+    "nl": "Genereer en implementeer complete professionele applicatiesuites via Winget in 1 klik.",
+    "en": "Generate and deploy complete professional application suites via Winget in 1 click.",
+    "de": "Generieren und implementieren Sie vollständige professionelle Anwendungspakete über Winget mit 1 Klick.",
+    "es": "Genere y despliegue suites completas de aplicaciones profesionales a través de Winget en 1 clic.",
+    "pt": "Gere e implemente suites completas de aplicações profissionais através do Winget em 1 clique.",
+    "it": "Genera e distribuisci suite complete di applicazioni professionali tramite Winget in 1 clic.",
+    "pl": "Generuj i wdrażaj kompletne pakiety aplikacji profesjonalnych za pomocą Winget w 1 kliknięcie."
+  },
+  "⌨️ Raccourcis Clavier Windows 11 & Guide Expert IT": {
+    "nl": "⌨️ Windows 11 Sneltoetsen & IT Expert Gids",
+    "en": "⌨️ Windows 11 Keyboard Shortcuts & IT Expert Guide",
+    "de": "⌨️ Windows 11 Tastenkürzel & IT-Expertenhandbuch",
+    "es": "⌨️ Atajos de Teclado de Windows 11 y Guía Experta de TI",
+    "pt": "⌨️ Atalhos de Teclado do Windows 11 & Guia Especialista em TI",
+    "it": "⌨️ Scorciatoie da Tastiera di Windows 11 e Guida Esperta IT",
+    "pl": "⌨️ Skróty Klawiszowe Windows 11 i Przewodnik Eksperta IT"
+  },
+  "Le Top 10 absolu des commandes et consoles de dépannage pour techniciens.": {
+    "nl": "De absolute top 10 van opdrachten en probleemoplossingsconsoles voor technici.",
+    "en": "The absolute top 10 commands and troubleshooting consoles for technicians.",
+    "de": "Die absoluten Top 10 der Befehle und Fehlerbehebungskonsolen für Techniker.",
+    "es": "El Top 10 absoluto de comandos y consolas de resolución de problemas para técnicos.",
+    "pt": "O Top 10 absoluto de comandos e consolas de resolução de problemas para técnicos.",
+    "it": "La Top 10 assoluta di comandi e console di risoluzione dei problemi per i tecnici.",
+    "pl": "Absolutny Top 10 poleceń i konsol do rozwiązywania problemów dla techników."
+  },
+  "🔗 Exportation RMM & Rapport Synthétique Client": {
+    "nl": "🔗 RMM-Export & Synthetisch Klantenrapport",
+    "en": "🔗 RMM Export & Synthetic Client Report",
+    "de": "🔗 RMM-Export & Zusammenfassender Kundenbericht",
+    "es": "🔗 Exportación RMM e Informe Sintético de Cliente",
+    "pt": "🔗 Exportação RMM & Relatório Sintético do Cliente",
+    "it": "🔗 Esportazione RMM e Report Sintetico per il Cliente",
+    "pl": "🔗 Eksport RMM i Syntetyczny Raport Klienta"
+  },
+  "📖 Méthode & Arbre de Décision UAA 3 (Support PC & Réseaux)": {
+    "nl": "📖 Methodologie & Beslissingsboom (PC- & Netwerkondersteuning)",
+    "en": "📖 Methodology & Decision Tree (PC & Network Support)",
+    "de": "📖 Methodik & Entscheidungsbaum (PC- & Netzwerk-Support)",
+    "es": "📖 Metodología y Árbol de Decisión (Soporte de PC y Redes)",
+    "pt": "📖 Metodologia & Árvore de Decisão (Suporte de PC & Redes)",
+    "it": "📖 Metodologia e Albero Decisionale (Supporto PC e Reti)",
+    "pl": "📖 Metodologia i Drzewo Decyzyjne (Wsparcie PC i Sieci)"
+  },
+  "La Méthode en 6 Étapes qui Évite de Paniquer : Observer ➔ Isoler ➔ Tester ➔ Corriger ➔ Valider ➔ Expliquer.": {
+    "nl": "De 6-Stappenmethode die Paniek Voorkomt: Observeren ➔ Isoleren ➔ Testen ➔ Corrigeren ➔ Valideren ➔ Uitleggen.",
+    "en": "The 6-Step Method That Prevents Panic: Observe ➔ Isolate ➔ Test ➔ Fix ➔ Validate ➔ Explain.",
+    "de": "Die 6-Schritte-Methode gegen Panik: Beobachten ➔ Isolieren ➔ Testen ➔ Korrigieren ➔ Validieren ➔ Erklären.",
+    "es": "El Método de 6 Pasos que Evita el Pánico: Observar ➔ Aislar ➔ Probar ➔ Corregir ➔ Validar ➔ Explicar.",
+    "pt": "O Método de 6 Passos que Evita o Pânico: Observar ➔ Isolar ➔ Testar ➔ Corrigir ➔ Validar ➔ Explicar.",
+    "it": "Il Metodo in 6 Passi che Evita il Panico: Osservare ➔ Isolare ➔ Testare ➔ Correggere ➔ Convalidare ➔ Spiegare.",
+    "pl": "6-krokowa Metoda Zapobiegająca Panice: Obserwuj ➔ Izoluj ➔ Testuj ➔ Napraw ➔ Waliduj ➔ Wyjaśnij."
+  }
+}

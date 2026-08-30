@@ -1,0 +1,16 @@
+# Temporary & scratch files
+scratch/
+backup/
+*.tmp
+*.log
+*.doc
+*_clean.txt
+*_text.txt
+doc_content.txt
+three.min.js
+Diag-IT-UAA3-V2.ps1
+Diagnostic_IT_UAA3.ps1
+
+# Generated diagnostic output (may contain client or workstation data)
+Rapport_Diagnostic_*.html
+reports/

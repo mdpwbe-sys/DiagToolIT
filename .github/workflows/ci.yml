@@ -1,0 +1,55 @@
+name: CI / Validation DiagToolIT
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  validate-powershell:
+    name: Windows PowerShell 5.1 / Runtime contracts
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout du dépôt
+        uses: actions/checkout@v4
+
+      - name: Installation de Pester
+        shell: powershell
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module Pester -RequiredVersion 5.7.1 -Scope CurrentUser -Force -SkipPublisherCheck
+
+      - name: Vérification de la syntaxe PowerShell 5.1 (AST)
+        shell: powershell
+        run: |
+          $files = Get-ChildItem -Path . -Filter *.ps1 -Recurse -File | Where-Object { $_.FullName -notmatch 'backup' }
+          $hasErrors = $false
+          foreach ($file in $files) {
+              Write-Host "Analyse AST de : $($file.Name)..." -ForegroundColor Cyan
+              $errors = $null
+              [System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$null, [ref]$errors)
+              if ($errors) {
+                  Write-Host "❌ Erreur dans $($file.Name) :" -ForegroundColor Red
+                  $errors | ForEach-Object { Write-Host " - Ligne $($_.Extent.StartLineNumber): $($_.Message)" -ForegroundColor Red }
+                  $hasErrors = $true
+              } else {
+                  Write-Host "✅ $($file.Name) : AST 100% Valide" -ForegroundColor Green
+              }
+          }
+          if ($hasErrors) { exit 1 }
+
+      - name: Tests des contrats d'exécution
+        shell: powershell
+        run: |
+          Invoke-Pester -Path .\tests -CI
+
+      - name: Validation syntaxique des fichiers JSON
+        shell: powershell
+        run: |
+          Get-ChildItem -Path . -Filter *.json -File | ForEach-Object {
+              Write-Host "Validation JSON : $($_.Name)"
+              python -m json.tool $_.FullName | Out-Null
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }

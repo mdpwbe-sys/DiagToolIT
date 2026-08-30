@@ -1,0 +1,22 @@
+name: ✨ Suggestion de Fonctionnalité
+description: Proposer une nouvelle vérification, un nouvel outil FOSS ou une amélioration.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Partagez vos idées pour enrichir la suite DiagToolIT !
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Description de la Fonctionnalité
+      description: Quelle vérification ou quel module souhaitez-vous ajouter ?
+    validations:
+      required: true
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Cas d'Usage & Bénéfice
+      description: En quoi cela aide-t-il les techniciens support ou administrateurs système ?
+    validations:
+      required: true
