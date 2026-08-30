@@ -14,3 +14,35 @@ Diagnostic_IT_UAA3.ps1
 # Generated diagnostic output (may contain client or workstation data)
 Rapport_Diagnostic_*.html
 reports/
+
+# Local agent tooling (never ship with the product)
+.agents/
+.agent/
+.codex/
+.claude/
+AGENTS.md
+docs/agents/
+skills-lock.json
+
+# Local development environments and generated caches
+node_modules/
+.venv/
+venv/
+env/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage/
+dist/
+build/
+.next/
+.cache/
+.idea/
+.vscode/
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
