@@ -64,6 +64,26 @@ Describe 'DiagToolIT runtime contract' {
         }
     }
 
+    It 'generates a self-contained report without automatic network dependencies' {
+        $reportPath = Join-Path ([IO.Path]::GetTempPath()) ('diagtoolit-offline-{0}.html' -f [guid]::NewGuid())
+
+        try {
+            & (Join-Path $PSScriptRoot 'New-SyntheticReport.ps1') -OutputPath $reportPath -Lang EN | Out-Null
+            $report = Get-Content -LiteralPath $reportPath -Raw
+            $remoteAutoloadPattern = '(?is)<(?:script|link|img|iframe|audio|video|source)\b[^>]*\b(?:src|href)\s*=\s*["'']https?://|url\(\s*["'']?https?://'
+            $networkApiPattern = '(?i)\b(?:fetch|WebSocket|EventSource)\s*\(\s*["'']https?://|\.open\(\s*["''](?:GET|POST|PUT|PATCH|DELETE)["'']\s*,\s*["'']https?://|sendBeacon\s*\(\s*["'']https?://'
+
+            if ($report -match $remoteAutoloadPattern -or $report -match $networkApiPattern) {
+                throw 'The generated report still contains an automatic remote network dependency.'
+            }
+            if ($report -notmatch 'Copyright 2010-2021 Three\.js Authors' -or $report -notmatch 'WebGLRenderer') {
+                throw 'The generated report does not embed the pinned Three.js runtime.'
+            }
+        } finally {
+            Remove-Item -LiteralPath $reportPath -Force -ErrorAction SilentlyContinue
+        }
+    }
+
     It 'does not bake private machine data into the canonical generator' {
         $scriptPath = Join-Path $projectRoot 'Diag-IT-UAA3-V3.ps1'
         $source = Get-Content -LiteralPath $scriptPath -Raw
@@ -94,6 +114,24 @@ Describe 'DiagToolIT runtime contract' {
         }
         if ($launcher -match '(?i)C:\\Users\\') {
             throw 'The launcher contains a machine-specific user path.'
+        }
+    }
+
+    It 'registers a fixed local protocol command for explicit CVE updates' {
+        $registerPath = Join-Path $projectRoot 'Register-DiagProtocol.ps1'
+        $definitions = @(& $registerPath -WhatIf -PassThru | Where-Object {
+            $_.PSObject.Properties.Name -contains 'Scheme'
+        })
+        $cveProtocol = @($definitions | Where-Object { $_.Scheme -eq 'diagit-cve' })
+
+        if ($cveProtocol.Count -ne 1) {
+            throw 'The dedicated diagit-cve protocol is not defined exactly once.'
+        }
+        if ($cveProtocol[0].Command -notmatch 'Update-CveDatabase\.ps1') {
+            throw 'The CVE protocol does not target the local update script.'
+        }
+        if ($cveProtocol[0].Command -match '%1|Invoke-Expression') {
+            throw 'The CVE protocol accepts untrusted URL input or dynamic code execution.'
         }
     }
 
@@ -132,6 +170,15 @@ Describe 'DiagToolIT runtime contract' {
         }
         if ($readmeSource -notmatch '4 Langues') {
             throw 'The README does not advertise the actual supported language count.'
+        }
+    }
+
+    It 'keeps outbound integrations disabled by default' {
+        $configPath = Join-Path $projectRoot 'modules_config.json'
+        $config = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
+
+        if ($config.settings.rmm_integrations.webhook_enabled -ne $false) {
+            throw 'Outbound webhook integration must be disabled in the default product configuration.'
         }
     }
 

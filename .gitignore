@@ -7,7 +7,7 @@ backup/
 *_clean.txt
 *_text.txt
 doc_content.txt
-three.min.js
+/three.min.js
 Diag-IT-UAA3-V2.ps1
 Diagnostic_IT_UAA3.ps1
 

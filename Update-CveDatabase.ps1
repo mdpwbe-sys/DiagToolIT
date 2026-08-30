@@ -6,10 +6,13 @@
     deduplique les identifiants CVE, et peut installer la tache planifiee Windows hebdomadaire (Mercredi 02:00).
 .PARAMETER InstallScheduler
     Enregistre une tache planifiee Windows automatique dans le planificateur de taches.
+.PARAMETER Interactive
+    Garde la console ouverte après une mise à jour lancée depuis le rapport HTML.
 #>
 
 param (
-    [switch]$InstallScheduler
+    [switch]$InstallScheduler,
+    [switch]$Interactive
 )
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -112,3 +115,8 @@ $cveDatabase | ConvertTo-Json -Depth 4 | Set-Content $OutputFile -Force -Encodin
 Write-Host ""
 Write-Host "Base CVE dedupliquee avec succes : $OutputFile ($($cveDatabase.Count) regles uniques)" -ForegroundColor Green
 Write-Host "==========================================================================" -ForegroundColor Cyan
+
+if ($Interactive) {
+    Write-Host ""
+    [void](Read-Host "Mise à jour terminée. Appuyez sur Entrée pour fermer cette fenêtre")
+}

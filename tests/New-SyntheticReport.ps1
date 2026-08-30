@@ -25,6 +25,7 @@ $tokens = [regex]::Matches($html, '__[A-Z][A-Z0-9_]+__') |
 foreach ($token in $tokens) {
     $isJsonToken = $token -match '^__(HISTORY|CVE|BENCH|BELGIAN_APPS|NETWORK_AUDIT|DISK_AUDIT|SECURITY_AUDIT)_JSON__$'
     $value = switch -Regex ($token) {
+        '^__THREE_JS__$' { [IO.File]::ReadAllText((Join-Path $projectRoot 'vendor\three\three.min.js'), [Text.Encoding]::UTF8); break }
         '^__INITIAL_LANG__$' { $Lang.ToLowerInvariant(); break }
         '^__(HISTORY|CVE|BENCH|FOSS)_JSON__$' { '[]'; break }
         '^__BELGIAN_APPS_JSON__$' { '{"Apps":[],"Certs":[]}'; break }

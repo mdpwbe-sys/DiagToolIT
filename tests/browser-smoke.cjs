@@ -12,6 +12,12 @@ async function main() {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const pageErrors = [];
+  const outboundRequests = [];
+
+  await page.route(/^https?:\/\//, async (route) => {
+    outboundRequests.push(route.request().url());
+    await route.abort();
+  });
 
   page.on('pageerror', (error) => pageErrors.push(error.message));
   page.on('console', (message) => {
@@ -37,6 +43,31 @@ async function main() {
     const languageValue = await page.locator('#langSelect').inputValue();
     if (languageValue !== 'en') {
       throw new Error(`Expected the EN selector value, found ${languageValue}.`);
+    }
+
+    const threeRevision = await page.evaluate(() => window.THREE?.REVISION || null);
+    if (threeRevision !== '128') {
+      throw new Error(`Expected embedded Three.js r128, found ${threeRevision || '<missing>'}.`);
+    }
+
+    if (outboundRequests.length > 0) {
+      throw new Error(`Unexpected outbound requests:\n${outboundRequests.join('\n')}`);
+    }
+
+    await page.locator('.tab-btn[onclick*="tab-cve"]').click();
+    const updateButton = page.locator('#btnUpdateCve');
+    await updateButton.waitFor({ state: 'visible' });
+    const requestedProtocol = await page.evaluate(() => {
+      let requestedUri = null;
+      window.confirm = () => true;
+      window.launchLocalProtocol = (uri) => {
+        requestedUri = uri;
+      };
+      document.getElementById('btnUpdateCve').click();
+      return requestedUri;
+    });
+    if (requestedProtocol !== 'diagit-cve://update') {
+      throw new Error(`Expected the CVE update protocol, found ${requestedProtocol || '<none>'}.`);
     }
 
     if (expectLiveData) {

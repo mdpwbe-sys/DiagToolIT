@@ -69,7 +69,28 @@ if (-not (Test-Path -LiteralPath $ReportDirectory)) {
 }
 $ReportPath = Join-Path $ReportDirectory "Rapport_Diagnostic_UAA3.html"
 
-# --- 0.1 CHARGEMENT CONFIGURATION MODULES (modules_config.json) ---
+# --- 0.1 DÉPENDANCE VISUELLE LOCALE (THREE.JS R128) ---
+$threeJsPath = Join-Path $PSScriptRoot 'vendor\three\three.min.js'
+$threeJsExpectedSha256 = '9274bbcec8d96168626c732b5d31c775aa8cfb7eaa0599bec0c175908a2c1ce2'
+if (-not (Test-Path -LiteralPath $threeJsPath -PathType Leaf)) {
+    throw "Dépendance Three.js locale manquante : $threeJsPath. Réinstallez le package complet DiagToolIT."
+}
+
+try {
+    $threeJsActualSha256 = (Get-FileHash -LiteralPath $threeJsPath -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()
+    if ($threeJsActualSha256 -ne $threeJsExpectedSha256) {
+        throw "Empreinte SHA-256 inattendue ($threeJsActualSha256)."
+    }
+    $threeJsSource = [IO.File]::ReadAllText($threeJsPath, [Text.Encoding]::UTF8)
+    if ([string]::IsNullOrWhiteSpace($threeJsSource) -or $threeJsSource -notmatch 'WebGLRenderer') {
+        throw 'Le runtime Three.js local est vide ou invalide.'
+    }
+    Write-Host '[OFFLINE] Three.js r128 local vérifié ; aucune dépendance CDN.' -ForegroundColor DarkGray
+} catch {
+    throw "Impossible de charger la dépendance Three.js locale : $($_.Exception.Message)"
+}
+
+# --- 0.2 CHARGEMENT CONFIGURATION MODULES (modules_config.json) ---
 $configLoader = Join-Path $PSScriptRoot 'Diag-ConfigLoader.ps1'
 if (Test-Path -LiteralPath $configLoader) {
     try {
@@ -2458,8 +2479,10 @@ $htmlTemplate = @'
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Centre de Diagnostic IT L3 & Gestion de Packages UAA 3 (Three.js HUD)</title>
-    <!-- Three.js Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Three.js r128 vendored locally and embedded by PowerShell. -->
+    <script>
+__THREE_JS__
+    </script>
     <style>
         :root {
             --bg: #07090e;
@@ -4206,7 +4229,7 @@ $htmlTemplate = @'
             <button class="tab-btn" onclick="switchTab('tab-journal')">■ 📋 TOUS LES TESTS (26)</button>
             <button class="tab-btn" onclick="switchTab('tab-packages')">■ 📦 PROFILS WINGET</button>
             <button class="tab-btn" onclick="switchTab('tab-shortcuts')">■ ⌨️ RACCOURCIS PRO</button>
-            <button class="tab-btn" onclick="switchTab('tab-rmm-export')">■ 🔗 EXPORT RMM & CLIENT</button>
+            <button class="tab-btn" onclick="switchTab('tab-rmm-export')">■ 📦 EXPORT LOCAL & CLIENT</button>
             <button class="tab-btn" style="background:rgba(56,189,248,0.15); border-color:#38bdf8; color:#38bdf8; font-weight:800;" onclick="switchTab('tab-readme')">■ 📖 DOCUMENTATION & GUIDE</button>
             <button class="tab-btn" onclick="launchBatchDiagnostic(this)" style="background:linear-gradient(135deg, rgba(16,185,129,0.25) 0%, rgba(15,23,42,0.95) 100%); border-color:#10b981; color:#34d399; font-weight:800;" id="btnRunDiagTab" title="Relancer l'analyse complète via le lanceur .bat">⚡ RELANCER DIAG (.BAT)</button>
             <button class="tab-btn" onclick="refreshReportView()" style="background:rgba(56,189,248,0.18); border-color:#38bdf8; color:#38bdf8; font-weight:700;" id="btnRefreshTab" title="Actualiser les données du rapport">🔄 ACTUALISER</button>
@@ -4415,6 +4438,13 @@ $htmlTemplate = @'
                 <p style="color:#94a3b8; font-size:12.5px; margin-bottom:16px;">
                     Vérification des versions binaires réelles des applications installées par rapport au registre des vulnérabilités critiques (CVSS 7.0+). Permet d'identifier immédiatement les failles zero-day exploitables et de justifier les actions de patch management.
                 </p>
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:18px; padding:14px 16px; background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.28); border-radius:8px;">
+                    <div style="min-width:240px; flex:1;">
+                        <div id="cveUpdateTitle" style="font-size:13px; font-weight:800; color:#e2e8f0; margin-bottom:4px;">🛡️ Actualiser la base CVE locale</div>
+                        <div id="cveUpdateDesc" style="font-size:11.5px; line-height:1.5; color:#94a3b8;">Action volontaire nécessitant Internet : contacte uniquement l'API publique OSV.dev et n'envoie ni inventaire ni rapport.</div>
+                    </div>
+                    <button id="btnUpdateCve" type="button" class="btn-primary" onclick="launchCveDatabaseUpdate(this)" style="min-height:40px; padding:9px 16px; font-weight:800; white-space:nowrap;">🔄 Mettre à jour la base CVE</button>
+                </div>
                 <div id="cveCardsContainer">
                     <!-- Dynamically populated by JS -->
                 </div>
@@ -4674,16 +4704,16 @@ __ADAPTER_OPTIONS_HTML__
         </div>
 
         <!-- ============================================================= -->
-        <!-- TAB: EXPORT RMM, CLIENT & MULTIFORMAT -->
+        <!-- TAB: EXPORT LOCAL, CLIENT & MULTIFORMAT -->
         <!-- ============================================================= -->
         <div id="tab-rmm-export" class="tab-content">
             <div class="table-section glass-panel">
-                <div class="section-title">🔗 Intégrations RMM, Webhooks, Export Multiformat & Remise Client</div>
+                <div class="section-title">📦 Exports locaux, multiformat & remise client</div>
                 <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:18px; margin-bottom:20px;">
                     <div style="background:rgba(15,23,42,0.85); padding:20px; border:1px solid rgba(56,189,248,0.25); border-radius:8px;">
-                        <div style="font-size:13px; font-weight:700; color:#38bdf8; margin-bottom:8px;">📥 Téléchargements Immédiats (RMM / SIEM)</div>
-                        <p style="font-size:12px; color:#94a3b8; margin-bottom:14px;">Générez et téléchargez les données de diagnostic brutes en format standard (Datto, ConnectWise, N-able).</p>
-                        <button class="btn-primary" style="margin-right:8px; margin-bottom:8px;" onclick="downloadDiagnosticJson()">📄 Télécharger JSON RMM</button>
+                        <div style="font-size:13px; font-weight:700; color:#38bdf8; margin-bottom:8px;">📥 Téléchargements locaux (JSON / CSV)</div>
+                        <p style="font-size:12px; color:#94a3b8; margin-bottom:14px;">Créez des fichiers sur ce poste, sans webhook ni transmission automatique. Le JSON reste compatible avec les outils RMM/SIEM courants.</p>
+                        <button class="btn-primary" style="margin-right:8px; margin-bottom:8px;" onclick="downloadDiagnosticJson()">📄 Télécharger JSON local</button>
                         <button class="btn-primary" style="margin-bottom:8px;" onclick="downloadDiagnosticCsv()">📊 Télécharger Inventaire CSV</button>
                     </div>
                     <div style="background:rgba(15,23,42,0.85); padding:20px; border:1px solid rgba(56,189,248,0.25); border-radius:8px;">
@@ -4828,8 +4858,8 @@ __ADAPTER_OPTIONS_HTML__
                             </tr>
                             <tr>
                                 <td><strong>14</strong></td>
-                                <td><span style="color:#10b981; font-weight:700;">🔗 Export RMM & Client</span></td>
-                                <td>Génération de payloads télémétriques JSON standardisés pour plateformes RMM/ITSM, export d'inventaire complet au format CSV et résumé pour remise client.</td>
+                                <td><span style="color:#10b981; font-weight:700;">📦 Export local & Client</span></td>
+                                <td>Génération locale de fichiers JSON compatibles RMM/ITSM, export d'inventaire CSV et résumé client, sans transmission automatique.</td>
                             </tr>
                             <tr>
                                 <td><strong>15</strong></td>
@@ -6102,7 +6132,7 @@ sfc /scannow</pre>
                 tab_all: "■ 📋 TOUS LES TESTS (26)",
                 tab_profiles: "■ 📦 PROFILS WINGET",
                 tab_shortcuts: "■ ⌨️ RACCOURCIS PRO",
-                tab_rmm: "■ 🔗 EXPORT RMM & CLIENT",
+                tab_rmm: "■ 📦 EXPORT LOCAL & CLIENT",
                 tab_docs: "■ 📖 DOCUMENTATION & GUIDE",
                 btn_run_tab: "⚡ RELANCER DIAG (.BAT)",
                 btn_refresh_tab: "🔄 ACTUALISER",
@@ -6117,6 +6147,11 @@ sfc /scannow</pre>
                 search_placeholder: "🔍 Filtrer par composant, service, test ou commande PowerShell...",
                 toast_launch: "⚡ Lancement du diagnostic via protocole diagit://...",
                 toast_refresh: "🔄 Actualisation des données du rapport...",
+                cve_update_title: "🛡️ Actualiser la base CVE locale",
+                cve_update_desc: "Action volontaire nécessitant Internet : contacte uniquement l'API publique OSV.dev et n'envoie ni inventaire ni rapport.",
+                cve_update_btn: "🔄 Mettre à jour la base CVE",
+                cve_update_confirm: "Mettre à jour la base CVE locale maintenant ?\n\nCette action ouvre PowerShell et contacte uniquement l'API publique OSV.dev. Aucun inventaire ni rapport DiagToolIT n'est transmis.",
+                cve_update_toast: "🔄 Ouverture de la mise à jour CVE locale...",
                 lbl_finding: "🔍 Constat technique :",
                 lbl_fix: "🔧 Action corrective :",
                 lbl_exam_tip: "💡 Explication Formateur / Règle UAA 3 :",
@@ -6188,7 +6223,7 @@ sfc /scannow</pre>
                 tab_all: "■ 📋 ALLE TESTS (26)",
                 tab_profiles: "■ 📦 WINGET PROFIELEN",
                 tab_shortcuts: "■ ⌨️ PRO SNELKOPPELINGEN",
-                tab_rmm: "■ 🔗 EXPORT RMM & KLANT",
+                tab_rmm: "■ 📦 LOKALE EXPORT & KLANT",
                 tab_docs: "■ 📖 DOCUMENTATIE & GIDS",
                 btn_run_tab: "⚡ HERSTART DIAG (.BAT)",
                 btn_refresh_tab: "🔄 VERNIEUWEN",
@@ -6203,6 +6238,11 @@ sfc /scannow</pre>
                 search_placeholder: "🔍 Filter op component, service, test of PowerShell-opdracht...",
                 toast_launch: "⚡ Diagnose starten via diagit:// protocol...",
                 toast_refresh: "🔄 Gegevens vernieuwen...",
+                cve_update_title: "🛡️ Lokale CVE-database bijwerken",
+                cve_update_desc: "Vrijwillige actie waarvoor internet nodig is: neemt alleen contact op met de openbare OSV.dev-API en verzendt geen inventaris of rapport.",
+                cve_update_btn: "🔄 CVE-database bijwerken",
+                cve_update_confirm: "De lokale CVE-database nu bijwerken?\n\nDeze actie opent PowerShell en neemt alleen contact op met de openbare OSV.dev-API. Er wordt geen inventaris of DiagToolIT-rapport verzonden.",
+                cve_update_toast: "🔄 Lokale CVE-update openen...",
                 lbl_finding: "🔍 Technische bevinding:",
                 lbl_fix: "🔧 Corrigerende maatregel:",
                 lbl_exam_tip: "💡 Instructeur Tip / Niveau 3 Regel:",
@@ -6274,7 +6314,7 @@ sfc /scannow</pre>
                 tab_all: "■ 📋 ALL TESTS (26)",
                 tab_profiles: "■ 📦 WINGET PROFILES",
                 tab_shortcuts: "■ ⌨️ PRO SHORTCUTS",
-                tab_rmm: "■ 🔗 RMM & CLIENT EXPORT",
+                tab_rmm: "■ 📦 LOCAL EXPORT & CLIENT",
                 tab_docs: "■ 📖 DOCS & METHODOLOGY",
                 btn_run_tab: "⚡ RERUN DIAG (.BAT)",
                 btn_refresh_tab: "🔄 REFRESH",
@@ -6289,6 +6329,11 @@ sfc /scannow</pre>
                 search_placeholder: "🔍 Filter by component, service, test, or PowerShell command...",
                 toast_launch: "⚡ Launching diagnostic via diagit:// protocol...",
                 toast_refresh: "🔄 Refreshing report data...",
+                cve_update_title: "🛡️ Update the local CVE database",
+                cve_update_desc: "Explicit action requiring Internet access: contacts only the public OSV.dev API and sends no inventory or report.",
+                cve_update_btn: "🔄 Update CVE database",
+                cve_update_confirm: "Update the local CVE database now?\n\nThis action opens PowerShell and contacts only the public OSV.dev API. No inventory or DiagToolIT report is transmitted.",
+                cve_update_toast: "🔄 Opening the local CVE update...",
                 lbl_finding: "🔍 Technical Finding:",
                 lbl_fix: "🔧 Corrective Action:",
                 lbl_exam_tip: "💡 Instructor Tip / Level 3 Rule:",
@@ -6360,7 +6405,7 @@ sfc /scannow</pre>
                 tab_all: "■ 📋 ALLE TESTS (26)",
                 tab_profiles: "■ 📦 WINGET PROFILE",
                 tab_shortcuts: "■ ⌨️ PRO TASTENKÜRZEL",
-                tab_rmm: "■ 🔗 RMM & KUNDEN-EXPORT",
+                tab_rmm: "■ 📦 LOKALER EXPORT & KUNDE",
                 tab_docs: "■ 📖 DOKUMENTATION & LEITFADEN",
                 btn_run_tab: "⚡ DIAG NEUSTARTEN (.BAT)",
                 btn_refresh_tab: "🔄 AKTUALISIEREN",
@@ -6375,6 +6420,11 @@ sfc /scannow</pre>
                 search_placeholder: "🔍 Nach Komponente, Dienst, Test oder PowerShell-Befehl filtern...",
                 toast_launch: "⚡ Diagnose über diagit://-Protokoll wird gestartet...",
                 toast_refresh: "🔄 Berichtsdaten werden aktualisiert...",
+                cve_update_title: "🛡️ Lokale CVE-Datenbank aktualisieren",
+                cve_update_desc: "Bewusste Aktion mit Internetzugriff: kontaktiert ausschließlich die öffentliche OSV.dev-API und sendet weder Inventar noch Bericht.",
+                cve_update_btn: "🔄 CVE-Datenbank aktualisieren",
+                cve_update_confirm: "Lokale CVE-Datenbank jetzt aktualisieren?\n\nDiese Aktion öffnet PowerShell und kontaktiert ausschließlich die öffentliche OSV.dev-API. Es werden weder Inventar noch DiagToolIT-Bericht übertragen.",
+                cve_update_toast: "🔄 Lokale CVE-Aktualisierung wird geöffnet...",
                 lbl_finding: "🔍 Technischer Befund:",
                 lbl_fix: "🔧 Korrekturmaßnahme:",
                 lbl_exam_tip: "💡 Ausbilder-Tipp / Stufe 3 Regel:",
@@ -6910,6 +6960,13 @@ sfc /scannow</pre>
             var btnPrT = document.getElementById('btnPrintTab');
             if (btnPrT) btnPrT.innerText = t.btn_print_tab;
 
+            var cveUpdateTitle = document.getElementById('cveUpdateTitle');
+            if (cveUpdateTitle) cveUpdateTitle.innerText = t.cve_update_title;
+            var cveUpdateDesc = document.getElementById('cveUpdateDesc');
+            if (cveUpdateDesc) cveUpdateDesc.innerText = t.cve_update_desc;
+            var cveUpdateBtn = document.getElementById('btnUpdateCve');
+            if (cveUpdateBtn) cveUpdateBtn.innerText = t.cve_update_btn;
+
             var sInput = document.getElementById('searchInput');
             if (sInput && t.search_placeholder) sInput.placeholder = t.search_placeholder;
 
@@ -7074,24 +7131,45 @@ sfc /scannow</pre>
         }
 
 
-                        window.launchBatchDiagnostic = function(btn) {
+        window.launchLocalProtocol = function(uri) {
+            var ifr = document.createElement('iframe');
+            ifr.style.position = 'absolute';
+            ifr.style.width = '1px';
+            ifr.style.height = '1px';
+            ifr.style.opacity = '0.01';
+            ifr.style.border = 'none';
+            ifr.setAttribute('aria-hidden', 'true');
+            ifr.src = uri;
+            document.body.appendChild(ifr);
+            setTimeout(function() {
+                if (ifr.parentNode) ifr.parentNode.removeChild(ifr);
+            }, 2500);
+        };
+
+        window.launchBatchDiagnostic = function(btn) {
             var t = (typeof translations !== 'undefined' && translations[currentLang]) ? translations[currentLang] : { toast_launch: "⚡ Lancement du diagnostic..." };
             showToast(t.toast_launch || "⚡ Lancement du diagnostic...");
-            
+
             try {
-                var ifr = document.createElement('iframe');
-                ifr.style.position = 'absolute';
-                ifr.style.width = '1px';
-                ifr.style.height = '1px';
-                ifr.style.opacity = '0.01';
-                ifr.style.border = 'none';
-                ifr.src = 'diagit://run';
-                document.body.appendChild(ifr);
-                setTimeout(function() {
-                    if (ifr.parentNode) ifr.parentNode.removeChild(ifr);
-                }, 2500);
+                window.launchLocalProtocol('diagit://run');
             } catch(e) {
                 console.error("Launcher error:", e);
+            }
+        };
+
+        window.launchCveDatabaseUpdate = function(btn) {
+            var t = (typeof translations !== 'undefined' && translations[currentLang]) ? translations[currentLang] : {};
+            var consent = window.confirm(t.cve_update_confirm || "Mettre à jour la base CVE locale maintenant ?");
+            if (!consent) return false;
+
+            showToast(t.cve_update_toast || "🔄 Ouverture de la mise à jour CVE locale...");
+            try {
+                window.launchLocalProtocol('diagit-cve://update');
+                return true;
+            } catch(e) {
+                console.error("CVE update launcher error:", e);
+                showToast("❌ Impossible d'ouvrir le protocole local diagit-cve://");
+                return false;
             }
         };
 
@@ -8817,7 +8895,7 @@ sfc /scannow</pre>
                         '  </div>',
                         '  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:16px; font-size:11.5px; color:#94a3b8;">',
                         '    <div>📦 <em>Base locale CVE synchronisée • Prochaine vérification planifiée recommandée sous 7 jours.</em></div>',
-                        '    <button class="btn-primary" onclick="copyDirect(this)" data-cmd=".\Update-CveDatabase.ps1" style="font-size:11.5px; padding:6px 12px;">🔄 Mettre à jour la base CVE</button>',
+                        '    <button class="btn-primary" onclick="launchCveDatabaseUpdate(this)" style="font-size:11.5px; padding:6px 12px;">🔄 Mettre à jour la base CVE</button>',
                         '  </div>',
                         '</div>'
                     ].join('');
@@ -10304,9 +10382,9 @@ sfc /scannow</pre>
                 var url = URL.createObjectURL(blob);
                 var a = document.createElement('a');
                 a.href = url;
-                a.download = 'Diagnostic_RMM___HOSTNAME___' + (new Date().toISOString().slice(0,10)) + '.json';
+                a.download = 'Diagnostic_Local___HOSTNAME___' + (new Date().toISOString().slice(0,10)) + '.json';
                 a.click();
-                showToast("📥 Export JSON RMM téléchargé.");
+                showToast("📥 Export JSON local téléchargé.");
             };
 
             window.downloadDiagnosticCsv = function() {
@@ -10386,6 +10464,7 @@ sfc /scannow</pre>
 
 # Remplacement des balises
 $htmlOutput = $htmlTemplate
+$htmlOutput = $htmlOutput.Replace('__THREE_JS__', [string]$threeJsSource)
 $htmlOutput = $htmlOutput.Replace('__INITIAL_LANG__', $Lang.ToLowerInvariant())
 $htmlOutput = $htmlOutput.Replace('__SCAN_DATE__', $scanDate)
 $htmlOutput = $htmlOutput.Replace('__HOSTNAME__', $hostName)

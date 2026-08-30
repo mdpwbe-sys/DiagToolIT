@@ -9,7 +9,7 @@ Ce document détaille l'architecture modulaire, les schémas de données, les m�
 La solution fonctionne selon un modèle **monolithique autonome à zéro dépendance binaire** :
 - **Moteur d'Audit & Collecte (PowerShell 5.1 / 7+)** : Sonde directement les API Windows, WMI/CIM, Event Logs, Windows Filtering Platform (WFP), Crypto API et registres sans requérir d'agent tiers.
 - **Base Locale d'Historique (JSON FIFO)** : Enregistrement rotatif structuré dans `$env:LOCALAPPDATA\DiagIT\history_db.json` (30 runs max).
-- **Rendu Visuel & Cockpit Interactif (HTML5 / Three.js)** : Génère un fichier HTML autonome intégrant la scène 3D GPU (Trou Noir Gargantua & Boule de Feu Solaire), la Matrice FOSS 3D, les graphiques temporels et les outils d'export.
+- **Rendu Visuel & Cockpit Interactif (HTML5 / Three.js)** : Vérifie le SHA-256 du runtime Three.js r128 conservé dans `vendor/three/`, puis l'injecte dans un fichier HTML autonome. Le rapport n'a aucune dépendance CDN et fonctionne en environnement réseau fermé.
 
 ```mermaid
 graph TD
@@ -33,7 +33,7 @@ graph TD
         J --> L
         K --> L
         L --> M[Three.js Engine 3D]
-        L --> N[Export RMM / CSV / JSON]
+        L --> N[Exports locaux CSV / JSON]
         L --> O[Impression PDF Pro A4]
     end
 ```
@@ -64,7 +64,7 @@ graph TD
 * **Écosystème ciblé** : Winbooks, Sage (BOB 50, BOB 100), Ciel Compta, Belgium eID Middleware, Isabel 6, Silverfin, Accon, SuperFisc, Octopus.
 * **Magasin de Certificats Windows** : Scanne `Cert:\CurrentUser\My` et `Cert:\LocalMachine\My` pour identifier les certificats d'authentification et de signature avec alerte d'expiration sous 30 jours.
 
-### Module 6 : RMM Export & Intégrations
+### Module 6 : Exports locaux & compatibilité RMM
 * **Formats supportés** : JSON universel (SIEM/Datto/ConnectWise), CSV d'inventaire technique.
 * **Conditions d'alerte** : Déclenchement de tickets d'intervention automatisés en cas d'erreurs critiques.
 
@@ -95,7 +95,7 @@ graph TD
   * `settings.history.score_baseline_threshold` → seuil de prédiction de santé.
   * `settings.cve_scanner.cvss_min_severity` → filtre minimal de sévérité CVE.
   * `settings.belgian_ecosystem.cert_alert_days` / `cert_critical_alert_days` → seuils d'alerte expiration eID.
-* **Hors périmètre (clés présentes mais non câblées)** : `trusted_paths`, `trusted_processes`, `ignore_domains`, `alert_threshold_score`, `performance_benchmark`, `rmm_integrations.*` — réservés aux chantiers ultérieurs.
+* **Hors périmètre (clés présentes mais non câblées)** : `trusted_paths`, `trusted_processes`, `ignore_domains`, `alert_threshold_score`, `performance_benchmark`, `rmm_integrations.*` — réservés aux chantiers ultérieurs. Le webhook est désactivé par défaut.
 
 ---
 

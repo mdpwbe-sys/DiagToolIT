@@ -99,10 +99,10 @@
     "en": "12 software deployment profiles by profession (Web Developer, SysAdmin/DevOps, Professional Office, Multimedia/Graphics, Cybersecurity, IT Student, etc.).",
     "de": "12 Softwarebereitstellungsprofile nach Beruf (Webentwickler, SysAdmin/DevOps, Professional Office, Multimedia/Grafik, Cybersicherheit, IT-Student usw.)."
   },
-  "Génération de payloads télémétriques JSON standardisés pour plateformes RMM/ITSM, export d'inventaire complet au format CSV et résumé pour remise client.": {
-    "nl": "Generatie van gestandaardiseerde JSON-telemetrische payloads voor RMM/ITSM-platforms, export van volledige inventaris in CSV-formaat en samenvatting voor levering aan klanten.",
-    "en": "Generation of standardized JSON telemetric payloads for RMM/ITSM platforms, export of complete inventory in CSV format and summary for customer delivery.",
-    "de": "Generierung standardisierter JSON-Telemetrienutzlasten für RMM/ITSM-Plattformen, Export des vollständigen Inventars im CSV-Format und Zusammenfassung zur Lieferung an den Kunden."
+  "Génération locale de fichiers JSON compatibles RMM/ITSM, export d'inventaire CSV et résumé client, sans transmission automatique.": {
+    "nl": "Lokale generatie van RMM/ITSM-compatibele JSON-bestanden, CSV-inventaris en klantsamenvatting, zonder automatische overdracht.",
+    "en": "Local generation of RMM/ITSM-compatible JSON files, CSV inventory and client summary, with no automatic transmission.",
+    "de": "Lokale Erstellung RMM/ITSM-kompatibler JSON-Dateien, CSV-Inventar und Kundenzusammenfassung, ohne automatische Übertragung."
   },
   "Calcul du Score de Santé Prédictif sur 100, jauge radar des 5 piliers sectoriels et graphique d'évolution historique des 30 dernières exécutions (FIFO).": {
     "nl": "Berekening van de voorspellende gezondheidsscore op 100, radarmeter van de 5 sectorale pijlers en historische evolutiegrafiek van de laatste 30 executies (FIFO).",
@@ -2334,10 +2334,10 @@
     "en": "Essential PC gaming platform and library management.",
     "de": "Grundlegende PC-Gaming-Plattform und Bibliotheksverwaltung."
   },
-  "🔗 Intégrations RMM, Webhooks, Export Multiformat & Remise Client": {
-    "nl": "🔗 RMM, webhooks, multi-format export en klantleveringsintegraties",
-    "en": "🔗 RMM, Webhooks, Multi-Format Export & Customer Delivery Integrations",
-    "de": "🔗 RMM, Webhooks, Multiformat-Export und Kundenlieferungsintegrationen"
+  "📦 Exports locaux, multiformat & remise client": {
+    "nl": "📦 Lokale exports, meerdere formaten en klantoplevering",
+    "en": "📦 Local multi-format exports & client delivery",
+    "de": "📦 Lokale Exporte in mehreren Formaten & Kundenübergabe"
   },
   "Lecteur PDF ultra-léger et instantané pour consultation rapide.": {
     "nl": "Ultralichte en instant PDF-lezer voor snel advies.",
@@ -3514,10 +3514,10 @@
     "en": "🔄 Alt. de : Ostinato / Testeurs Hardware",
     "de": "🔄 Alt. de : Ostinato / Testeurs Hardware"
   },
-  "📥 Téléchargements Immédiats (RMM / SIEM)": {
-    "nl": "📥 Téléchargements Immédiats (RMM / SIEM)",
-    "en": "📥 Téléchargements Immédiats (RMM / SIEM)",
-    "de": "📥 Téléchargements Immédiats (RMM / SIEM)"
+  "📥 Téléchargements locaux (JSON / CSV)": {
+    "nl": "📥 Lokale downloads (JSON / CSV)",
+    "en": "📥 Local downloads (JSON / CSV)",
+    "de": "📥 Lokale Downloads (JSON / CSV)"
   },
   "🔄 Alt. de : VLC / KMPlayer (Minimaliste)": {
     "nl": "🔄 Alt. de : VLC / KMPlayer (Minimaliste)",
@@ -5399,10 +5399,10 @@
     "en": ": 0% (perte des points)",
     "de": ": 0% (perte des points)"
   },
-  "■ 🔗 EXPORT RMM & CLIENT": {
-    "nl": "■ 🔗 EXPORT RMM & CLIENT",
-    "en": "■ 🔗 EXPORT RMM & CLIENT",
-    "de": "■ 🔗 EXPORT RMM & CLIENT"
+  "■ 📦 EXPORT LOCAL & CLIENT": {
+    "nl": "■ 📦 LOKALE EXPORT & KLANT",
+    "en": "■ 📦 LOCAL EXPORT & CLIENT",
+    "de": "■ 📦 LOKALER EXPORT & KUNDE"
   },
   "• Avertissements (WARN)": {
     "nl": "• Avertissements (WARN)",
@@ -5574,10 +5574,10 @@
     "en": "Automattic.WooCommerce",
     "de": "Automattic.WooCommerce"
   },
-  "📄 Télécharger JSON RMM": {
-    "nl": "📄 Télécharger JSON RMM",
-    "en": "📄 Télécharger JSON RMM",
-    "de": "📄 Télécharger JSON RMM"
+  "📄 Télécharger JSON local": {
+    "nl": "📄 Lokale JSON downloaden",
+    "en": "📄 Download local JSON",
+    "de": "📄 Lokale JSON-Datei herunterladen"
   },
   "■ 🌐 AUDIT RÉSEAU & RDP": {
     "nl": "■ 🌐 AUDIT RÉSEAU & RDP",
@@ -5664,10 +5664,10 @@
     "en": "Plan d'alimentation :",
     "de": "Plan d'alimentation :"
   },
-  "🔗 Export RMM & Client": {
-    "nl": "🔗 Export RMM & Client",
-    "en": "🔗 Export RMM & Client",
-    "de": "🔗 Export RMM & Client"
+  "📦 Export local & Client": {
+    "nl": "📦 Lokale export & klant",
+    "en": "📦 Local export & client",
+    "de": "📦 Lokaler Export & Kunde"
   },
   "jgraph.drawio.desktop": {
     "nl": "jgraph.drawio.desktop",

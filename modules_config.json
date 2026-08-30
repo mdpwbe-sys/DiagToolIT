@@ -79,7 +79,7 @@
       "prime_calculation_limit": 12000
     },
     "rmm_integrations": {
-      "webhook_enabled": true,
+      "webhook_enabled": false,
       "trigger_conditions": {
         "min_error_count": 2,
         "max_health_score": 60,

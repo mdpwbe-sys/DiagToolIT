@@ -2,28 +2,50 @@
 .SYNOPSIS
     Enregistre le protocole d'URL Windows diagit:// pour permettre le lancement 1-clic depuis le navigateur (Opera, Chrome, Edge).
 #>
-[CmdletBinding()]
-param()
+[CmdletBinding(SupportsShouldProcess)]
+param(
+    [switch]$PassThru
+)
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$MainScript = Join-Path $ScriptDir "Diag-IT-UAA3-V3.ps1"
-if (-not (Test-Path $MainScript)) {
-    throw "Moteur DiagToolIT introuvable : $MainScript"
+$MainScript = Join-Path $ScriptDir 'Diag-IT-UAA3-V3.ps1'
+$CveUpdateScript = Join-Path $ScriptDir 'Update-CveDatabase.ps1'
+foreach ($requiredFile in @($MainScript, $CveUpdateScript)) {
+    if (-not (Test-Path -LiteralPath $requiredFile -PathType Leaf)) {
+        throw "Fichier DiagToolIT introuvable : $requiredFile"
+    }
 }
 
-$ProtocolCommand = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$MainScript`""
+$protocolDefinitions = @(
+    [PSCustomObject]@{
+        Scheme      = 'diagit'
+        Description = 'URL:DiagToolIT One-Click Diagnostic Protocol'
+        Command     = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$MainScript`""
+    },
+    [PSCustomObject]@{
+        Scheme      = 'diagit-cve'
+        Description = 'URL:DiagToolIT Explicit CVE Update Protocol'
+        Command     = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$CveUpdateScript`" -Interactive"
+    }
+)
 
 try {
-    # Clé principale du protocole
-    New-Item -Path "HKCU:\Software\Classes\diagit" -Force | Out-Null
-    Set-ItemProperty -Path "HKCU:\Software\Classes\diagit" -Name "(default)" -Value "URL:DiagToolIT One-Click Protocol"
-    Set-ItemProperty -Path "HKCU:\Software\Classes\diagit" -Name "URL Protocol" -Value ""
-    
-    # Commande d'exécution
-    New-Item -Path "HKCU:\Software\Classes\diagit\shell\open\command" -Force | Out-Null
-    Set-ItemProperty -Path "HKCU:\Software\Classes\diagit\shell\open\command" -Name "(default)" -Value $ProtocolCommand
-    
-    Write-Host "[OK] Protocole diagit:// enregistré avec succès pour l'utilisateur courant !" -ForegroundColor Green
+    foreach ($definition in $protocolDefinitions) {
+        $protocolPath = "HKCU:\Software\Classes\$($definition.Scheme)"
+        $commandPath = Join-Path $protocolPath 'shell\open\command'
+        if ($PSCmdlet.ShouldProcess($protocolPath, "Enregistrer le protocole $($definition.Scheme)://")) {
+            New-Item -Path $protocolPath -Force | Out-Null
+            Set-ItemProperty -Path $protocolPath -Name '(default)' -Value $definition.Description
+            Set-ItemProperty -Path $protocolPath -Name 'URL Protocol' -Value ''
+            New-Item -Path $commandPath -Force | Out-Null
+            Set-ItemProperty -Path $commandPath -Name '(default)' -Value $definition.Command
+            Write-Host "[OK] Protocole $($definition.Scheme):// enregistré pour l'utilisateur courant." -ForegroundColor Green
+        }
+    }
 } catch {
-    Write-Host "[ERREUR] Impossible d'enregistrer le protocole : $_" -ForegroundColor Red
+    throw "Impossible d'enregistrer les protocoles DiagToolIT : $($_.Exception.Message)"
+}
+
+if ($PassThru) {
+    $protocolDefinitions
 }

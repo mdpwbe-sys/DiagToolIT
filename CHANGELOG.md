@@ -8,6 +8,9 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 ## [0.1.1-alpha] - 2026-08-30
 
 ### ✨ Ajouts
+* **Mode réseau fermé** : Three.js r128 est désormais fourni dans `vendor/three/`, vérifié par SHA-256 puis injecté directement dans le rapport HTML. Le rendu ne dépend plus de cdnjs et n'effectue aucune requête web automatique.
+* **Mise à jour CVE explicite** : l'onglet CVE propose un bouton multilingue avec confirmation qui lance `Update-CveDatabase.ps1` via le protocole local dédié `diagit-cve://`, sans requête HTTP directe depuis le rapport.
+* **Protocole CVE durci** : `Register-DiagProtocol.ps1` enregistre une commande locale fixe, sans `%1`, argument URL ni exécution dynamique.
 * **Chargement de `modules_config.json` (chantier 1)** : Le moteur `Diag-IT-UAA3-V3.ps1` charge désormais sa configuration depuis `modules_config.json` (via `Diag-ConfigLoader.ps1`) avec lecture stricte `ConvertFrom-Json`, validation des sections requises et **repli sûr** sur les valeurs historiques en cas d'absence/invalidité (aucune erreur silencieuse).
 * **Tests Pester de configuration** : `tests/ConfigLoader.Tests.ps1` valide le chargement valide, le comportement avec fichier absent/invalide et le repli par défaut.
 
@@ -30,5 +33,5 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 * **Audit Réseau Avancé & Sockets** : Sélecteur multi-cartes, partages SMB, sessions RDP et cartographie des ports d'écoute TCP.
 * **Module Métiers Belgique & Certificats eID** : Détection des suites logicielles belges et alertes d'expiration des certificats numériques.
 * **Détecteur d'Anomalies Startup** : Scoring heuristique avec whitelist stricte anti-faux-positifs.
-* **Exports Polyvalents** : JSON RMM conforme SIEM, inventaire CSV et feuille d'impression PDF A4 épurée.
+* **Exports Polyvalents** : JSON compatible RMM/SIEM généré localement, inventaire CSV et feuille d'impression PDF A4 épurée, sans transmission automatique.
 * **Documentation & Guides** : Spécifications architecturales (`ARCHITECTURE.md`), guide PDF et suite de lanceurs batch.

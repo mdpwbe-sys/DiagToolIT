@@ -17,7 +17,7 @@
 [⚡ Protocole 1-Clic `diagit://`](#-protocole-windows-1-clic-diagit) •
 [🏛️ Logiciels Métiers & eID](#-logiciels-métiers-étatiques--certificats-eid) •
 [📊 Score de Santé Prédictif](#-score-de-santé-prédictif) •
-[🔗 Intégrations RMM & Export](#-intégrations-rmm--export-client) •
+[📦 Exports locaux](#-exports-locaux--remise-client) •
 [⚙️ CLI & Automatisation](#-options-en-ligne-de-commande-cli)
 
 </div>
@@ -31,14 +31,20 @@
 Développé selon le **Référentiel Méthodologique IT Niveau 3 (Observer ➔ Tester ➔ Corriger ➔ Valider ➔ Expliquer)**, DiagToolIT fournit un cockpit cybernétique interactif ultra-rapide généré localement en HTML5/Three.js avec zéro dépendance externe.
 
 ### 💎 Points Forts & Différenciateurs Majeurs :
-* **⚡ 100% Autonome & Zéro Dépendance** : Exécution native en PowerShell 5.1/7+ sans agent résiduel, sans compte cloud obligatoire et 100% fonctionnel hors-ligne.
+* **⚡ 100% Autonome & Zéro Dépendance Distante au Rendu** : Exécution native en PowerShell 5.1/7+ sans agent résiduel ni compte cloud. Three.js r128 est vérifié puis intégré au rapport HTML ; le navigateur ne télécharge aucune bibliothèque au démarrage.
 * **🌐 Moteur d'Internationalisation Réactif (4 Langues)** : Bascule instantanée entre 🇫🇷 Français, 🇳🇱 Nederlands (Belgique/Pays-Bas), 🇬🇧 English et 🇩🇪 Deutsch.
 * **⚡ Protocole URL Windows 1-Clic (`diagit://run`)** : Relancez l'analyse directement depuis le navigateur (Opera, Chrome, Edge, Firefox) avec élévation automatique Administrateur.
 * **🛡️ Scanner de Vulnérabilités CVE (CVSS $\ge$ 7.0)** : Détection proactive des failles critiques sur les logiciels installés avec commandes de patch Winget en 1 clic.
 * **📈 Score de Santé Prédictif & Historique Glissant** : Calcul mathématique pondéré sur 5 piliers sectoriels et rétention FIFO des 30 derniers diagnostics en base JSON locale.
 * **🏛️ Écosystème Métier & Certificats eID Adaptatifs** : Détection des suites logicielles par pays (Belgique, France, UK/US, Allemagne, Espagne, Italie, Portugal) et audit complet des certificats d'authentification/signature eID.
 * **🌌 Univers 3D FOSS Interactif (Three.js WebGL)** : Cartographie 3D de 90+ alternatives libres avec shaders cosmiques (Trou Noir gravitationnel & Soleil à plasma) et générateur de scripts Winget.
-* **🔗 Intégrations RMM & Télémétrie IT** : Export JSON conforme Datto, NinjaOne, N-central, ConnectWise, inventaire CSV et impression PDF A4 pro.
+* **📦 Exports locaux, sans télémétrie sortante** : Génération dans le navigateur de fichiers JSON compatibles RMM, d'un inventaire CSV et d'une impression PDF A4, sans webhook ni envoi automatique.
+
+### 🔒 Confidentialité et réseau fermé
+
+DiagToolIT n'intègre aucun tracker, service analytique, compte cloud ou envoi automatique de rapport. Le rapport HTML généré embarque son moteur Three.js et n'effectue aucune requête HTTP automatique. Les liens web et commandes Winget ne s'activent qu'à l'initiative de l'utilisateur.
+
+Le diagnostic PowerShell effectue volontairement des sondes réseau limitées (passerelle locale, ping vers `8.8.8.8` et résolution DNS de `google.com`) pour déterminer l'état de la connectivité. Ces sondes ne transmettent ni inventaire ni contenu du rapport. `Update-CveDatabase.ps1` contacte l'API OSV uniquement lorsqu'il est lancé explicitement.
 
 ---
 
@@ -83,7 +89,7 @@ Le tableau de bord est organisé en une grille cybernétique stricte de **18 men
 | **11** | **📋 Tous les Tests (26)** | Journal exhaustif des 26 sondes de contrôle Niveau 3 avec statut détaillé (OK, Avertissement, Panne), métriques brutes et horodatages. |
 | **12** | **📦 Profils Winget** | 12 profils de déploiement logiciel par métier (Développeur Web, SysAdmin/DevOps, Bureautique Pro, Multimédia/Graphisme, Cybersécurité, Étudiant IT, etc.). |
 | **13** | **⌨️ Raccourcis Pro** | Console de lancement rapide des utilitaires Windows d'administration (MMC, Gestionnaire de disques, Services, Éditeur de registre, God Mode, Moniteur de ressources). |
-| **14** | **🔗 Export RMM & Client** | Génération de payloads télémétriques JSON standardisés pour plateformes RMM/ITSM, export d'inventaire complet au format CSV et résumé pour remise client. |
+| **14** | **📦 Export local & Client** | Génération locale de fichiers JSON compatibles RMM/ITSM, export d'inventaire CSV et résumé pour remise client. Aucun fichier n'est transmis automatiquement. |
 | **15** | **📖 Documentation & Guide** | Guide technique complet, référentiel méthodologique L3, cheat-sheet des commandes PowerShell de maintenance et architecture interne de la suite. |
 | **16** | **⚡ RELANCER DIAG (.BAT)** | Déclencheur 1-clic du protocole URL `diagit://run` pour réexécuter le diagnostic en arrière-plan sans quitter la page ni fermer l'onglet du navigateur. |
 | **17** | **🔄 ACTUALISER** | Rafraîchissement instantané des données de la vue sans réinitialiser vos filtres. |
@@ -102,13 +108,20 @@ DiagToolIT intègre un sélecteur déroulant cybernétique dans l'en-tête perme
 
 ---
 
-## ⚡ Protocole Windows 1-Clic (`diagit://`)
+## ⚡ Protocoles Windows 1-Clic (`diagit://` et `diagit-cve://`)
 
-Pour permettre le lancement du diagnostic directement depuis n'importe quel navigateur (Opera, Chrome, Edge, Firefox, Brave) sans blocage de sécurité ni permission de presse-papiers, DiagToolIT enregistre automatiquement un protocole URL personnalisé dans le registre Windows de l'utilisateur :
+Pour activer les actions PowerShell explicites depuis le rapport, exécutez une fois :
+
+```powershell
+.\Register-DiagProtocol.ps1
+```
+
+Ce script enregistre deux protocoles locaux dans le profil Windows courant :
 
 * **Clé de registre** : `HKCU:\Software\Classes\diagit`
-* **Exécution** : `Run-DiagElevated.bat`
-* **Mécanisme Web** : Déclenchement via un lien DOM invisible non bloquant, garantissant la stabilité totale de l'onglet actif.
+* **`diagit://run`** : relance le moteur de diagnostic local.
+* **`diagit-cve://update`** : lance uniquement `Update-CveDatabase.ps1 -Interactive` après confirmation dans le rapport.
+* **Sécurité** : les commandes enregistrées utilisent des chemins locaux fixes et n'acceptent aucun argument provenant de l'URL.
 
 ---
 
@@ -146,12 +159,14 @@ $$\text{Health Score} = \left[ \frac{\text{OK} \times 1.0 + \text{WARN} \times 0
 
 ---
 
-## 🔗 Intégrations RMM & Export Client
+## 📦 Exports locaux & Remise client
 
-DiagToolIT s'intègre directement dans votre chaîne d'outils MSP et ITSM :
-* **JSON RMM Télémétrie** : Fichier JSON complet et normalisé prêt pour ingestion dans les agents RMM (Datto RMM, NinjaOne, N-central, ConnectWise Automate, Microsoft Intune, GLPI).
+DiagToolIT prépare localement des fichiers que l'utilisateur peut ensuite remettre à un client ou importer lui-même dans sa chaîne MSP/ITSM :
+* **JSON compatible RMM** : Fichier JSON complet et normalisé, téléchargé localement, prêt pour une importation manuelle dans Datto RMM, NinjaOne, N-central, ConnectWise Automate, Microsoft Intune ou GLPI.
 * **Inventaire CSV** : Export tabulaire complet de tous les indicateurs matériels, logiciels, réseau et sécurité.
 * **Impression Pro A4 (PDF)** : Mise en page vectorielle haute fidélité optimisée pour impression ou enregistrement PDF direct.
+
+Ces actions créent uniquement des fichiers sur le poste à la demande de l'utilisateur. Le produit n'envoie aucun rapport vers un webhook, un serveur RMM ou un service cloud.
 
 ---
 
@@ -172,6 +187,9 @@ DiagToolIT s'intègre directement dans votre chaîne d'outils MSP et ITSM :
 
 # Mettre à jour la base locale de vulnérabilités CVE
 .\Update-CveDatabase.ps1
+
+# Activer une fois les boutons locaux du rapport (diagnostic + mise à jour CVE)
+.\Register-DiagProtocol.ps1
 
 # Installer la tâche planifiée de mise à jour CVE automatique (hebdomadaire)
 .\Update-CveDatabase.ps1 -InstallScheduler
@@ -199,6 +217,7 @@ DiagToolIT/
 ├── tests/                       # Contrats Pester et rapport HTML synthétique
 ├── modules_config.json          # Configuration des seuils, whitelists et modules
 ├── Diag-ConfigLoader.ps1        # Chargeur strict de modules_config.json (repli sûr, erreur explicite)
+├── vendor/three/                # Three.js r128 local, licence MIT et empreinte SHA-256
 ├── ARCHITECTURE.md              # Spécifications d'architecture technique L3
 ├── CONTRIBUTING.md              # Guide de contribution
 ├── SECURITY.md                  # Politique de sécurité et signalement de vulnérabilités
