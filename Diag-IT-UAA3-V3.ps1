@@ -69,6 +69,36 @@ if (-not (Test-Path -LiteralPath $ReportDirectory)) {
 }
 $ReportPath = Join-Path $ReportDirectory "Rapport_Diagnostic_UAA3.html"
 
+# --- 0.1 CHARGEMENT CONFIGURATION MODULES (modules_config.json) ---
+$configLoader = Join-Path $PSScriptRoot 'Diag-ConfigLoader.ps1'
+if (Test-Path -LiteralPath $configLoader) {
+    try {
+        . $configLoader
+        $DiagConfig = Get-DiagConfig -ConfigPath (Join-Path $PSScriptRoot 'modules_config.json')
+        $cfgHistoryMaxRuns      = [int]$DiagConfig.history.max_runs_retention
+        $cfgScoreBaseline       = [int]$DiagConfig.history.score_baseline_threshold
+        $cfgCvssMin             = [double]$DiagConfig.cve_scanner.cvss_min_severity
+        $cfgCertAlertDays       = [int]$DiagConfig.belgian_ecosystem.cert_alert_days
+        $cfgCertCriticalDays    = [int]$DiagConfig.belgian_ecosystem.cert_critical_alert_days
+        Write-Host "[CONFIG] modules_config.json charge : retention=$cfgHistoryMaxRuns runs, seuil sante=$cfgScoreBaseline, CVSS>=$cfgCvssMin, eID alerte=$cfgCertAlertDays j / critique=$cfgCertCriticalDays j" -ForegroundColor DarkGray
+    } catch {
+        Write-Warning "[CONFIG] $($_.Exception.Message)"
+        # Repli sûr sur les valeurs historiques par defaut
+        $cfgHistoryMaxRuns   = 30
+        $cfgScoreBaseline    = 75
+        $cfgCvssMin          = 7.0
+        $cfgCertAlertDays    = 30
+        $cfgCertCriticalDays = 7
+    }
+} else {
+    Write-Warning "[CONFIG] Diag-ConfigLoader.ps1 introuvable ; repli sur valeurs par defaut."
+    $cfgHistoryMaxRuns   = 30
+    $cfgScoreBaseline    = 75
+    $cfgCvssMin          = 7.0
+    $cfgCertAlertDays    = 30
+    $cfgCertCriticalDays = 7
+}
+
 $Results = [System.Collections.Generic.List[PSObject]]::new()
 
 function Add-Diagnostic {
@@ -171,7 +201,7 @@ if (-not $rawNics) {
 $ipConfigs = [System.Collections.Generic.List[PSObject]]::new()
 foreach ($n in $activeNics) {
     $ipProps = $n.GetIPProperties()
-    $gwList = ($ipProps.GatewayAddresses | Where-Object { $_.Address.AddressFamily -eq 'InterNetwork' }).Address.IPAddressToString
+    $gwList = @($ipProps.GatewayAddresses | Where-Object { $_.Address.AddressFamily -eq 'InterNetwork' } | ForEach-Object { $_.Address.IPAddressToString })
     $dnsList = ($ipProps.DnsAddresses | Where-Object { $_.Address.AddressFamily -eq 'InterNetwork' }).Address.IPAddressToString
     foreach ($u in $ipProps.UnicastAddresses) {
         if ($u.Address.AddressFamily -eq 'InterNetwork') {
@@ -2175,9 +2205,9 @@ foreach ($certStorePath in @("Cert:\CurrentUser\My", "Cert:\LocalMachine\My")) {
             $isEid = ($c.Subject -match "Citizen|BELGIUM|Belgium" -or $c.Issuer -match "Citizen|Belgium")
             $certStatus = if ($daysLeft -lt 0) { 
                 "Expiré" 
-            } elseif ($daysLeft -le 7) { 
+            } elseif ($daysLeft -le $cfgCertCriticalDays) { 
                 "CRITIQUE (Expire sous $daysLeft j)" 
-            } elseif ($daysLeft -le 30) { 
+            } elseif ($daysLeft -le $cfgCertAlertDays) { 
                 "Alerte (Expire sous $daysLeft j)" 
             } else { 
                 "Valide ($daysLeft j restants)" 
@@ -2215,6 +2245,7 @@ $cveDb = @(
 )
 
 foreach ($cveItem in $cveDb) {
+    if ([double]$cveItem.Score -lt $cfgCvssMin) { continue }
     foreach ($k in @("HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*")) {
         $inst = Get-ItemProperty $k -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -match $cveItem.Pattern }
         if ($inst) {
@@ -2350,7 +2381,7 @@ $healthBadge = if ($healthScore -ge 85) {
 
 $healthPrediction = if ($healthScore -ge 90) {
     "Excellente santé matérielle et logicielle. Risque de panne estimé à < 2% dans les 90 prochains jours."
-} elseif ($healthScore -ge 75) {
+} elseif ($healthScore -ge $cfgScoreBaseline) {
     "Stabilité correcte avec des points de vigilance identifiés. Maintenance préventive conseillée."
 } elseif ($healthScore -ge 55) {
     "Dégradation modérée détectée. Actions correctives requises pour éviter les pannes logicielles."
@@ -2372,8 +2403,8 @@ $currentRunRecord = [PSCustomObject]@{
 }
 $historyList.Add($currentRunRecord)
 
-if ($historyList.Count -gt 30) {
-    $recentHist = @($historyList | Select-Object -Last 30)
+if ($historyList.Count -gt $cfgHistoryMaxRuns) {
+    $recentHist = @($historyList | Select-Object -Last $cfgHistoryMaxRuns)
     $historyList = [System.Collections.Generic.List[PSObject]]::new()
     foreach ($rh in $recentHist) { $historyList.Add($rh) }
 }

@@ -198,6 +198,7 @@ DiagToolIT/
 ├── Register-DiagProtocol.ps1    # Script d'enregistrement du protocole diagit://
 ├── tests/                       # Contrats Pester et rapport HTML synthétique
 ├── modules_config.json          # Configuration des seuils, whitelists et modules
+├── Diag-ConfigLoader.ps1        # Chargeur strict de modules_config.json (repli sûr, erreur explicite)
 ├── ARCHITECTURE.md              # Spécifications d'architecture technique L3
 ├── CONTRIBUTING.md              # Guide de contribution
 ├── SECURITY.md                  # Politique de sécurité et signalement de vulnérabilités
@@ -206,6 +207,10 @@ DiagToolIT/
 ```
 
 Les rapports produits sont des artefacts locaux potentiellement sensibles. Ne les ajoutez pas à Git; utilisez `tests/New-SyntheticReport.ps1` pour les tests d'interface et les démonstrations reproductibles.
+
+### 🔧 Correctifs récents (v0.1.1-alpha)
+* **Chargement `modules_config.json`** : Le moteur lit désormais sa configuration via `Diag-ConfigLoader.ps1` (repli sûr sur les valeurs par défaut en cas d'absence/invalidité, aucune erreur silencieuse). Voir `ARCHITECTURE.md` § Module 11.
+* **Extraction passerelle IPv4** : Correction du bug affichant « Passerelle : 1 » (`Test-NetConnection -ComputerName 1`). L'adresse complète est désormais extraite via `@(...)` dans le scope du moteur, gérant zéro / une / plusieurs passerelles. Voir `ARCHITECTURE.md` § 2.1.
 
 ---
 

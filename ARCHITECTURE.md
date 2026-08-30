@@ -87,6 +87,23 @@ graph TD
   * *Alerte active uniquement si Score Total $\ge$ 6*.
 * **Whitelist intégrée** : Exclusion automatique des installateurs et outils certifiés (`msiexec`, `vcredist`, `dotnet`, `powershell`, `node`, `code`, `winget`, `update`).
 
+### Module 11 : Configuration Externe (`modules_config.json`)
+* **Chargeur strict** : `Diag-ConfigLoader.ps1` lit `modules_config.json` depuis `$PSScriptRoot` via `ConvertFrom-Json` (lecture stricte), vérifie la présence des sections/propriétés requises (`settings.history`, `settings.belgian_ecosystem`, `settings.cve_scanner`) et **lève une erreur explicite** si le fichier est absent ou invalide.
+* **Repli sûr** : En cas d'échec (fichier manquant, JSON cassé, section absente), le moteur retombe sur les valeurs historiques par défaut (`max_runs_retention=30`, `score_baseline_threshold=75`, `cvss_min_severity=7.0`, `cert_alert_days=30`, `cert_critical_alert_days=7`). Aucune erreur silencieuse.
+* **Paramètres pilotés (correspondance exacte, code existant uniquement)** :
+  * `settings.history.max_runs_retention` → troncature FIFO de l'historique.
+  * `settings.history.score_baseline_threshold` → seuil de prédiction de santé.
+  * `settings.cve_scanner.cvss_min_severity` → filtre minimal de sévérité CVE.
+  * `settings.belgian_ecosystem.cert_alert_days` / `cert_critical_alert_days` → seuils d'alerte expiration eID.
+* **Hors périmètre (clés présentes mais non câblées)** : `trusted_paths`, `trusted_processes`, `ignore_domains`, `alert_threshold_score`, `performance_benchmark`, `rmm_integrations.*` — réservés aux chantiers ultérieurs.
+
+---
+
+## 🔧 2.1 Correction Extraction Passerelle IPv4
+* **Symptôme** : `Test-NetConnection -ComputerName 1` et affichage « Passerelle : 1 » au lieu de l'IP complète.
+* **Cause** : `$gwList = (...).Address.IPAddressToString` produisait une chaîne scalaire quand une seule passerelle existait ; `$gwList[0]` renvoyait alors le **premier caractère**.
+* **Correctif** : L'extraction utilise `@($ipProps.GatewayAddresses | Where-Object {...} | ForEach-Object {...})` dans le scope du moteur — l'`@()` force un tableau même à un seul élément, évitant l'unrolling PowerShell. Gère zéro / une / plusieurs passerelles, et conserve `$null` quand aucune passerelle n'existe.
+
 ---
 
 ## 🔒 3. Sécurité & Droits d'Exécution
