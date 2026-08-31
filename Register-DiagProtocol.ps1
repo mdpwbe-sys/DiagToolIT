@@ -4,13 +4,15 @@
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(
-    [switch]$PassThru
+    [switch]$PassThru,
+    [switch]$Quiet
 )
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $MainScript = Join-Path $ScriptDir 'Diag-IT-UAA3-V3.ps1'
+$ProtocolLauncher = Join-Path $ScriptDir 'Run-DiagProtocol.ps1'
 $CveUpdateScript = Join-Path $ScriptDir 'Update-CveDatabase.ps1'
-foreach ($requiredFile in @($MainScript, $CveUpdateScript)) {
+foreach ($requiredFile in @($MainScript, $ProtocolLauncher, $CveUpdateScript)) {
     if (-not (Test-Path -LiteralPath $requiredFile -PathType Leaf)) {
         throw "Fichier DiagToolIT introuvable : $requiredFile"
     }
@@ -20,7 +22,7 @@ $protocolDefinitions = @(
     [PSCustomObject]@{
         Scheme      = 'diagit'
         Description = 'URL:DiagToolIT One-Click Diagnostic Protocol'
-        Command     = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$MainScript`""
+        Command     = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$ProtocolLauncher`" `"%1`""
     },
     [PSCustomObject]@{
         Scheme      = 'diagit-cve'
@@ -39,7 +41,9 @@ try {
             Set-ItemProperty -Path $protocolPath -Name 'URL Protocol' -Value ''
             New-Item -Path $commandPath -Force | Out-Null
             Set-ItemProperty -Path $commandPath -Name '(default)' -Value $definition.Command
-            Write-Host "[OK] Protocole $($definition.Scheme):// enregistré pour l'utilisateur courant." -ForegroundColor Green
+            if (-not $Quiet) {
+                Write-Host "[OK] Protocole $($definition.Scheme):// enregistré pour l'utilisateur courant." -ForegroundColor Green
+            }
         }
     }
 } catch {

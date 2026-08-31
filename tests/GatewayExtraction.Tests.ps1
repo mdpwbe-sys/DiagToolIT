@@ -1,3 +1,5 @@
+$projectRoot = Split-Path -Parent $PSScriptRoot
+
 Describe 'DiagToolIT gateway IPv4 extraction (regression)' {
     # Reproduces the exact extraction logic used in Diag-IT-UAA3-V3.ps1 line 204:
     #   $gwList = @($ipProps.GatewayAddresses | Where-Object { ... } | ForEach-Object { $_.Address.IPAddressToString })
@@ -44,5 +46,18 @@ Describe 'DiagToolIT gateway IPv4 extraction (regression)' {
         if ($gw.Count -ne 2) { throw "Expected 2 gateways, got $($gw.Count)" }
         if ($gw[0] -ne '10.0.0.1') { throw "First gateway wrong: '$($gw[0])'" }
         if ($gw[1] -ne '10.0.0.254') { throw "Second gateway wrong: '$($gw[1])'" }
+    }
+
+    It 'keeps configured IPv4 DNS servers in the adapter details' {
+        $source = Get-Content -LiteralPath (Join-Path $projectRoot 'Diag-IT-UAA3-V3.ps1') -Raw
+        $wrongPattern = '\$ipProps\.DnsAddresses\s*\|\s*Where-Object\s*\{\s*\$_.Address\.AddressFamily'
+        if ([regex]::Matches($source, $wrongPattern).Count -gt 0) {
+            throw 'DNS extraction still treats IPAddress entries as objects with an Address property.'
+        }
+
+        $correctPattern = '\$ipProps\.DnsAddresses\s*\|\s*Where-Object\s*\{\s*\$_.AddressFamily\s*-eq\s*''InterNetwork''\s*\}\s*\|\s*ForEach-Object\s*\{\s*\$_.IPAddressToString'
+        if ([regex]::Matches($source, $correctPattern).Count -lt 2) {
+            throw 'Both adapter DNS extraction paths must filter IPAddress.AddressFamily and emit IPAddressToString.'
+        }
     }
 }

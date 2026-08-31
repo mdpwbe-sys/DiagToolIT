@@ -35,5 +35,5 @@
   (GPLv2/v3, AGPLv3, Apache-2.0, MIT, BSD, MPL-2.0).
 
 ==========================================================================
-Support IT & Administration Système / Réseaux — Version 4.6
+Support IT & Administration Système / Réseaux — Release 0.2.0-alpha
 ==========================================================================

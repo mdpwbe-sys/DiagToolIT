@@ -11,7 +11,7 @@ Describe 'DiagToolIT modules_config.json loader' {
     It 'loads a valid configuration and exposes the expected keys' {
         $cfg = Get-DiagConfig -ConfigPath (Join-Path $projectRoot 'modules_config.json')
         if (-not $cfg) { throw 'Config is null or empty.' }
-        if ($cfg.history.max_runs_retention -ne 30) { throw "max_runs_retention = $($cfg.history.max_runs_retention), expected 30" }
+        if ($cfg.history.max_runs_retention -ne 120) { throw "max_runs_retention = $($cfg.history.max_runs_retention), expected 120" }
         if ($cfg.belgian_ecosystem.cert_alert_days -ne 30) { throw "cert_alert_days = $($cfg.belgian_ecosystem.cert_alert_days), expected 30" }
         if ($cfg.belgian_ecosystem.cert_critical_alert_days -ne 7) { throw "cert_critical_alert_days = $($cfg.belgian_ecosystem.cert_critical_alert_days), expected 7" }
         if ($cfg.history.score_baseline_threshold -ne 75) { throw "score_baseline_threshold = $($cfg.history.score_baseline_threshold), expected 75" }
@@ -50,10 +50,10 @@ Describe 'DiagToolIT modules_config.json loader' {
     It 'falls back to safe defaults when the config lacks required sections' {
         $partial = Join-Path $env:TEMP ('diag_partial_cfg_{0}.json' -f [guid]::NewGuid())
         # Valid JSON but missing settings.belgian_ecosystem
-        Set-Content -LiteralPath $partial -Value '{"version":"3.2.0","settings":{"history":{"max_runs_retention":30}}}' -Encoding UTF8
+        Set-Content -LiteralPath $partial -Value '{"version":"3.2.0","settings":{"history":{}}}' -Encoding UTF8
         try {
             $cfg = Get-DiagConfig -ConfigPath $partial
-            if ($cfg.history.max_runs_retention -ne 30) { throw "fallback max_runs_retention wrong: $($cfg.history.max_runs_retention)" }
+            if ($cfg.history.max_runs_retention -ne 120) { throw "fallback max_runs_retention wrong: $($cfg.history.max_runs_retention)" }
             if ($cfg.belgian_ecosystem.cert_alert_days -le 0) { throw 'fallback cert_alert_days missing or <= 0' }
             if ($cfg.belgian_ecosystem.cert_critical_alert_days -le 0) { throw 'fallback cert_critical_alert_days missing or <= 0' }
             if ($cfg.history.score_baseline_threshold -le 0) { throw 'fallback score_baseline_threshold missing or <= 0' }

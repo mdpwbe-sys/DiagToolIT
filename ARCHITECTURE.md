@@ -8,7 +8,7 @@ Ce document détaille l'architecture modulaire, les schémas de données, les m�
 
 La solution fonctionne selon un modèle **monolithique autonome à zéro dépendance binaire** :
 - **Moteur d'Audit & Collecte (PowerShell 5.1 / 7+)** : Sonde directement les API Windows, WMI/CIM, Event Logs, Windows Filtering Platform (WFP), Crypto API et registres sans requérir d'agent tiers.
-- **Base Locale d'Historique (JSON FIFO)** : Enregistrement rotatif structuré dans `$env:LOCALAPPDATA\DiagIT\history_db.json` (30 runs max).
+- **Base Locale d'Historique (JSON FIFO)** : Enregistrement rotatif structuré dans `$env:LOCALAPPDATA\DiagIT\history_db.json` (120 runs max).
 - **Rendu Visuel & Cockpit Interactif (HTML5 / Three.js)** : Vérifie le SHA-256 du runtime Three.js r128 conservé dans `vendor/three/`, puis l'injecte dans un fichier HTML autonome. Le rapport n'a aucune dépendance CDN et fonctionne en environnement réseau fermé.
 
 ```mermaid
@@ -22,7 +22,7 @@ graph TD
         A --> G[Benchmark Synthétique Safe]
     end
     subgraph Data & Storage
-        B --> H[history_db.json - 30 Runs FIFO]
+        B --> H[history_db.json - 120 Runs FIFO]
         E --> I[cveMatchesJson]
         C --> J[networkAuditJson]
         D --> K[belgianAppsJson & Certs]
@@ -44,7 +44,7 @@ graph TD
 
 ### Module 1 : Health Check & Historique Temporel
 * **Schéma de données** : Enregistre `Timestamp`, `DateLabel`, `HealthScore` (0-100), `FreeDiskGB`, `OkCount`, `WarnCount`, `ErrCount`, `CveCount`, `CpuScore`.
-* **Algorithme de rotation** : Conserve glissant les 30 derniers scans pour un poids de fichier < 50 Ko.
+* **Algorithme de rotation** : Conserve glissant les 120 derniers scans pour un poids de fichier raisonnable.
 * **Score Prédictif** : Détecte les anomalies chroniques et évalue la probabilité de panne dans les 90 jours.
 
 ### Module 2 : Scanner de Vulnérabilités Logicielles (CVE)
@@ -60,8 +60,11 @@ graph TD
 * **Mesure des zones volumineuses** : `%TEMP%`, `C:\Windows\Temp`, `SoftwareDistribution\Download`, `CrashDumps`.
 * **Nettoyage 1-Clic** : Commande PowerShell préconfigurée pour récupérer immédiatement plusieurs gigaoctets.
 
-### Module 5 : Détection Logiciels Métiers Belgique & Crypto API
-* **Écosystème ciblé** : Winbooks, Sage (BOB 50, BOB 100), Ciel Compta, Belgium eID Middleware, Isabel 6, Silverfin, Accon, SuperFisc, Octopus.
+### Module 5 : Catalogue national Logiciels Métiers, E-Banking, Fiscalité & eID
+* **Catalogue adaptatif** : liste blanche `BE`, `FR`, `UK/US`, `DE`, `ES`, `IT`, `PT`, avec sélection indépendante de la langue d'affichage.
+* **Belgique — services officiels** : Belgium e-ID Middleware, CSAM, MyMinfin, Intervat, Biztax et e-Deposit/Centrale des bilans (BNB), chacun relié à sa source institutionnelle.
+* **Belgique — références éditeur** : Winbooks, Sage BOB, Isabel 6, Silverfin, Accon, SuperFisc et Octopus. Ces fiches sont des références de l'écosystème professionnel, pas des agréments administratifs.
+* **Détection locale** : statut installé/non installé et version sont calculés à partir de l'inventaire du poste ; la fiche catalogue n'est jamais utilisée comme preuve d'installation.
 * **Magasin de Certificats Windows** : Scanne `Cert:\CurrentUser\My` et `Cert:\LocalMachine\My` pour identifier les certificats d'authentification et de signature avec alerte d'expiration sous 30 jours.
 
 ### Module 6 : Exports locaux & compatibilité RMM
@@ -89,7 +92,7 @@ graph TD
 
 ### Module 11 : Configuration Externe (`modules_config.json`)
 * **Chargeur strict** : `Diag-ConfigLoader.ps1` lit `modules_config.json` depuis `$PSScriptRoot` via `ConvertFrom-Json` (lecture stricte), vérifie la présence des sections/propriétés requises (`settings.history`, `settings.belgian_ecosystem`, `settings.cve_scanner`) et **lève une erreur explicite** si le fichier est absent ou invalide.
-* **Repli sûr** : En cas d'échec (fichier manquant, JSON cassé, section absente), le moteur retombe sur les valeurs historiques par défaut (`max_runs_retention=30`, `score_baseline_threshold=75`, `cvss_min_severity=7.0`, `cert_alert_days=30`, `cert_critical_alert_days=7`). Aucune erreur silencieuse.
+* **Repli sûr** : En cas d'échec (fichier manquant, JSON cassé, section absente), le moteur retombe sur les valeurs historiques par défaut (`max_runs_retention=120`, `score_baseline_threshold=75`, `cvss_min_severity=7.0`, `cert_alert_days=30`, `cert_critical_alert_days=7`). Aucune erreur silencieuse.
 * **Paramètres pilotés (correspondance exacte, code existant uniquement)** :
   * `settings.history.max_runs_retention` → troncature FIFO de l'historique.
   * `settings.history.score_baseline_threshold` → seuil de prédiction de santé.

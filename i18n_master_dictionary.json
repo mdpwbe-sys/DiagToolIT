@@ -104,10 +104,10 @@
     "en": "Local generation of RMM/ITSM-compatible JSON files, CSV inventory and client summary, with no automatic transmission.",
     "de": "Lokale Erstellung RMM/ITSM-kompatibler JSON-Dateien, CSV-Inventar und Kundenzusammenfassung, ohne automatische Übertragung."
   },
-  "Calcul du Score de Santé Prédictif sur 100, jauge radar des 5 piliers sectoriels et graphique d'évolution historique des 30 dernières exécutions (FIFO).": {
-    "nl": "Berekening van de voorspellende gezondheidsscore op 100, radarmeter van de 5 sectorale pijlers en historische evolutiegrafiek van de laatste 30 executies (FIFO).",
-    "en": "Calculation of the Predictive Health Score out of 100, radar gauge of the 5 sectoral pillars and historical evolution graph of the last 30 executions (FIFO).",
-    "de": "Berechnung des Predictive Health Score von 100, Radaranzeige der 5 sektoralen Säulen und historisches Entwicklungsdiagramm der letzten 30 Hinrichtungen (FIFO)."
+  "Calcul du Score de Santé Prédictif sur 100, jauge radar des 5 piliers sectoriels et graphique d'évolution historique des 120 dernières exécutions (FIFO).": {
+    "nl": "Berekening van de voorspellende gezondheidsscore op 100, radarmeter van de 5 sectorale pijlers en historische evolutiegrafiek van de laatste 120 uitvoeringen (FIFO).",
+    "en": "Calculation of the Predictive Health Score out of 100, radar gauge of the 5 sectoral pillars and historical evolution graph of the last 120 executions (FIFO).",
+    "de": "Berechnung des Predictive Health Score von 100, Radaranzeige der 5 sektoralen Säulen und historisches Entwicklungsdiagramm der letzten 120 Ausführungen (FIFO)."
   },
   "Contrôle de durcissement matériel Windows 11 (TPM, BitLocker, Secure Boot, UAC) et détection des services ouverts sur le réseau (sockets TCP en écoute).": {
     "nl": "Windows 11 hardwareverhardingscontrole (TPM, BitLocker, Secure Boot, UAC) en detectie van services die open zijn op het netwerk (TCP-sockets luisteren).",

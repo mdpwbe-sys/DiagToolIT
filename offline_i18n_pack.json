@@ -791,14 +791,14 @@
     "it": "📈 Evoluzione della Salute e Tendenze Predittive",
     "pl": "📈 Ewolucja Zdrowia i Trendy Predykcyjne"
   },
-  "Historique des 30 derniers diagnostics et prédiction de défaillance matérielle.": {
-    "nl": "Geschiedenis van de laatste 30 diagnoses en voorspelling van hardwarefouten.",
-    "en": "History of the last 30 diagnostics and hardware failure prediction.",
-    "de": "Verlauf der letzten 30 Diagnosen und Vorhersage von Hardwarefehlern.",
-    "es": "Historial de los últimos 30 diagnósticos y predicción de fallos de hardware.",
-    "pt": "Histórico dos últimos 30 diagnósticos e previsão de falhas de hardware.",
-    "it": "Cronologia delle ultime 30 diagnostiche e previsione di guasti hardware.",
-    "pl": "Historia ostatnich 30 diagnoz i przewidywanie awarii sprzętu."
+  "Historique des 120 derniers diagnostics et prédiction de défaillance matérielle.": {
+    "nl": "Geschiedenis van de laatste 120 diagnoses en voorspelling van hardwarefouten.",
+    "en": "History of the last 120 diagnostics and hardware failure prediction.",
+    "de": "Verlauf der letzten 120 Diagnosen und Vorhersage von Hardwarefehlern.",
+    "es": "Historial de los últimos 120 diagnósticos y predicción de fallos de hardware.",
+    "pt": "Histórico dos últimos 120 diagnósticos e previsão de falhas de hardware.",
+    "it": "Cronologia delle ultime 120 diagnostiche e previsione di guasti hardware.",
+    "pl": "Historia ostatnich 120 diagnoz i przewidywanie awarii sprzętu."
   },
   "SCORE GLOBAL": {
     "nl": "TOTALE SCORE",

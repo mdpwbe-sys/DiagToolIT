@@ -20,7 +20,7 @@ function Get-DiagConfig {
     # Repli sûr (valeurs par défaut = comportement actuel du moteur avant intégration)
     $defaults = [PSCustomObject]@{
         history = [PSCustomObject]@{
-            max_runs_retention     = 30
+            max_runs_retention     = 120
             max_days_retention      = 90
             score_baseline_threshold = 75
         }

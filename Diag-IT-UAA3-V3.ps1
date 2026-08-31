@@ -7,7 +7,7 @@
     dynamique, une Matrice d'Alternatives Open-Source (FOSS), un Générateur de Déploiement
     sur-mesure et un Cyber HUD 3D interactif Three.js.
 .AUTHOR
-    Support IT & Admin Réseaux - Version 3.1 Super-Tool
+    Support IT & Admin Réseaux - Release 0.2.0-alpha
 #>
 
 [CmdletBinding()]
@@ -27,6 +27,201 @@ param (
     [switch]$NonInteractive
 )
 
+$hardwareTelemetryModule = Join-Path $PSScriptRoot 'Diag-HardwareTelemetry.ps1'
+if (Test-Path -LiteralPath $hardwareTelemetryModule) {
+    . $hardwareTelemetryModule
+}
+$benchmarkModule = Join-Path $PSScriptRoot 'Diag-Benchmark.ps1'
+if (Test-Path -LiteralPath $benchmarkModule) {
+    . $benchmarkModule
+}
+$smartTelemetryModule = Join-Path $PSScriptRoot 'Diag-SmartTelemetry.ps1'
+if (Test-Path -LiteralPath $smartTelemetryModule) {
+    . $smartTelemetryModule
+}
+
+# --- CONSOLE LOCALIZATION START ---
+$DiagConsoleMessages = @{
+    FR = @{
+        ElevationRequired      = "Élévation des privilèges Administrateur requise pour le diagnostic Niveau 3..."
+        ElevationFailed        = "Impossible de relancer le diagnostic avec les droits Administrateur : {Message}"
+        AdministratorRequired  = "Veuillez exécuter la console PowerShell en tant qu'Administrateur."
+        ThreeMissing           = "Dépendance Three.js locale manquante : {Path}. Réinstallez le package complet DiagToolIT."
+        ThreeHashMismatch      = "Empreinte SHA-256 inattendue ({Hash})."
+        ThreeInvalid           = "Le runtime Three.js local est vide ou invalide."
+        ThreeLoadFailed        = "Impossible de charger la dépendance Three.js locale : {Message}"
+        OfflineReady           = "[HORS LIGNE] Three.js r128 local vérifié ; aucune dépendance CDN."
+        ConfigLoaded           = "[CONFIG] modules_config.json chargé : rétention={HistoryMax} exécutions, seuil santé={ScoreBaseline}, CVSS>={CvssMin}, alerte eID={CertAlert} j / critique={CertCritical} j"
+        ConfigError            = "[CONFIG] Configuration invalide ; valeurs par défaut restaurées. Détail : {Message}"
+        ConfigMissing          = "[CONFIG] Diag-ConfigLoader.ps1 introuvable ; repli sur les valeurs par défaut."
+        AntivirusModuleMissing = "Module de détection antivirus introuvable : {Path}"
+        BannerTitle            = "       🛠️  CENTRE DE DIAGNOSTIC & GESTION APPS IT AVANCÉ (NIVEAU 3)       "
+        BannerSubtitle         = "           Support PC, Réseaux, Runtimes & Bundles Métiers (UAA 3)        "
+        StageSystem            = "[0/5] Collecte des informations système de base..."
+        StageNetwork           = "[1/5] Diagnostic Réseau Avancé (L3)..."
+        StageHardware          = "[2/5] Diagnostic Hardware, Matériel & Drivers (L3)..."
+        StageSecurity          = "[3/5] Diagnostic Système, Sécurité & Logiciel (L3)..."
+        StageApplications      = "[4/5] Analyse des Runtimes Développeur & Applications Installées..."
+        StageStartup           = "    -> Analyse du démarrage, Fast Startup, Scripts & Autoruns..."
+        StagePerformance       = "    -> Analyse des performances CPU & Caches systèmes..."
+        StageSockets           = "    -> Analyse des sockets réseau & ports ouverts..."
+        StageHardwareSecurity  = "    -> Audit Sécurité Matérielle (TPM 2.0, BitLocker, SecureBoot)..."
+        StageReport            = "[5/5] Construction du Rapport HTML Hyper-Moderne avec Three.js..."
+        StageExtendedAudit     = "[5/5] Audit Sécurité, Certificats eID, Vulnérabilités CVE & SMART..."
+        FinalComplete          = "  ✅ DIAGNOSTIC IT & SCANNER DE PACKAGES TERMINÉ en {Duration} s !         "
+        FinalSummary           = "  📊 Bilan : {Total} tests ({Ok} OK, {Warn} avertissements, {Error} pannes)"
+        FinalProfiles          = "  📦 Profils & Runtimes : 12 Profils Métiers + Détecteur Runtimes & FOSS"
+        FinalReport            = "  📁 Rapport Bureau : {Path}"
+        PressEnter             = "Appuyez sur [Entrée] pour fermer la console"
+        PressEnterOrRerun      = "Appuyez sur [Entrée] pour fermer • [Maj+Entrée] pour relancer le diagnostic"
+        RamUnit                = "Go"
+        UptimeFormat           = "{0}j {1}h {2}min"
+        ScanDateFormat         = "dd/MM/yyyy 'à' HH:mm:ss"
+        BootUefiOn             = "UEFI (SecureBoot ACTIVÉ)"
+        BootUefiOff            = "UEFI (SecureBoot DÉSACTIVÉ)"
+        BootLegacy             = "BIOS Legacy"
+    }
+    NL = @{
+        ElevationRequired      = "Beheerdersrechten zijn vereist voor de diagnose van niveau 3..."
+        ElevationFailed        = "De diagnose kon niet opnieuw met beheerdersrechten worden gestart: {Message}"
+        AdministratorRequired  = "Start de PowerShell-console als administrator."
+        ThreeMissing           = "Lokale Three.js-afhankelijkheid ontbreekt: {Path}. Installeer het volledige DiagToolIT-pakket opnieuw."
+        ThreeHashMismatch      = "Onverwachte SHA-256-vingerafdruk ({Hash})."
+        ThreeInvalid           = "De lokale Three.js-runtime is leeg of ongeldig."
+        ThreeLoadFailed        = "De lokale Three.js-afhankelijkheid kon niet worden geladen: {Message}"
+        OfflineReady           = "[OFFLINE] Lokale Three.js r128 gecontroleerd; geen CDN-afhankelijkheid."
+        ConfigLoaded           = "[CONFIG] modules_config.json geladen: bewaring={HistoryMax} runs, gezondheidsdrempel={ScoreBaseline}, CVSS>={CvssMin}, eID-waarschuwing={CertAlert} d / kritiek={CertCritical} d"
+        ConfigError            = "[CONFIG] Ongeldige configuratie; standaardwaarden hersteld. Detail: {Message}"
+        ConfigMissing          = "[CONFIG] Diag-ConfigLoader.ps1 ontbreekt; de standaardwaarden worden gebruikt."
+        AntivirusModuleMissing = "Antivirusdetectiemodule ontbreekt: {Path}"
+        BannerTitle            = "       🛠️  GEAVANCEERD IT-DIAGNOSE- EN APPBEHEERCENTRUM (NIVEAU 3)         "
+        BannerSubtitle         = "           Ondersteuning voor pc, netwerken, runtimes en vakbundels        "
+        StageSystem            = "[0/5] Basisinformatie van het systeem verzamelen..."
+        StageNetwork           = "[1/5] Geavanceerde netwerkdiagnose (L3)..."
+        StageHardware          = "[2/5] Diagnose van hardware en stuurprogramma's (L3)..."
+        StageSecurity          = "[3/5] Diagnose van systeem, beveiliging en software (L3)..."
+        StageApplications      = "[4/5] Ontwikkelaarsruntimes en geïnstalleerde toepassingen analyseren..."
+        StageStartup           = "    -> Opstarten, Fast Startup, scripts en autoruns analyseren..."
+        StagePerformance       = "    -> CPU-prestaties en systeemcaches analyseren..."
+        StageSockets           = "    -> Netwerksockets en open poorten analyseren..."
+        StageHardwareSecurity  = "    -> Hardwarebeveiliging controleren (TPM 2.0, BitLocker, SecureBoot)..."
+        StageReport            = "[5/5] Modern HTML-rapport met Three.js bouwen..."
+        StageExtendedAudit     = "[5/5] Beveiliging, eID-certificaten, CVE's en SMART controleren..."
+        FinalComplete          = "  ✅ IT-DIAGNOSE EN PAKKETSCAN VOLTOOID in {Duration} s!                   "
+        FinalSummary           = "  📊 Samenvatting: {Total} tests ({Ok} OK, {Warn} waarschuwingen, {Error} fouten)"
+        FinalProfiles          = "  📦 Profielen & runtimes: 12 vakprofielen + runtime- en FOSS-detector"
+        FinalReport            = "  📁 Rapport op bureaublad: {Path}"
+        PressEnter             = "Druk op [Enter] om de console te sluiten"
+        PressEnterOrRerun      = "Druk op [Enter] om te sluiten • [Shift+Enter] om de diagnose opnieuw te starten"
+        RamUnit                = "GB"
+        UptimeFormat           = "{0}d {1}u {2}min"
+        ScanDateFormat         = "dd/MM/yyyy 'om' HH:mm:ss"
+        BootUefiOn             = "UEFI (Secure Boot INGESCHAKELD)"
+        BootUefiOff            = "UEFI (Secure Boot UITGESCHAKELD)"
+        BootLegacy             = "Legacy-BIOS"
+    }
+    EN = @{
+        ElevationRequired      = "Administrator privileges are required for the Level 3 diagnostic..."
+        ElevationFailed        = "The diagnostic could not be restarted with Administrator privileges: {Message}"
+        AdministratorRequired  = "Run the PowerShell console as Administrator."
+        ThreeMissing           = "Local Three.js dependency is missing: {Path}. Reinstall the complete DiagToolIT package."
+        ThreeHashMismatch      = "Unexpected SHA-256 fingerprint ({Hash})."
+        ThreeInvalid           = "The local Three.js runtime is empty or invalid."
+        ThreeLoadFailed        = "Unable to load the local Three.js dependency: {Message}"
+        OfflineReady           = "[OFFLINE] Local Three.js r128 verified; no CDN dependency."
+        ConfigLoaded           = "[CONFIG] modules_config.json loaded: retention={HistoryMax} runs, health threshold={ScoreBaseline}, CVSS>={CvssMin}, eID alert={CertAlert} d / critical={CertCritical} d"
+        ConfigError            = "[CONFIG] Invalid configuration; defaults restored. Detail: {Message}"
+        ConfigMissing          = "[CONFIG] Diag-ConfigLoader.ps1 is missing; using default values."
+        AntivirusModuleMissing = "Antivirus detection module is missing: {Path}"
+        BannerTitle            = "       🛠️  ADVANCED IT DIAGNOSTIC & APP MANAGEMENT CENTER (LEVEL 3)       "
+        BannerSubtitle         = "           PC, Network, Runtime & Business Bundle Support (UAA 3)         "
+        StageSystem            = "[0/5] Collecting basic system information..."
+        StageNetwork           = "[1/5] Advanced Network Diagnostic (L3)..."
+        StageHardware          = "[2/5] Hardware and Driver Diagnostic (L3)..."
+        StageSecurity          = "[3/5] System, Security and Software Diagnostic (L3)..."
+        StageApplications      = "[4/5] Analyzing Developer Runtimes and Installed Applications..."
+        StageStartup           = "    -> Analyzing startup, Fast Startup, scripts and autoruns..."
+        StagePerformance       = "    -> Analyzing CPU performance and system caches..."
+        StageSockets           = "    -> Analyzing network sockets and open ports..."
+        StageHardwareSecurity  = "    -> Auditing hardware security (TPM 2.0, BitLocker, SecureBoot)..."
+        StageReport            = "[5/5] Building the modern Three.js HTML report..."
+        StageExtendedAudit     = "[5/5] Auditing security, eID certificates, CVEs and SMART..."
+        FinalComplete          = "  ✅ IT DIAGNOSTIC & PACKAGE SCAN COMPLETED in {Duration} s!              "
+        FinalSummary           = "  📊 Summary: {Total} tests ({Ok} OK, {Warn} warnings, {Error} failures)"
+        FinalProfiles          = "  📦 Profiles & Runtimes: 12 Business Profiles + Runtime & FOSS Detector"
+        FinalReport            = "  📁 Desktop report: {Path}"
+        PressEnter             = "Press [Enter] to close the console"
+        PressEnterOrRerun      = "Press [Enter] to close • [Shift+Enter] to rerun the diagnostic"
+        RamUnit                = "GB"
+        UptimeFormat           = "{0}d {1}h {2}min"
+        ScanDateFormat         = "dd/MM/yyyy 'at' HH:mm:ss"
+        BootUefiOn             = "UEFI (Secure Boot ON)"
+        BootUefiOff            = "UEFI (Secure Boot OFF)"
+        BootLegacy             = "Legacy BIOS"
+    }
+    DE = @{
+        ElevationRequired      = "Administratorrechte sind für die Diagnose der Stufe 3 erforderlich..."
+        ElevationFailed        = "Die Diagnose konnte nicht mit Administratorrechten neu gestartet werden: {Message}"
+        AdministratorRequired  = "Starten Sie die PowerShell-Konsole als Administrator."
+        ThreeMissing           = "Lokale Three.js-Abhängigkeit fehlt: {Path}. Installieren Sie das vollständige DiagToolIT-Paket neu."
+        ThreeHashMismatch      = "Unerwarteter SHA-256-Fingerabdruck ({Hash})."
+        ThreeInvalid           = "Die lokale Three.js-Laufzeit ist leer oder ungültig."
+        ThreeLoadFailed        = "Die lokale Three.js-Abhängigkeit konnte nicht geladen werden: {Message}"
+        OfflineReady           = "[OFFLINE] Lokales Three.js r128 geprüft; keine CDN-Abhängigkeit."
+        ConfigLoaded           = "[CONFIG] modules_config.json geladen: Aufbewahrung={HistoryMax} Läufe, Integritätsschwelle={ScoreBaseline}, CVSS>={CvssMin}, eID-Warnung={CertAlert} T / kritisch={CertCritical} T"
+        ConfigError            = "[CONFIG] Ungültige Konfiguration; Standardwerte wiederhergestellt. Detail: {Message}"
+        ConfigMissing          = "[CONFIG] Diag-ConfigLoader.ps1 fehlt; Standardwerte werden verwendet."
+        AntivirusModuleMissing = "Antivirus-Erkennungsmodul fehlt: {Path}"
+        BannerTitle            = "       🛠️  ZENTRUM FÜR ERWEITERTE IT-DIAGNOSE & APP-VERWALTUNG (STUFE 3)  "
+        BannerSubtitle         = "           Support für PC, Netzwerke, Laufzeiten und Branchenpakete       "
+        StageSystem            = "[0/5] Grundlegende Systeminformationen werden gesammelt..."
+        StageNetwork           = "[1/5] Erweiterte Netzwerkdiagnose (L3)..."
+        StageHardware          = "[2/5] Hardware- und Treiberdiagnose (L3)..."
+        StageSecurity          = "[3/5] System-, Sicherheits- und Softwarediagnose (L3)..."
+        StageApplications      = "[4/5] Entwickler-Laufzeiten und installierte Anwendungen werden analysiert..."
+        StageStartup           = "    -> Systemstart, Schnellstart, Skripte und Autoruns werden analysiert..."
+        StagePerformance       = "    -> CPU-Leistung und Systemcaches werden analysiert..."
+        StageSockets           = "    -> Netzwerksockets und offene Ports werden analysiert..."
+        StageHardwareSecurity  = "    -> Hardwaresicherheit wird geprüft (TPM 2.0, BitLocker, SecureBoot)..."
+        StageReport            = "[5/5] Modernes Three.js-HTML-Bericht wird erstellt..."
+        StageExtendedAudit     = "[5/5] Sicherheit, eID-Zertifikate, CVEs und SMART werden geprüft..."
+        FinalComplete          = "  ✅ IT-DIAGNOSE UND PAKETSCAN ABGESCHLOSSEN in {Duration} s!             "
+        FinalSummary           = "  📊 Bilanz: {Total} Tests ({Ok} OK, {Warn} Warnungen, {Error} Fehler)"
+        FinalProfiles          = "  📦 Profile & Laufzeiten: 12 Branchenprofile + Laufzeit- und FOSS-Detektor"
+        FinalReport            = "  📁 Desktop-Bericht: {Path}"
+        PressEnter             = "Drücken Sie [Enter], um die Konsole zu schließen"
+        PressEnterOrRerun      = "Drücken Sie [Enter] zum Schließen • [Umschalt+Enter] für einen erneuten Diagnoselauf"
+        RamUnit                = "GB"
+        UptimeFormat           = "{0}T {1}Std {2}Min"
+        ScanDateFormat         = "dd.MM.yyyy 'um' HH:mm:ss"
+        BootUefiOn             = "UEFI (Secure Boot AKTIV)"
+        BootUefiOff            = "UEFI (Secure Boot DEAKTIVIERT)"
+        BootLegacy             = "Legacy-BIOS"
+    }
+}
+
+function Get-DiagConsoleMessage {
+    param(
+        [ValidateSet('FR', 'NL', 'EN', 'DE')]
+        [string]$Language,
+        [Parameter(Mandatory)]
+        [string]$Key,
+        [hashtable]$Values = @{}
+    )
+
+    $languageMessages = $DiagConsoleMessages[$Language]
+    if (-not $languageMessages -or -not $languageMessages.ContainsKey($Key)) {
+        throw "Missing console translation '$Key' for '$Language'."
+    }
+
+    $message = [string]$languageMessages[$Key]
+    foreach ($name in $Values.Keys) {
+        $message = $message.Replace("{$name}", [string]$Values[$name])
+    }
+    return $message
+}
+# --- CONSOLE LOCALIZATION END ---
+
 if ($OutputPath) {
     $OutputPath = [IO.Path]::GetFullPath($OutputPath)
 }
@@ -35,7 +230,7 @@ if ($OutputPath) {
 $currentPrincipal = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
 if (-not $NoElevate -and -not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     if ($PSCommandPath) {
-        Write-Host "Élévation des privilèges Administrateur requise pour le diagnostic Niveau 3..." -ForegroundColor Yellow
+        Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'ElevationRequired') -ForegroundColor Yellow
         $elevationArguments = @(
             '-NoProfile'
             '-ExecutionPolicy Bypass'
@@ -50,10 +245,14 @@ if (-not $NoElevate -and -not $currentPrincipal.IsInRole([Security.Principal.Win
         if ($NoOpen) { $elevationArguments += '-NoOpen' }
         if ($NonInteractive) { $elevationArguments += '-NonInteractive' }
 
-        Start-Process powershell.exe -Verb RunAs -ArgumentList ($elevationArguments -join ' ')
+        try {
+            Start-Process powershell.exe -Verb RunAs -ArgumentList ($elevationArguments -join ' ') -ErrorAction Stop
+        } catch {
+            throw (Get-DiagConsoleMessage -Language $Lang -Key 'ElevationFailed' -Values @{ Message = $_.Exception.Message })
+        }
         exit
     } else {
-        Write-Warning "Veuillez exécuter la console PowerShell en tant qu'Administrateur."
+        Write-Warning (Get-DiagConsoleMessage -Language $Lang -Key 'AdministratorRequired')
     }
 }
 
@@ -73,21 +272,21 @@ $ReportPath = Join-Path $ReportDirectory "Rapport_Diagnostic_UAA3.html"
 $threeJsPath = Join-Path $PSScriptRoot 'vendor\three\three.min.js'
 $threeJsExpectedSha256 = '9274bbcec8d96168626c732b5d31c775aa8cfb7eaa0599bec0c175908a2c1ce2'
 if (-not (Test-Path -LiteralPath $threeJsPath -PathType Leaf)) {
-    throw "Dépendance Three.js locale manquante : $threeJsPath. Réinstallez le package complet DiagToolIT."
+    throw (Get-DiagConsoleMessage -Language $Lang -Key 'ThreeMissing' -Values @{ Path = $threeJsPath })
 }
 
 try {
     $threeJsActualSha256 = (Get-FileHash -LiteralPath $threeJsPath -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()
     if ($threeJsActualSha256 -ne $threeJsExpectedSha256) {
-        throw "Empreinte SHA-256 inattendue ($threeJsActualSha256)."
+        throw (Get-DiagConsoleMessage -Language $Lang -Key 'ThreeHashMismatch' -Values @{ Hash = $threeJsActualSha256 })
     }
     $threeJsSource = [IO.File]::ReadAllText($threeJsPath, [Text.Encoding]::UTF8)
     if ([string]::IsNullOrWhiteSpace($threeJsSource) -or $threeJsSource -notmatch 'WebGLRenderer') {
-        throw 'Le runtime Three.js local est vide ou invalide.'
+        throw (Get-DiagConsoleMessage -Language $Lang -Key 'ThreeInvalid')
     }
-    Write-Host '[OFFLINE] Three.js r128 local vérifié ; aucune dépendance CDN.' -ForegroundColor DarkGray
+    Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'OfflineReady') -ForegroundColor DarkGray
 } catch {
-    throw "Impossible de charger la dépendance Three.js locale : $($_.Exception.Message)"
+    throw (Get-DiagConsoleMessage -Language $Lang -Key 'ThreeLoadFailed' -Values @{ Message = $_.Exception.Message })
 }
 
 # --- 0.2 CHARGEMENT CONFIGURATION MODULES (modules_config.json) ---
@@ -101,19 +300,22 @@ if (Test-Path -LiteralPath $configLoader) {
         $cfgCvssMin             = [double]$DiagConfig.cve_scanner.cvss_min_severity
         $cfgCertAlertDays       = [int]$DiagConfig.belgian_ecosystem.cert_alert_days
         $cfgCertCriticalDays    = [int]$DiagConfig.belgian_ecosystem.cert_critical_alert_days
-        Write-Host "[CONFIG] modules_config.json charge : retention=$cfgHistoryMaxRuns runs, seuil sante=$cfgScoreBaseline, CVSS>=$cfgCvssMin, eID alerte=$cfgCertAlertDays j / critique=$cfgCertCriticalDays j" -ForegroundColor DarkGray
+        Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'ConfigLoaded' -Values @{
+            HistoryMax = $cfgHistoryMaxRuns; ScoreBaseline = $cfgScoreBaseline; CvssMin = $cfgCvssMin
+            CertAlert = $cfgCertAlertDays; CertCritical = $cfgCertCriticalDays
+        }) -ForegroundColor DarkGray
     } catch {
-        Write-Warning "[CONFIG] $($_.Exception.Message)"
+        Write-Warning (Get-DiagConsoleMessage -Language $Lang -Key 'ConfigError' -Values @{ Message = $_.Exception.Message })
         # Repli sûr sur les valeurs historiques par defaut
-        $cfgHistoryMaxRuns   = 30
+        $cfgHistoryMaxRuns   = 120
         $cfgScoreBaseline    = 75
         $cfgCvssMin          = 7.0
         $cfgCertAlertDays    = 30
         $cfgCertCriticalDays = 7
     }
 } else {
-    Write-Warning "[CONFIG] Diag-ConfigLoader.ps1 introuvable ; repli sur valeurs par defaut."
-    $cfgHistoryMaxRuns   = 30
+    Write-Warning (Get-DiagConsoleMessage -Language $Lang -Key 'ConfigMissing')
+    $cfgHistoryMaxRuns   = 120
     $cfgScoreBaseline    = 75
     $cfgCvssMin          = 7.0
     $cfgCertAlertDays    = 30
@@ -159,21 +361,31 @@ function ConvertTo-Utf8Base64 {
 
 Clear-Host
 Write-Host "==========================================================================" -ForegroundColor Cyan
-Write-Host "       🛠️  CENTRE DE DIAGNOSTIC & GESTION APPS IT AVANCÉ (NIVEAU 3)       " -ForegroundColor Cyan
-Write-Host "           Support PC, Réseaux, Runtimes & Bundles Métiers (UAA 3)        " -ForegroundColor DarkCyan
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'BannerTitle') -ForegroundColor Cyan
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'BannerSubtitle') -ForegroundColor DarkCyan
 Write-Host "==========================================================================" -ForegroundColor Cyan
 Write-Host ""
 
 # ==========================================================================
 # 0. COLLECTE INFOS SYSTÈME GÉNÉRALES (TÉLÉMÉTRIE DU POSTE)
 # ==========================================================================
-Write-Host "[0/5] Collecte des informations système de base..." -ForegroundColor Gray
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'StageSystem') -ForegroundColor Gray
 $osInfo = Get-CimInstance Win32_OperatingSystem
 $csInfo = Get-CimInstance Win32_ComputerSystem
 $procInfo = Get-CimInstance Win32_Processor | Select-Object -First 1
 $uptime = (Get-Date) - $osInfo.LastBootUpTime
-$uptimeStr = "{0}j {1}h {2}min" -f $uptime.Days, $uptime.Hours, $uptime.Minutes
-$bootMode = try { if (Confirm-SecureBootUEFI) { "UEFI (SecureBoot ON)" } else { "UEFI (SecureBoot OFF)" } } catch { "Legacy BIOS" }
+$uptimeFormat = Get-DiagConsoleMessage -Language $Lang -Key 'UptimeFormat'
+$uptimeStr = $uptimeFormat -f $uptime.Days, $uptime.Hours, $uptime.Minutes
+$bootModeKey = try {
+    if (Confirm-SecureBootUEFI) {
+        'BootUefiOn'
+    } else {
+        'BootUefiOff'
+    }
+} catch {
+    'BootLegacy'
+}
+$bootMode = Get-DiagConsoleMessage -Language $Lang -Key $bootModeKey
 
 $systemSummary = @{
     HostName     = $env:COMPUTERNAME
@@ -191,11 +403,73 @@ $systemSummary = @{
 # ==========================================================================
 # 1. DIAGNOSTIC RÉSEAU COMPLET (NIVEAU 3)
 # ==========================================================================
-Write-Host "[1/5] Diagnostic Réseau Avancé (L3)..." -ForegroundColor Yellow
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'StageNetwork') -ForegroundColor Yellow
+
+# Capture the detailed latency snapshot before the rest of the network audit.
+# The same samples feed the early connectivity checks and the dashboard matrix,
+# so the report cannot mix measurements taken at different points in time.
+$netPing = [System.Net.NetworkInformation.Ping]::new()
+function Measure-NetLatencyProfile([string]$targetHost, [int]$sampleCount = 3) {
+    $latencySamples = [System.Collections.Generic.List[int]]::new()
+    if ($targetHost) {
+        for ($sampleIndex = 0; $sampleIndex -lt $sampleCount; $sampleIndex++) {
+            try {
+                $reply = $netPing.Send($targetHost, 400)
+                if ($reply.Status -eq 'Success') {
+                    $latencySamples.Add([int]$reply.RoundtripTime)
+                }
+            } catch {}
+        }
+    }
+
+    $received = $latencySamples.Count
+    $averageMs = if ($received -gt 0) { [math]::Round(($latencySamples | Measure-Object -Average).Average, 1) } else { -1 }
+    $minimumMs = if ($received -gt 0) { [int](($latencySamples | Measure-Object -Minimum).Minimum) } else { -1 }
+    $maximumMs = if ($received -gt 0) { [int](($latencySamples | Measure-Object -Maximum).Maximum) } else { -1 }
+    $jitterValues = [System.Collections.Generic.List[double]]::new()
+    for ($index = 1; $index -lt $received; $index++) {
+        $jitterValues.Add([math]::Abs($latencySamples[$index] - $latencySamples[$index - 1]))
+    }
+    $jitterMs = if ($jitterValues.Count -gt 0) { [math]::Round(($jitterValues | Measure-Object -Average).Average, 1) } else { 0 }
+
+    return [PSCustomObject]@{
+        Target          = $targetHost
+        LatencySamples  = @($latencySamples)
+        Sent            = $sampleCount
+        Received        = $received
+        PacketLossPct   = if ($sampleCount -gt 0) { [math]::Round((($sampleCount - $received) * 100.0) / $sampleCount, 1) } else { 100 }
+        MinimumMs       = $minimumMs
+        AverageMs       = $averageMs
+        MaximumMs       = $maximumMs
+        JitterMs        = $jitterMs
+    }
+}
+
+$networkLatencySnapshot = [ordered]@{
+    Cloudflare      = $null
+    Google          = $null
+    Quad9           = $null
+    M365            = $null
+    GatewayByAddress = @{}
+}
+$networkLatencySnapshot.Cloudflare = Measure-NetLatencyProfile '1.1.1.1'
+$networkLatencySnapshot.Google = Measure-NetLatencyProfile '8.8.8.8'
+$networkLatencySnapshot.Quad9 = Measure-NetLatencyProfile '9.9.9.9'
+$networkLatencySnapshot.M365 = Measure-NetLatencyProfile 'login.microsoftonline.com'
 
 # 1.1 État des Adaptateurs Réseau Physiques & Virtuels (.NET Ultra-Fast)
 $rawNics = [System.Net.NetworkInformation.NetworkInterface]::GetAllNetworkInterfaces()
 $activeNics = $rawNics | Where-Object { $_.OperationalStatus -eq 'Up' -and $_.NetworkInterfaceType -ne 'Loopback' }
+foreach ($networkInterface in $activeNics) {
+    $earlyGatewayAddresses = @($networkInterface.GetIPProperties().GatewayAddresses |
+        Where-Object { $_.Address.AddressFamily -eq 'InterNetwork' } |
+        ForEach-Object { $_.Address.IPAddressToString })
+    foreach ($earlyGatewayAddress in $earlyGatewayAddresses) {
+        if (-not $networkLatencySnapshot.GatewayByAddress.ContainsKey($earlyGatewayAddress)) {
+            $networkLatencySnapshot.GatewayByAddress[$earlyGatewayAddress] = Measure-NetLatencyProfile $earlyGatewayAddress
+        }
+    }
+}
 
 if (-not $rawNics) {
     Add-Diagnostic -Category "Réseau" -TestName "Cartes Réseau Détectées" -Status "ERROR" `
@@ -223,7 +497,11 @@ $ipConfigs = [System.Collections.Generic.List[PSObject]]::new()
 foreach ($n in $activeNics) {
     $ipProps = $n.GetIPProperties()
     $gwList = @($ipProps.GatewayAddresses | Where-Object { $_.Address.AddressFamily -eq 'InterNetwork' } | ForEach-Object { $_.Address.IPAddressToString })
-    $dnsList = ($ipProps.DnsAddresses | Where-Object { $_.Address.AddressFamily -eq 'InterNetwork' }).Address.IPAddressToString
+    $dnsList = @(
+        $ipProps.DnsAddresses |
+            Where-Object { $_.AddressFamily -eq 'InterNetwork' } |
+            ForEach-Object { $_.IPAddressToString }
+    )
     foreach ($u in $ipProps.UnicastAddresses) {
         if ($u.Address.AddressFamily -eq 'InterNetwork') {
             $ipConfigs.Add([PSCustomObject]@{
@@ -262,7 +540,8 @@ if ($apipaList) {
 
         # 1.3 Test de Connectivité Passerelle (Gateway Ping .NET)
         if ($gw) {
-            $gwPing = try { (New-Object System.Net.NetworkInformation.Ping).Send($gw, 400).Status -eq 'Success' } catch { $false }
+            $gwProfile = if ($networkLatencySnapshot.GatewayByAddress.ContainsKey($gw)) { $networkLatencySnapshot.GatewayByAddress[$gw] } else { Measure-NetLatencyProfile $gw }
+            $gwPing = $gwProfile.AverageMs -ge 0
             if (-not $gwPing) {
                 Add-Diagnostic -Category "Réseau" -TestName "Passerelle par défaut ($gw)" -Status "ERROR" `
                     -Details "La passerelle par défaut ($gw) est injoignable par ping ICMP." `
@@ -273,7 +552,7 @@ if ($apipaList) {
             }
 
             # 1.4 Test Internet IP (8.8.8.8) & Résolution DNS (google.com)
-            $inetPing = try { (New-Object System.Net.NetworkInformation.Ping).Send("8.8.8.8", 400).Status -eq 'Success' } catch { $false }
+            $inetPing = $networkLatencySnapshot.Google.AverageMs -ge 0
             $dnsResolve = try { [System.Net.Dns]::GetHostAddresses("google.com").Count -gt 0 } catch { $false }
 
             if ($gwPing -and -not $inetPing) {
@@ -487,7 +766,7 @@ if ($fwSvc.Status -ne 'Running') {
 # ==========================================================================
 # 2. DIAGNOSTIC HARDWARE, DRIVERS & MATÉRIEL (NIVEAU 3)
 # ==========================================================================
-Write-Host "[2/5] Diagnostic Hardware, Matériel & Drivers (L3)..." -ForegroundColor Yellow
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'StageHardware') -ForegroundColor Yellow
 
 # 2.1 Gestionnaire de périphériques & Codes d'erreur PNP (10, 28, 43, etc.)
 $pnpErrors = Get-PnpDevice -PresentOnly | Where-Object { $_.ConfigManagerErrorCode -ne 0 -and $_.Status -ne 'OK' }
@@ -585,7 +864,7 @@ if ($battery) {
 # ==========================================================================
 # 3. DIAGNOSTIC SYSTÈME, SÉCURITÉ & LOGICIEL (NIVEAU 3)
 # ==========================================================================
-Write-Host "[3/5] Diagnostic Système, Sécurité & Logiciel (L3)..." -ForegroundColor Yellow
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'StageSecurity') -ForegroundColor Yellow
 
 # 3.1 Espace Disque & Dirty Bit (Chkdsk)
 $volumes = Get-Volume | Where-Object { $_.DriveLetter -ne $null -and $_.DriveType -eq 'Fixed' }
@@ -650,33 +929,56 @@ if ($cbsReboot -or $wuReboot) {
         -ExamTip "Certains composants restent bloqués dans un état instable tant que le redémarrage requis n'est pas effectué."
 }
 
-# 3.4 Antivirus en conflit & État de Windows Defender
-$avList = @(Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntiVirusProduct -ErrorAction SilentlyContinue)
-$defService = Get-Service WinDefend -ErrorAction SilentlyContinue
-$defRunning = ($defService -and $defService.Status -eq 'Running')
-$realtimeOff = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows Defender\Real-Time Protection" -Name "DisableRealtimeMonitoring" -ErrorAction SilentlyContinue).DisableRealtimeMonitoring -eq 1
-$defRealtime = $defRunning -and (-not $realtimeOff)
+# 3.4 Antivirus en conflit & Etat de Windows Defender
+$antivirusLogicPath = Join-Path $PSScriptRoot 'Diag-Antivirus.ps1'
+if (-not (Test-Path -LiteralPath $antivirusLogicPath -PathType Leaf)) {
+    throw (Get-DiagConsoleMessage -Language $Lang -Key 'AntivirusModuleMissing' -Values @{ Path = $antivirusLogicPath })
+}
+. $antivirusLogicPath
 
-if ($avList.Count -gt 1) {
-    $avNames = ($avList.displayName) -join ", "
-    Add-Diagnostic -Category "Sécurité & GPO" -TestName "Conflit Antivirus Multiple" -Status "WARNING" `
-        -Details "Plusieurs logiciels antivirus actifs détectés en simultané : $avNames." `
-        -FixAction "Désinstaller l'antivirus superflu pour éviter les conflits d'interception et les ralentissements I/O." `
-        -PsFixCommand "Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntiVirusProduct | Format-Table displayName, pathToSignedProductExe" `
-        -GuiShortcut "windowsdefender" `
-        -ExamTip "Deux antivirus simultanés créent des blocages de verrouillage de fichiers mutuels et divisent les débits disques."
-} elseif (-not $defRealtime -and $avList.Count -eq 0) {
-    Add-Diagnostic -Category "Sécurité & GPO" -TestName "Protection Antivirus Désactivée" -Status "ERROR" `
-        -Details "La protection en temps réel Windows Defender est désactivée ou le service est arrêté." `
-        -FixAction "Réactiver la protection en temps réel Windows Defender." `
-        -PsFixCommand "Set-MpPreference -DisableRealtimeMonitoring `$false -ErrorAction SilentlyContinue; Start-Service WinDefend -ErrorAction SilentlyContinue" `
-        -GuiShortcut "windowsdefender" `
-        -ExamTip "Le poste de travail ne doit jamais être laissé sans protection active."
-} else {
-    $avLabel = if ($avList.Count -ge 1) { $avList[0].displayName } else { "Windows Defender" }
-    Add-Diagnostic -Category "Sécurité & GPO" -TestName "Protection Antivirus Conforme" -Status "OK" `
-        -Details "Protection en temps réel active et opérationnelle ($avLabel)." `
-        -FixAction "N/A" -PsFixCommand "" -GuiShortcut "windowsdefender" -ExamTip "N/A"
+$avList = @(Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntiVirusProduct -ErrorAction SilentlyContinue)
+$defenderStatus = $null
+if (Get-Command Get-MpComputerStatus -ErrorAction SilentlyContinue) {
+    $defenderStatus = Get-MpComputerStatus -ErrorAction SilentlyContinue
+}
+$antivirusAssessment = Get-DiagAntivirusAssessment `
+    -DefenderStatus $defenderStatus `
+    -SecurityCenterProducts $avList
+
+switch ($antivirusAssessment.Reason) {
+    'MultipleActiveProducts' {
+        $avNames = $antivirusAssessment.ActiveProducts -join ', '
+        Add-Diagnostic -Category "Sécurité & GPO" -TestName "Conflit Antivirus Multiple" -Status "WARNING" `
+            -Details "Plusieurs logiciels antivirus actifs détectés en simultané : $avNames." `
+            -FixAction "Désinstaller l'antivirus superflu pour éviter les conflits d'interception et les ralentissements I/O." `
+            -PsFixCommand "Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntiVirusProduct | Format-Table displayName, productState, pathToSignedProductExe" `
+            -GuiShortcut "windowsdefender" `
+            -ExamTip "Deux antivirus simultanés créent des blocages de verrouillage de fichiers mutuels et divisent les débits disques."
+    }
+    'NoActiveProtection' {
+        $inactiveNames = $antivirusAssessment.InactiveProducts -join ', '
+        Add-Diagnostic -Category "Sécurité & GPO" -TestName "Protection Antivirus Désactivée" -Status "ERROR" `
+            -Details "Aucune protection antivirus active. Produits inactifs ou non fiables : $inactiveNames." `
+            -FixAction "Réactiver Microsoft Defender ou un antivirus tiers valide avec protection en temps réel." `
+            -PsFixCommand "Get-MpComputerStatus | Select-Object AMServiceEnabled, AntivirusEnabled, RealTimeProtectionEnabled, DefenderSignaturesOutOfDate" `
+            -GuiShortcut "windowsdefender" `
+            -ExamTip "La présence d'un provider SecurityCenter2 ne prouve pas qu'il protège activement le poste."
+    }
+    'SignaturesOutOfDate' {
+        $outdatedNames = $antivirusAssessment.OutdatedProducts -join ', '
+        Add-Diagnostic -Category "Sécurité & GPO" -TestName "Signatures Antivirus Obsolètes" -Status "WARNING" `
+            -Details "La protection antivirus est active mais ses signatures sont obsolètes : $outdatedNames." `
+            -FixAction "Mettre à jour immédiatement les signatures antivirus." `
+            -PsFixCommand "Update-MpSignature -ErrorAction SilentlyContinue" `
+            -GuiShortcut "windowsdefender" `
+            -ExamTip "Une protection active avec des signatures anciennes peut manquer les menaces récentes."
+    }
+    default {
+        $avLabel = $antivirusAssessment.ActiveProducts -join ', '
+        Add-Diagnostic -Category "Sécurité & GPO" -TestName "Protection Antivirus Conforme" -Status "OK" `
+            -Details "Protection en temps réel active et opérationnelle ($avLabel)." `
+            -FixAction "N/A" -PsFixCommand "" -GuiShortcut "windowsdefender" -ExamTip "N/A"
+    }
 }
 
 # 3.5 Disposition Clavier (Détection AZERTY / QWERTY)
@@ -769,7 +1071,7 @@ Add-Diagnostic -Category "Système & OS" -TestName "Processus Actifs & Consommat
 # ==========================================================================
 # 4. SCANNER DE RUNTIMES, DÉPENDANCES & LOGICIELS INSTALLÉS (WINGET)
 # ==========================================================================
-Write-Host "[4/5] Analyse des Runtimes Développeur & Applications Installées..." -ForegroundColor Cyan
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'StageApplications') -ForegroundColor Cyan
 
 # 4.1 Runtimes Développeur & Écosystème Système
 # 4.1 SCANNER EXHAUSTIF DES RUNTIMES DÉVELOPPEUR, COMPILATEURS & CONTENEURS (16 ITEMS)
@@ -1603,9 +1905,9 @@ foreach ($theme in $fossThemes) {
         $cardsHtml += '  <div>'
         $cardsHtml += '    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; flex-wrap:wrap; gap:8px;">'
         $cardsHtml += '      <span style="font-size:11px; background:rgba(56,189,248,0.12); color:#38bdf8; border:1px solid rgba(56,189,248,0.35); padding:3px 8px; font-weight:700; border-radius:3px;">🔄 Alt. de : ' + (Escape-Html $item.Prop) + '</span>'
-        $cardsHtml += '      <strong style="font-size:15px; font-weight:900; color:#34d399; letter-spacing:0.3px;">' + (Escape-Html $item.Foss) + '</strong>'
+        $cardsHtml += '      <strong class="foss-card-title">' + (Escape-Html $item.Foss) + '</strong>'
         $cardsHtml += '    </div>'
-        $cardsHtml += '    <div style="font-size:12.5px; color:#cbd5e1; line-height:1.45; margin-bottom:10px;">' + (Escape-Html $item.Desc) + '</div>'
+        $cardsHtml += '    <div class="foss-card-description">' + (Escape-Html $item.Desc) + '</div>'
         $cardsHtml += '  </div>'
         $cardsHtml += '  <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.08); padding-top:8px; flex-wrap:wrap; gap:8px;">'
         $cardsHtml += '    ' + $webLink
@@ -1641,7 +1943,7 @@ $fossThemesJson = $fossThemes | ConvertTo-Json -Depth 5 -Compress
 # ==========================================================================
 # 4.7 AUDIT DE DÉMARRAGE, SCRIPTS, AUTORUNS & FAST STARTUP
 # ==========================================================================
-Write-Host "    -> Analyse du démarrage, Fast Startup, Scripts & Autoruns..." -ForegroundColor Gray
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'StageStartup') -ForegroundColor Gray
 $startupItems = @()
 
 # 1. Clés Registre Utilisateur (HKCU Run & RunOnce)
@@ -1802,7 +2104,7 @@ if ($startupItems.Count -eq 0) {
 # ==========================================================================
 # 4.8 PERFORMANCE CPU, THROTTLING & CHASSEUR DE CACHES VOLUMINEUX
 # ==========================================================================
-Write-Host "    -> Analyse des performances CPU & Caches systèmes..." -ForegroundColor Gray
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'StagePerformance') -ForegroundColor Gray
 $proc = Get-CimInstance Win32_Processor | Select-Object -First 1
 $curClock = if ($proc.CurrentClockSpeed) { $proc.CurrentClockSpeed } else { 0 }
 $maxClock = if ($proc.MaxClockSpeed) { $proc.MaxClockSpeed } else { 0 }
@@ -1840,7 +2142,7 @@ $totalCachesMB = [math]::Round($softDistMB + $tempMB + $winTempMB + $crashDumpsM
 # ==========================================================================
 # 4.9 CARTOGRAPHIE DES PORTS RÉSEAU EN ÉCOUTE (SOCKETS TCP)
 # ==========================================================================
-Write-Host "    -> Analyse des sockets réseau & ports ouverts..." -ForegroundColor Gray
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'StageSockets') -ForegroundColor Gray
 $tcpConns = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Select-Object -First 30
 $listeningRowsHtml = ""
 $publicCount = 0
@@ -1862,7 +2164,7 @@ foreach ($c in $tcpConns) {
 # ==========================================================================
 # 4.10 POSTURE DE SÉCURITÉ MATÉRIELLE & WINDOWS 11 HARDENING
 # ==========================================================================
-Write-Host "    -> Audit Sécurité Matérielle (TPM 2.0, BitLocker, SecureBoot)..." -ForegroundColor Gray
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'StageHardwareSecurity') -ForegroundColor Gray
 $tpmObj = try { Get-Tpm -ErrorAction SilentlyContinue } catch { $null }
 $tpmPresent = ($tpmObj -and $tpmObj.TpmPresent)
 $tpmBadge = if ($tpmPresent) { '<span class="badge badge-ok">✅ Actif (TPM 2.0 Prêt)</span>' } else { '<span class="badge badge-err">❌ Absent / Désactivé</span>' }
@@ -1881,7 +2183,7 @@ $uacBadge = if ($uacVal -ge 2) { '<span class="badge badge-ok">✅ Niveau Sécur
 # ==========================================================================
 # 5. GÉNÉRATION DU RAPPORT HTML INTERACTIF NIVEAU 3 AVEC THREE.JS
 # ==========================================================================
-Write-Host "[5/5] Construction du Rapport HTML Hyper-Moderne avec Three.js..." -ForegroundColor Cyan
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'StageReport') -ForegroundColor Cyan
 
 $issues = @($Results | Where-Object { $_.Status -ne 'OK' })
 $errorCount = @($Results | Where-Object { $_.Status -eq 'ERROR' }).Count
@@ -1937,52 +2239,154 @@ if ($issues.Count -eq 0) {
 # ==========================================================================
 # 5. SUITE COMPLÈTE IT ENTERPRISE & RMM (10 MODULES MAJEURS)
 # ==========================================================================
-Write-Host "[5/5] Audit Sécurité, Certificats eID, Vulnérabilités CVE & SMART..." -ForegroundColor Cyan
-
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'StageExtendedAudit') -ForegroundColor Cyan
 # --- 5.1 BENCHMARK SYNTHÉTIQUE SAFE (< 1.5s) ---
-$benchStart = [System.Diagnostics.Stopwatch]::StartNew()
-$primeCount = 0
-for ($n = 2; $n -le 12000; $n++) {
-    $isPrime = $true
-    $limit = [math]::Sqrt($n)
-    for ($d = 2; $d -le $limit; $d++) {
-        if ($n % $d -eq 0) { $isPrime = $false; break }
-    }
-    if ($isPrime) { $primeCount++ }
+$cpuBenchmark = if (Get-Command Invoke-DiagCpuBenchmark -ErrorAction SilentlyContinue) {
+    Invoke-DiagCpuBenchmark -MaxNumber 12000 -PassCount 5
+} else {
+    $fallbackWatch = [System.Diagnostics.Stopwatch]::StartNew()
+    [void](Invoke-DiagPrimePass -MaxNumber 12000)
+    $fallbackWatch.Stop()
+    [PSCustomObject]@{ MedianMilliseconds = [int]$fallbackWatch.ElapsedMilliseconds; Samples = @([int]$fallbackWatch.ElapsedMilliseconds); WarmupMilliseconds = 0; PrimeCount = 0 }
 }
-$benchStart.Stop()
-$cpuBenchMs = $benchStart.ElapsedMilliseconds
-$cpuScore = [math]::Max(100, [math]::Round(10000 / [math]::Max(1, $cpuBenchMs)))
+$cpuBenchMs = [int]$cpuBenchmark.MedianMilliseconds
+$cpuRawScore = [math]::Round(10000 / [math]::Max(1, $cpuBenchMs))
+$cpuScore = if (Get-Command ConvertTo-DiagCpuPerformanceScore -ErrorAction SilentlyContinue) {
+    ConvertTo-DiagCpuPerformanceScore -Milliseconds $cpuBenchMs
+} else {
+    [math]::Min(100, [math]::Max(10, [math]::Round(5000 / [math]::Max(1, $cpuBenchMs))))
+}
 $cpuOpsPerSec = [math]::Round(11999 / [math]::Max(0.001, ($cpuBenchMs / 1000.0)))
+$cpuPerfPct = $cpuScore
+$cpuTierName = if ($cpuPerfPct -ge 85) { 'Station / Gamer' } elseif ($cpuPerfPct -ge 65) { 'Créateur polyvalent' } elseif ($cpuPerfPct -ge 45) { 'Entreprise' } else { 'Entrée de gamme' }
+$cpuTierBadge = if ($cpuPerfPct -ge 85) { 'TIER 1' } elseif ($cpuPerfPct -ge 65) { 'TIER 2' } elseif ($cpuPerfPct -ge 45) { 'TIER 3' } else { 'TIER 4/5' }
+$cpuTierCol = if ($cpuPerfPct -ge 85) { '#10b981' } elseif ($cpuPerfPct -ge 65) { '#38bdf8' } elseif ($cpuPerfPct -ge 45) { '#f59e0b' } else { '#f43f5e' }
+$cpuTierDesc = "Indice CPU $cpuPerfPct/100 basé sur la médiane de $($cpuBenchmark.Samples.Count) passes après échauffement ($cpuBenchMs ms)."
+$cpuBarPct = [math]::Min(95, [math]::Max(5, [math]::Round(($cpuBenchMs / 200.0) * 100)))
+$cpuNameFull = if ($procInfo -and $procInfo.Name) { $procInfo.Name } else { "$env:PROCESSOR_IDENTIFIER" }
+
+# --- 5.1b INDICE GPU (TÉLÉMÉTRIE WMI SANS BENCHMARK DE CHARGE) ---
+$gpuAdapters = @(Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue)
+$gpuAdapter = $gpuAdapters | Where-Object { $_.Name -and $_.Name -notmatch 'Microsoft Basic Display' } | Select-Object -First 1
+if (-not $gpuAdapter) { $gpuAdapter = $gpuAdapters | Select-Object -First 1 }
+$gpuRegistryBytes = [UInt64]0
+if ($gpuAdapter) {
+    try {
+        $gpuNameTokens = @($gpuAdapter.Name -split '\s+' | Where-Object { $_.Length -ge 4 })
+        $videoRegistryRoot = 'HKLM:\SYSTEM\CurrentControlSet\Control\Video'
+        foreach ($videoKey in @(Get-ChildItem -LiteralPath $videoRegistryRoot -ErrorAction SilentlyContinue)) {
+            foreach ($adapterKey in @(Get-ChildItem -LiteralPath $videoKey.PSPath -ErrorAction SilentlyContinue | Where-Object { $_.PSChildName -eq '0000' })) {
+                $videoProps = Get-ItemProperty -LiteralPath $adapterKey.PSPath -ErrorAction SilentlyContinue
+                $registryName = [string]$videoProps.'HardwareInformation.AdapterString'
+                if (-not $registryName) { $registryName = [string]$videoProps.'DriverDesc' }
+                $nameMatch = $false
+                foreach ($nameToken in $gpuNameTokens) {
+                    if ($registryName -and $registryName.IndexOf($nameToken, [StringComparison]::OrdinalIgnoreCase) -ge 0) { $nameMatch = $true; break }
+                }
+                $registryMemoryValue = $videoProps.'HardwareInformation.qwMemorySize'
+                if (-not $registryMemoryValue) { $registryMemoryValue = $videoProps.'HardwareInformation.MemorySize' }
+                if ($nameMatch -and $registryMemoryValue) {
+                    $candidateBytes = ConvertTo-DiagGpuMemoryBytes -Value $registryMemoryValue
+                    if ($candidateBytes -gt $gpuRegistryBytes) { $gpuRegistryBytes = $candidateBytes }
+                }
+            }
+        }
+    } catch { $gpuRegistryBytes = [UInt64]0 }
+}
+$gpuVramGB = if (Get-Command ConvertTo-DiagGpuMemoryGB -ErrorAction SilentlyContinue) {
+    ConvertTo-DiagGpuMemoryGB -AdapterRamBytes $gpuAdapter.AdapterRAM -RegistryMemoryBytes $gpuRegistryBytes
+} elseif ($gpuAdapter -and $gpuAdapter.AdapterRAM) {
+    [math]::Round(([double]$gpuAdapter.AdapterRAM / 1GB), 1)
+} else { 0 }
+$gpuScore = if ($gpuAdapter) {
+    $baseGpuScore = 40 + [math]::Round($gpuVramGB * 8)
+    if ([string]$gpuAdapter.Name -match '(?i)NVIDIA|GEFORCE|RADEON|AMD|ARC') { $baseGpuScore += 10 }
+    [math]::Min(100, [math]::Max(20, $baseGpuScore))
+} else { 20 }
+$gpuTierName = if ($gpuScore -ge 85) { 'GPU dédié haut de gamme' } elseif ($gpuScore -ge 65) { 'GPU polyvalent' } elseif ($gpuScore -ge 45) { 'GPU intégré récent' } else { 'GPU limité / non détecté' }
+$gpuTierCol = if ($gpuScore -ge 85) { '#10b981' } elseif ($gpuScore -ge 65) { '#38bdf8' } elseif ($gpuScore -ge 45) { '#f59e0b' } else { '#f43f5e' }
+$gpuName = if ($gpuAdapter -and $gpuAdapter.Name) { [string]$gpuAdapter.Name } else { 'GPU non détecté' }
+$gpuDriver = if ($gpuAdapter -and $gpuAdapter.DriverVersion) { [string]$gpuAdapter.DriverVersion } else { 'N/A' }
+$gpuDesc = "Indice estimé $gpuScore/100 (VRAM $gpuVramGB Go, pilote $gpuDriver). Le test GPU WebGL reste optionnel et se lance avec le bouton ci-dessous."
+
+# --- 5.1c INDICE RAM & VÉRIFICATION INDIRECTE XMP/EXPO ---
+$ramModulesForBench = @($ramModules | Where-Object { $_ })
+$ramTotalGBBench = if ($ramModulesForBench.Count -gt 0) { [math]::Round((($ramModulesForBench | Measure-Object -Property Capacity -Sum).Sum / 1GB), 1) } else { $systemSummary.TotalRAM }
+$ramConfiguredSpeeds = @($ramModulesForBench | ForEach-Object { if ($_.ConfiguredClockSpeed) { [int]$_.ConfiguredClockSpeed } elseif ($_.Speed) { [int]$_.Speed } }) | Where-Object { $_ -gt 0 }
+$ramRatedSpeeds = @($ramModulesForBench | ForEach-Object { if ($_.Speed) { [int]$_.Speed } }) | Where-Object { $_ -gt 0 }
+$ramSpeedMHz = if ($ramConfiguredSpeeds.Count -gt 0) { [math]::Round(($ramConfiguredSpeeds | Measure-Object -Average).Average) } else { 0 }
+$xmpStatus = 'Non vérifiable (profil non exposé par WMI)'
+if ($ramConfiguredSpeeds.Count -gt 0 -and $ramRatedSpeeds.Count -gt 0) {
+    $profileMismatch = $false
+    for ($ri = 0; $ri -lt [math]::Min($ramConfiguredSpeeds.Count, $ramRatedSpeeds.Count); $ri++) {
+        if ($ramConfiguredSpeeds[$ri] -ne $ramRatedSpeeds[$ri]) { $profileMismatch = $true; break }
+    }
+    if ($profileMismatch) { $xmpStatus = 'Profil personnalisé XMP/EXPO probable (vitesse configurée différente)' }
+    elseif ($ramSpeedMHz -ge 3000) { $xmpStatus = 'Profil haute fréquence actif (XMP/EXPO probable)' }
+    else { $xmpStatus = 'Profil JEDEC détecté (XMP/EXPO non identifié)' }
+}
+$ramScore = [math]::Min(100, [math]::Max(20, [math]::Round(35 + [math]::Min(48, $ramTotalGBBench * 0.75) + [math]::Min(22, [math]::Max(0, ($ramSpeedMHz - 2133) / 100)))))
+$ramTierName = if ($ramScore -ge 85) { 'RAM performance' } elseif ($ramScore -ge 65) { 'RAM polyvalente' } elseif ($ramScore -ge 45) { 'RAM standard' } else { 'RAM limitée' }
+$ramTierCol = if ($ramScore -ge 85) { '#10b981' } elseif ($ramScore -ge 65) { '#38bdf8' } elseif ($ramScore -ge 45) { '#f59e0b' } else { '#f43f5e' }
+$ramDesc = "Indice $ramScore/100 ($ramTotalGBBench Go à $ramSpeedMHz MHz). Vérification XMP/EXPO indirecte via les vitesses WMI."
+
+$globalPerfScore = [math]::Round(($cpuPerfPct + $gpuScore + $ramScore) / 3)
+$globalPerfColor = if ($globalPerfScore -ge 85) { '#10b981' } elseif ($globalPerfScore -ge 60) { '#f59e0b' } else { '#f43f5e' }
+$globalPerfLabel = if ($globalPerfScore -ge 85) { 'Équilibre excellent' } elseif ($globalPerfScore -ge 60) { 'Équilibre correct' } else { "Goulot d'étranglement à traiter" }
+
+$performanceData = [PSCustomObject]@{
+    Cpu = [PSCustomObject]@{ Name = $cpuNameFull; Score = $cpuPerfPct; RawScore = $cpuRawScore; Milliseconds = $cpuBenchMs; OpsPerSec = $cpuOpsPerSec; Samples = @($cpuBenchmark.Samples); WarmupMilliseconds = $cpuBenchmark.WarmupMilliseconds }
+    Gpu = [PSCustomObject]@{ Name = $gpuName; Score = $gpuScore; VramGB = $gpuVramGB; DriverVersion = $gpuDriver; Tier = $gpuTierName }
+    Ram = [PSCustomObject]@{ TotalGB = $ramTotalGBBench; SpeedMHz = $ramSpeedMHz; Score = $ramScore; XmpStatus = $xmpStatus; Tier = $ramTierName }
+    Global = [PSCustomObject]@{ Score = $globalPerfScore; Label = $globalPerfLabel }
+}
 
 # --- 5.2 SANTÉ SMART & DISQUES PHYSIQUES ---
 $smartDisks = [System.Collections.Generic.List[PSObject]]::new()
 $physDisks = Get-PhysicalDisk -ErrorAction SilentlyContinue
+$diskMetadataByNumber = @{}
+try {
+    foreach ($diskMetadata in @(Get-Disk -ErrorAction SilentlyContinue)) {
+        if ($null -ne $diskMetadata.Number) {
+            $diskMetadataByNumber[[string]$diskMetadata.Number] = $diskMetadata
+        }
+    }
+} catch {
+    $diskMetadataByNumber = @{}
+}
 foreach ($pd in $physDisks) {
     $rel = Get-StorageReliabilityCounter -PhysicalDisk $pd -ErrorAction SilentlyContinue
-    $wearPct = if ($rel -and $rel.Wear -ne $null) { $rel.Wear } else { 0 }
-    $poh = if ($rel -and $rel.PowerOnHours -ne $null) { $rel.PowerOnHours } else { 0 }
-    $temp = if ($rel -and $rel.Temperature -ne $null) { "$($rel.Temperature) °C" } else { "Nominale" }
-    $readErrors = if ($rel -and $rel.ReadErrorsTotal -ne $null) { $rel.ReadErrorsTotal } else { 0 }
-
-    $smartDisks.Add([PSCustomObject]@{
-        Model        = $pd.FriendlyName
-        MediaType    = $pd.MediaType
-        SizeGB       = [math]::Round($pd.Size / 1GB, 1)
-        Health       = $pd.HealthStatus
-        WearPct      = $wearPct
-        PowerOnHours = $poh
-        Temperature  = $temp
-        ReadErrors   = $readErrors
-    })
+    $diskMetadata = $diskMetadataByNumber[[string]$pd.DeviceId]
+    $smartDisks.Add((ConvertTo-DiagSmartTelemetryRecord -PhysicalDisk $pd -ReliabilityCounter $rel -DiskMetadata $diskMetadata))
 }
-$benchDataJson = $smartDisks | ConvertTo-Json -Compress
+$smartDataJson = $smartDisks | ConvertTo-Json -Compress -Depth 5
+$benchDataJson = $performanceData | ConvertTo-Json -Compress -Depth 5
 
-# --- 5.3 ANALYSE DISQUE INTELLIGENTE ---
+# --- 5.3 ANALYSES DISQUES INTELLIGENTES ---
 $cDrive = Get-PSDrive -Name C -ErrorAction SilentlyContinue
 $cFreeGB = if ($cDrive) { [math]::Round($cDrive.Free / 1GB, 1) } else { 0 }
 $cUsedGB = if ($cDrive) { [math]::Round($cDrive.Used / 1GB, 1) } else { 0 }
 $cTotalGB = [math]::Round(($cFreeGB + $cUsedGB), 1)
+$cFreePct = if ($cTotalGB -gt 0) { [math]::Round(($cFreeGB / $cTotalGB) * 100, 1) } else { 0 }
+
+# Tous les volumes locaux (fixes et amovibles), pas uniquement C:
+$diskVolumes = [System.Collections.Generic.List[PSObject]]::new()
+$logicalDisks = @(Get-CimInstance Win32_LogicalDisk -ErrorAction SilentlyContinue | Where-Object { $_.DriveType -in @(2, 3) })
+foreach ($ld in $logicalDisks) {
+    $volumeTotalGB = if ($ld.Size) { [math]::Round(([double]$ld.Size / 1GB), 1) } else { 0 }
+    $volumeFreeGB = if ($ld.FreeSpace) { [math]::Round(([double]$ld.FreeSpace / 1GB), 1) } else { 0 }
+    $volumeUsedGB = [math]::Round([math]::Max(0, $volumeTotalGB - $volumeFreeGB), 1)
+    $volumeFreePct = if ($volumeTotalGB -gt 0) { [math]::Round(($volumeFreeGB / $volumeTotalGB) * 100, 1) } else { 0 }
+    $diskVolumes.Add([PSCustomObject]@{
+        Drive       = [string]$ld.DeviceID
+        Label       = if ($ld.VolumeName) { [string]$ld.VolumeName } else { '' }
+        FileSystem  = if ($ld.FileSystem) { [string]$ld.FileSystem } else { 'N/A' }
+        TotalGB     = $volumeTotalGB
+        UsedGB      = $volumeUsedGB
+        FreeGB      = $volumeFreeGB
+        FreePct     = $volumeFreePct
+    })
+}
 
 function Get-RobustFolderSizeMB([string]$folderPath) {
     if (-not (Test-Path $folderPath)) { return 0.0 }
@@ -2012,8 +2416,10 @@ $diskAuditObj = [PSCustomObject]@{
     TempWinMB    = $tempWinMB
     SoftDistMB   = $softDistMB
     CleanableMB  = $totalCleanableMB
+    Volumes      = @($diskVolumes)
+    SmartDisks   = @($smartDisks)
 }
-$diskAuditJson = $diskAuditObj | ConvertTo-Json -Compress
+$diskAuditJson = $diskAuditObj | ConvertTo-Json -Compress -Depth 6
 
 # --- 5.4 AUDIT RÉSEAU AVANCÉ AVEC SÉLECTION D'INTERFACE & PINGS .NET RAPIDES ---
 $smbShares = [System.Collections.Generic.List[PSObject]]::new()
@@ -2028,22 +2434,29 @@ foreach ($sh in $rawShares) {
 }
 
 # Collecte détaillée de toutes les interfaces réseau (.NET Ultra-Fast)
-$netPing = [System.Net.NetworkInformation.Ping]::new()
 $adaptersList = [System.Collections.Generic.List[PSObject]]::new()
 
-# Mesure globale des pings Internet de référence (.NET Ping ultra-rapide)
-function Measure-NetPing([string]$targetHost) {
-    if (-not $targetHost) { return -1 }
-    try {
-        $rep = $netPing.Send($targetHost, 350)
-        if ($rep.Status -eq 'Success') { return [int]$rep.RoundtripTime }
-    } catch {}
-    return -1
+function New-NetLatencyEndpoint([string]$key, [string]$label, [string]$category, [string]$targetHost, $profile) {
+    return [PSCustomObject]@{
+        Key             = $key
+        Label           = $label
+        Category        = $category
+        Target          = $targetHost
+        LatencySamples  = @($profile.LatencySamples)
+        Sent            = $profile.Sent
+        Received        = $profile.Received
+        PacketLossPct   = $profile.PacketLossPct
+        MinimumMs       = $profile.MinimumMs
+        AverageMs       = $profile.AverageMs
+        MaximumMs       = $profile.MaximumMs
+        JitterMs        = $profile.JitterMs
+    }
 }
 
-$globalPingCloudflare = Measure-NetPing "1.1.1.1"
-$globalPingGoogle = Measure-NetPing "8.8.8.8"
-$globalPingM365 = Measure-NetPing "outlook.office.com"
+$globalLatencyCloudflare = $networkLatencySnapshot.Cloudflare
+$globalLatencyGoogle = $networkLatencySnapshot.Google
+$globalLatencyQuad9 = $networkLatencySnapshot.Quad9
+$globalLatencyM365 = $networkLatencySnapshot.M365
 
 $allNics = [System.Net.NetworkInformation.NetworkInterface]::GetAllNetworkInterfaces()
 $nicIdx = 1
@@ -2055,11 +2468,24 @@ foreach ($n in $allNics) {
     
     $gwObj = ($ipProps.GatewayAddresses | Where-Object { $_.Address.AddressFamily -eq 'InterNetwork' }) | Select-Object -First 1
     $gwAddr = if ($gwObj) { $gwObj.Address.IPAddressToString } else { "Aucune passerelle" }
-    $dnsAddrs = (($ipProps.DnsAddresses | Where-Object { $_.Address.AddressFamily -eq 'InterNetwork' }).Address.IPAddressToString) -join ", "
+    $dnsAddrs = @(
+        $ipProps.DnsAddresses |
+            Where-Object { $_.AddressFamily -eq 'InterNetwork' } |
+            ForEach-Object { $_.IPAddressToString }
+    ) -join ", "
     if (-not $dnsAddrs) { $dnsAddrs = "Aucun serveur DNS" }
     
-    $pingGw = if ($gwAddr -ne "Aucune passerelle") { Measure-NetPing $gwAddr } else { -1 }
-    $isInternet = ($gwAddr -ne "Aucune passerelle" -and $globalPingCloudflare -ge 0)
+    $gatewayLatency = if ($networkLatencySnapshot.GatewayByAddress.ContainsKey($gwAddr)) {
+        $networkLatencySnapshot.GatewayByAddress[$gwAddr]
+    } elseif ($gwAddr -ne "Aucune passerelle") {
+        # Defensive fallback for an interface discovered after the early snapshot.
+        $networkLatencySnapshot.GatewayByAddress[$gwAddr] = Measure-NetLatencyProfile $gwAddr
+        $networkLatencySnapshot.GatewayByAddress[$gwAddr]
+    } else {
+        Measure-NetLatencyProfile ""
+    }
+    $pingGw = $gatewayLatency.AverageMs
+    $isInternet = ($gwAddr -ne "Aucune passerelle" -and $globalLatencyCloudflare.AverageMs -ge 0)
     $macBytes = $n.GetPhysicalAddress().GetAddressBytes()
     $mac = if ($macBytes.Count -gt 0) { ($macBytes | ForEach-Object { $_.ToString("X2") }) -join "-" } else { "N/A" }
     $speedStr = if ($n.Speed -gt 0) { "$([math]::Round($n.Speed / 1MB)) Mbps" } else { "Inconnue" }
@@ -2077,9 +2503,16 @@ foreach ($n in $allNics) {
         DNS          = $dnsAddrs
         HasInternet  = $isInternet
         PingGateway  = $pingGw
-        PingDNS1     = $globalPingCloudflare
-        PingDNS2     = $globalPingGoogle
-        PingM365     = $globalPingM365
+        PingDNS1     = $globalLatencyCloudflare.AverageMs
+        PingDNS2     = $globalLatencyGoogle.AverageMs
+        PingM365     = $globalLatencyM365.AverageMs
+        LatencyProfiles = @(
+            (New-NetLatencyEndpoint 'gateway' 'Local gateway' 'local' $gwAddr $gatewayLatency)
+            (New-NetLatencyEndpoint 'cloudflare' 'Cloudflare DNS' 'dns' '1.1.1.1' $globalLatencyCloudflare)
+            (New-NetLatencyEndpoint 'google' 'Google DNS' 'dns' '8.8.8.8' $globalLatencyGoogle)
+            (New-NetLatencyEndpoint 'quad9' 'Quad9 DNS' 'dns' '9.9.9.9' $globalLatencyQuad9)
+            (New-NetLatencyEndpoint 'm365' 'Microsoft 365' 'cloud' 'login.microsoftonline.com' $globalLatencyM365)
+        )
     })
     $nicIdx++
 }
@@ -2094,10 +2527,12 @@ $networkAuditObj = [PSCustomObject]@{
     PrimaryIndex     = if ($primaryAdapter) { $primaryAdapter.Index } else { 0 }
     GatewayIP        = if ($primaryAdapter) { $primaryAdapter.Gateway } else { "Inconnue" }
     PingGatewayMs    = if ($primaryAdapter) { $primaryAdapter.PingGateway } else { -1 }
-    PingCloudflareMs = $globalPingCloudflare
-    PingGoogleMs     = $globalPingGoogle
-    PingM365Ms       = $globalPingM365
+    PingCloudflareMs = $globalLatencyCloudflare.AverageMs
+    PingGoogleMs     = $globalLatencyGoogle.AverageMs
+    PingM365Ms       = $globalLatencyM365.AverageMs
 }
+
+$netPing.Dispose()
 
 $adapterOptionsHtml = ""
 foreach ($ad in $adaptersList) {
@@ -2296,7 +2731,7 @@ foreach ($cveItem in $cveDb) {
 }
 $cveMatchesJson = $cveMatches | ConvertTo-Json -Compress
 
-# --- 5.8 HISTORIQUE TEMPOREL LOCAL (30 RUNS MAX FIFO) ---
+# --- 5.8 HISTORIQUE TEMPOREL LOCAL (120 RUNS MAX FIFO) ---
 $HistoryDir = Join-Path $env:LOCALAPPDATA "DiagIT"
 $HistoryDbPath = Join-Path $HistoryDir "history_db.json"
 
@@ -2421,6 +2856,10 @@ $currentRunRecord = [PSCustomObject]@{
     FreeDiskGB  = $cFreeGB
     CveCount    = $cveMatches.Count
     CpuScore    = $cpuScore
+    CpuRawScore = $cpuRawScore
+    GpuScore    = $gpuScore
+    RamScore    = $ramScore
+    GlobalPerfScore = $globalPerfScore
 }
 $historyList.Add($currentRunRecord)
 
@@ -2463,14 +2902,17 @@ foreach ($item in $Results) {
 }
 
 # Données système pour template
-$scanDate = (Get-Date).ToString('dd/MM/yyyy à HH:mm:ss')
+$scanDateFormat = Get-DiagConsoleMessage -Language $Lang -Key 'ScanDateFormat'
+$scanDate = (Get-Date).ToString($scanDateFormat)
 $hostName = [string]$systemSummary.HostName
 $osName = [string]$systemSummary.OSName
 $osVer = [string]$systemSummary.OSVersion
 $cpuName = [string]$systemSummary.CPU
 $ramGB = [string]$systemSummary.TotalRAM
+$ramUnit = Get-DiagConsoleMessage -Language $Lang -Key 'RamUnit'
 $upStr = [string]$systemSummary.Uptime
 $bMode = [string]$systemSummary.BootMode
+$bModeKey = [string]$bootModeKey
 
 $htmlTemplate = @'
 <!DOCTYPE html>
@@ -2490,7 +2932,7 @@ __THREE_JS__
             --card-hover: rgba(22, 31, 52, 0.85);
             --border: rgba(56, 189, 248, 0.15);
             --border-bright: rgba(56, 189, 248, 0.4);
-            --text: #f8fafc;
+            --text: #dce5f0;
             --text-muted: #94a3b8;
             --neon-cyan: #00f0ff;
             --neon-blue: #3b82f6;
@@ -2498,6 +2940,12 @@ __THREE_JS__
             --neon-emerald: #10b981;
             --neon-amber: #f59e0b;
             --neon-rose: #f43f5e;
+            --ui-cyan: #73b9c5;
+            --ui-emerald: #78b99a;
+            --ui-amber: #c8a565;
+            --ui-rose: #c98a9a;
+            --ui-purple: #aa91bb;
+            --ui-frame: rgba(110, 143, 169, 0.22);
             --glow-cyan: 0 0 15px rgba(0, 240, 255, 0.25);
             --glow-card: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
@@ -2508,7 +2956,7 @@ __THREE_JS__
             --card-hover: rgba(38, 18, 6, 0.95);
             --border: rgba(245, 158, 11, 0.25);
             --border-bright: rgba(245, 158, 11, 0.55);
-            --text: #ffffff;
+            --text: #f0e9df;
             --text-muted: #cbd5e1;
             --neon-cyan: #f59e0b;
             --neon-blue: #fbbf24;
@@ -2516,6 +2964,12 @@ __THREE_JS__
             --neon-emerald: #10b981;
             --neon-amber: #fde047;
             --neon-rose: #ef4444;
+            --ui-cyan: #d0a15f;
+            --ui-emerald: #79b99b;
+            --ui-amber: #d7b66d;
+            --ui-rose: #ce8c91;
+            --ui-purple: #b89abf;
+            --ui-frame: rgba(204, 157, 94, 0.28);
             --glow-cyan: 0 0 18px rgba(245, 158, 11, 0.35);
             --glow-card: 0 4px 25px rgba(0, 0, 0, 0.7);
         }
@@ -2567,14 +3021,14 @@ __THREE_JS__
             background: var(--card-bg);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
-            border: 1px solid var(--border);
+            border: 1px solid var(--ui-frame);
             border-radius: 0;
             box-shadow: var(--glow-card);
             transition: border-color 0.25s ease, box-shadow 0.25s ease;
         }
 
         .glass-panel:hover {
-            border-color: var(--border-bright);
+            border-color: rgba(133, 167, 190, 0.38);
         }
 
         /* 🚀 COCKPIT FLIGHT DECK HEADER */
@@ -2773,18 +3227,66 @@ __THREE_JS__
         }
 
         .card {
+            --card-accent: var(--neon-cyan);
             padding: 18px 20px;
             border-radius: 0;
             position: relative;
             overflow: hidden;
+            min-height: 134px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            isolation: isolate;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            z-index: 0;
+            top: 0;
+            left: 16%;
+            right: 16%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--card-accent) 22%, var(--card-accent) 78%, transparent);
+            box-shadow: 0 0 8px var(--card-accent), 0 0 20px var(--card-accent);
+            filter: blur(0.45px);
+            opacity: 0.34;
+            transition: opacity 0.2s ease, left 0.2s ease, right 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            z-index: 0;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse 54% 38% at 50% 0%, var(--card-accent), transparent 78%);
+            opacity: 0.035;
+            transition: opacity 0.2s ease;
         }
 
         .card:hover {
             transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(2, 8, 23, 0.32), 0 0 18px rgba(56, 189, 248, 0.08);
+        }
+
+        .card:hover::before {
+            left: 10%;
+            right: 10%;
+            opacity: 0.62;
+            box-shadow: 0 0 10px var(--card-accent), 0 0 28px var(--card-accent);
+        }
+
+        .card:hover::after {
+            opacity: 0.075;
         }
 
         .card .title {
+            position: relative;
+            z-index: 1;
             font-size: 11px;
             font-weight: 800;
             text-transform: uppercase;
@@ -2793,6 +3295,8 @@ __THREE_JS__
         }
 
         .card .num {
+            position: relative;
+            z-index: 1;
             font-size: 32px;
             font-weight: 900;
             margin-top: 4px;
@@ -2800,16 +3304,395 @@ __THREE_JS__
             line-height: 1;
         }
 
-        .card-tot { border-top: 3px solid var(--neon-cyan); }
+        .card-tot { --card-accent: var(--neon-cyan); }
         .card-tot .num { color: var(--neon-cyan); }
-        .card-ok { border-top: 3px solid var(--neon-emerald); }
+        .card-ok { --card-accent: var(--neon-emerald); }
         .card-ok .num { color: var(--neon-emerald); }
-        .card-warn { border-top: 3px solid var(--neon-amber); }
+        .card-warn { --card-accent: var(--neon-amber); }
         .card-warn .num { color: var(--neon-amber); }
-        .card-err { border-top: 3px solid var(--neon-rose); }
+        .card-err { --card-accent: var(--neon-rose); }
         .card-err .num { color: var(--neon-rose); text-shadow: 0 0 12px rgba(244, 63, 94, 0.4); }
-        .card-health { border-top: 3px solid #38bdf8; }
+        .card-health { --card-accent: #38bdf8; }
         .card-health .num { color: #38bdf8; }
+
+        .network-latency-shell {
+            margin: 0 0 22px;
+            padding: 15px;
+            background: linear-gradient(145deg, rgba(8,15,31,.94), rgba(11,26,45,.88));
+            border: 1px solid rgba(56,189,248,.25);
+            border-radius: 10px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 16px 45px rgba(2,8,23,.18);
+            font-family: "Segoe UI Variable", "Segoe UI", Arial, sans-serif;
+        }
+
+        .network-latency-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 13px;
+            flex-wrap: wrap;
+        }
+
+        .network-latency-options { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .network-latency-options select,
+        .speed-visual-controls select {
+            min-height: 34px;
+            padding: 6px 30px 6px 10px;
+            border: 1px solid rgba(56,189,248,.35);
+            border-radius: 6px;
+            background: #07101f;
+            color: #dbeafe;
+            font: 650 11px/1.2 "Segoe UI Variable", "Segoe UI", sans-serif;
+            letter-spacing: .15px;
+            outline: none;
+        }
+
+        .network-latency-summary {
+            color: #9fb0c8;
+            font-size: 11px;
+            line-height: 1.45;
+        }
+
+        .network-latency-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
+            gap: 11px;
+        }
+
+        .latency-card {
+            --latency-accent: #38bdf8;
+            position: relative;
+            overflow: hidden;
+            min-height: 154px;
+            padding: 14px 15px 13px;
+            background: linear-gradient(155deg, rgba(15,23,42,.96), rgba(6,15,29,.96));
+            border: 1px solid color-mix(in srgb, var(--latency-accent) 52%, #1e293b);
+            border-radius: 8px;
+        }
+
+        .latency-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 3px;
+            background: var(--latency-accent);
+            box-shadow: 0 0 18px var(--latency-accent);
+        }
+
+        .latency-card-head { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+        .latency-name { color:#e6edf7; font-size:12px; font-weight:750; letter-spacing:.15px; }
+        .latency-target { margin-top:2px; color:#657791; font:10px/1.35 "Cascadia Code", Consolas, monospace; word-break:break-all; }
+        .latency-grade { color:var(--latency-accent); font-size:9px; font-weight:850; letter-spacing:.7px; text-transform:uppercase; }
+        .latency-reading { margin:10px 0 8px; color:var(--latency-accent); font:800 30px/1 "Cascadia Code", Consolas, monospace; }
+        .latency-reading small { color:#7f91aa; font:600 10px/1 "Segoe UI Variable", "Segoe UI", sans-serif; }
+        .latency-details { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
+        .latency-detail { padding:6px 5px; background:rgba(2,8,23,.55); border:1px solid rgba(148,163,184,.1); border-radius:5px; text-align:center; }
+        .latency-detail span { display:block; color:#62738c; font-size:8px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; }
+        .latency-detail strong { display:block; margin-top:2px; color:#cbd5e1; font:700 10px/1.2 "Cascadia Code", Consolas, monospace; }
+        .latency-footer { display:flex; justify-content:space-between; gap:8px; margin-top:8px; color:#61738d; font:650 8.5px/1.3 "Cascadia Code", Consolas, monospace; }
+
+        .network-speed-card {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 16px 22px;
+            align-items: center;
+            padding: 16px 18px;
+            margin: 0 0 24px;
+            background: linear-gradient(135deg, rgba(8,47,73,0.72), rgba(15,23,42,0.92));
+            border: 1px solid rgba(56,189,248,0.35);
+            border-left: 4px solid #38bdf8;
+            border-radius: 10px;
+            font-family: "Segoe UI Variable", "Segoe UI", Arial, sans-serif;
+        }
+
+        .network-speed-card .speed-kicker {
+            color: #38bdf8;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: .55px;
+            text-transform: uppercase;
+        }
+
+        .network-speed-card .speed-desc {
+            margin-top: 5px;
+            color: #94a3b8;
+            font-size: 11.5px;
+            line-height: 1.5;
+        }
+
+        .network-speed-card .speed-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 7px;
+            min-width: 210px;
+        }
+
+        .network-speed-card .speed-result {
+            grid-column: 1 / -1;
+            min-height: 22px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(56,189,248,0.16);
+            color: #34d399;
+            font-family: "Cascadia Code", Consolas, monospace;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .speed-visual-stage {
+            position: relative;
+            grid-column: 1 / -1;
+            overflow: hidden;
+            min-height: 302px;
+            height: 302px;
+            border: 1px solid rgba(56,189,248,.23);
+            border-radius: 8px;
+            background:
+                radial-gradient(circle at 78% 45%, rgba(168,85,247,.08), transparent 32%),
+                linear-gradient(180deg, rgba(2,8,23,.98), rgba(5,13,28,.95));
+            box-shadow: inset 0 0 45px rgba(2,132,199,.055);
+        }
+
+        /* Keep a dedicated HUD band above the plot so live values and selectors
+           never obscure the traces. The canvas fills the remaining stage height. */
+        #networkSpeedCanvas { position:absolute; top:58px; left:0; display:block; width:100%; height:calc(100% - 58px); }
+        .speed-visual-overlay { position:absolute; inset:10px 14px auto; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; min-height:42px; pointer-events:none; z-index:3; }
+        .speed-live-metrics { display:flex; align-items:flex-end; gap:8px; }
+        .speed-live-metric { min-width:112px; padding:6px 8px 7px; border:1px solid rgba(148,163,184,.16); border-radius:6px; background:rgba(2,8,23,.76); box-shadow:0 0 18px rgba(2,8,23,.24); }
+        .speed-live-metric span { display:block; color:#93a5be; font-size:8px; font-weight:800; letter-spacing:.55px; line-height:1.1; text-transform:uppercase; }
+        .speed-live-metric strong { display:block; margin-top:3px; font:800 15px/1.05 "Cascadia Code", Consolas, monospace; text-shadow:0 0 18px currentColor; }
+        .speed-live-download strong { color:#22d3ee; }
+        .speed-live-upload strong { color:#c084fc; }
+        .speed-live-caption { margin-top:3px; color:#60738f; font-size:9px; font-weight:750; letter-spacing:.9px; text-transform:uppercase; }
+        .speed-visual-controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; pointer-events:auto; }
+        .speed-control-label { color:#71839c; font-size:9px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; }
+        .speed-detail-grid { grid-column:1 / -1; display:grid; grid-template-columns:repeat(9,minmax(0,1fr)); gap:6px; overflow-x:auto; }
+        .speed-detail-cell { min-width:0; padding:8px 8px; border:1px solid rgba(56,189,248,.12); border-radius:6px; background:rgba(2,8,23,.48); }
+        .speed-detail-cell span { display:block; overflow:hidden; color:#63758e; font-size:7.8px; font-weight:750; letter-spacing:.45px; line-height:1.25; text-overflow:ellipsis; text-transform:uppercase; white-space:nowrap; }
+        .speed-detail-cell strong { display:block; margin-top:3px; overflow-wrap:anywhere; color:#dbeafe; font:750 clamp(9px, .65vw, 11px)/1.25 "Cascadia Code", Consolas, monospace; }
+        .speed-chart-legend { position:absolute; left:13px; bottom:32px; display:flex; gap:12px; align-items:center; padding:6px 8px; border:1px solid rgba(148,163,184,.14); border-radius:5px; background:rgba(2,8,23,.82); color:#9fb0c8; font-size:9px; font-weight:750; letter-spacing:.2px; }
+        .speed-legend-item { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+        .speed-legend-swatch { display:inline-block; width:20px; height:3px; border-radius:3px; box-shadow:0 0 9px currentColor; }
+        #networkSpeedDownloadSwatch { color:#22d3ee; background:#22d3ee; }
+        #networkSpeedUploadSwatch { color:#c084fc; background:#c084fc; }
+        .speed-axis-y { position:absolute; top:76px; bottom:42px; left:9px; display:flex; flex-direction:column; justify-content:space-between; align-items:flex-end; color:#566b86; font:650 8px/1 "Cascadia Code", Consolas, monospace; pointer-events:none; z-index:1; }
+        .speed-axis-x { position:absolute; right:17px; bottom:14px; left:51px; display:flex; justify-content:space-between; color:#566b86; font:650 8px/1 "Cascadia Code", Consolas, monospace; pointer-events:none; }
+        .speed-scale-badge { position:absolute; right:17px; bottom:34px; color:#60738d; font:700 8px/1 "Cascadia Code", Consolas, monospace; letter-spacing:.2px; pointer-events:none; }
+
+        @media (max-width: 720px) {
+            .network-speed-card { grid-template-columns: 1fr; }
+            .network-speed-card .speed-actions { align-items: stretch; min-width: 0; }
+            .speed-visual-stage { min-height: 356px; height: 356px; }
+            #networkSpeedCanvas { top:102px; height:calc(100% - 102px); }
+            .speed-visual-overlay { flex-direction:column; align-items:stretch; gap:8px; min-height:82px; }
+            .speed-visual-controls { justify-content:flex-start; }
+            .speed-live-metrics { flex-wrap:wrap; }
+            .speed-live-metric { min-width:96px; }
+            .speed-chart-legend { left:9px; bottom:29px; }
+            .speed-axis-y { top:120px; left:5px; }
+            .speed-axis-x { left:42px; right:9px; }
+            .network-latency-grid { grid-template-columns:1fr; }
+        }
+
+        /* BENCHMARK COCKPIT: keep the fixed 256px GPU viewport from stretching
+           the supporting cards. The GPU owns the left rail; CPU/scale and
+           RAM/global stay compact in the two-column rail on the right. */
+        .benchmark-composition {
+            display: grid;
+            grid-template-columns: minmax(320px, 1.08fr) minmax(0, 1.92fr);
+            gap: 18px;
+            align-items: stretch;
+            margin-bottom: 20px;
+        }
+
+        .benchmark-right-rail {
+            display: grid;
+            grid-template-rows: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+            min-width: 0;
+            min-height: 100%;
+        }
+
+        .benchmark-top-grid,
+        .benchmark-performance-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        .benchmark-composition .benchmark-cpu-card,
+        .benchmark-composition .benchmark-scale-card,
+        .benchmark-composition .benchmark-ram-card,
+        .benchmark-composition .benchmark-global-card {
+            height: 100%;
+            min-height: 0;
+        }
+
+        .benchmark-cpu-card,
+        .benchmark-scale-card {
+            min-height: 178px;
+        }
+
+        .benchmark-gpu-card {
+            min-width: 0;
+        }
+
+        .gpu-stress-toolbar {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 92px 92px;
+            gap: 8px;
+            align-items: center;
+            margin-top: 12px;
+        }
+
+        .gpu-stress-select {
+            min-height: 34px;
+            padding: 6px 8px;
+            color: #cbd5e1;
+            background: rgba(2, 6, 23, .82);
+            border: 1px solid rgba(56, 189, 248, .28);
+            border-radius: 5px;
+            font: 700 10px/1.2 'Consolas', monospace;
+            letter-spacing: .03em;
+            outline: none;
+        }
+
+        .gpu-stress-select:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, .13);
+        }
+
+        .gpu-stress-viewport {
+            position: relative;
+            width: 256px;
+            height: 256px;
+            max-width: 100%;
+            margin: 14px auto 0;
+            overflow: hidden;
+            isolation: isolate;
+            background:
+                radial-gradient(circle at 50% 44%, rgba(14, 116, 144, .20), transparent 44%),
+                linear-gradient(155deg, #020617, #061121 60%, #020617);
+            border: 0;
+            outline: 1px solid rgba(56, 189, 248, .42);
+            border-radius: 10px;
+            box-shadow: inset 0 0 32px rgba(2, 132, 199, .08), 0 10px 26px rgba(2, 6, 23, .35);
+        }
+
+        .gpu-stress-viewport canvas {
+            display: block;
+            width: 256px;
+            height: 256px;
+            max-width: 100%;
+        }
+
+        .gpu-stress-placeholder {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            padding: 30px;
+            color: #64748b;
+            font-size: 11px;
+            line-height: 1.45;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .gpu-stress-hud {
+            position: absolute;
+            inset: 9px 9px auto;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .gpu-stress-hud span {
+            padding: 4px 7px;
+            color: #bae6fd;
+            background: rgba(2, 6, 23, .72);
+            border: 1px solid rgba(56, 189, 248, .30);
+            border-radius: 4px;
+            backdrop-filter: blur(6px);
+            font: 800 9px/1 'Consolas', monospace;
+            letter-spacing: .07em;
+        }
+
+        .gpu-stress-progress {
+            height: 4px;
+            margin-top: 9px;
+            overflow: hidden;
+            background: rgba(15, 23, 42, .95);
+            border-radius: 999px;
+        }
+
+        .gpu-stress-progress > span {
+            display: block;
+            width: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #06b6d4, #38bdf8 48%, #a855f7);
+            box-shadow: 0 0 12px rgba(56, 189, 248, .65);
+            transition: width .12s linear;
+        }
+
+        .gpu-stress-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 6px;
+            margin-top: 9px;
+        }
+
+        .gpu-stress-metric {
+            min-width: 0;
+            padding: 7px 5px;
+            text-align: center;
+            background: rgba(2, 6, 23, .52);
+            border: 1px solid rgba(148, 163, 184, .13);
+            border-radius: 5px;
+        }
+
+        .gpu-stress-metric span {
+            display: block;
+            overflow: hidden;
+            color: #64748b;
+            font-size: 8.5px;
+            font-weight: 800;
+            letter-spacing: .05em;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .gpu-stress-metric strong {
+            display: block;
+            margin-top: 2px;
+            color: #e2e8f0;
+            font: 800 11px/1.15 'Consolas', monospace;
+        }
+
+        @media (max-width: 430px) {
+            .gpu-stress-toolbar { grid-template-columns: 1fr 1fr; }
+            .gpu-stress-toolbar .btn-primary { grid-column: 1 / -1; }
+            .gpu-stress-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 1100px) {
+            .benchmark-composition {
+                grid-template-columns: 1fr;
+            }
+            .benchmark-right-rail { min-height: 0; }
+        }
+
+        @media (max-width: 720px) {
+            .benchmark-top-grid,
+            .benchmark-performance-grid { grid-template-columns: 1fr; }
+            .benchmark-cpu-card,
+            .benchmark-scale-card { min-height: 0; }
+        }
 
         /* 🎛️ COCKPIT COMMAND NAVIGATION TABS (NO HORIZONTAL SCROLLBAR) */
                 .tabs {
@@ -2829,6 +3712,7 @@ __THREE_JS__
         }
 
         .tab-btn {
+            --button-accent: var(--neon-cyan);
             background: rgba(8, 14, 28, 0.75);
             border: 1px solid var(--border);
             color: var(--text-muted);
@@ -2850,25 +3734,99 @@ __THREE_JS__
             text-overflow: ellipsis;
         }
 
+        /* Dashboard controls share the same quiet neon grammar as KPI cards:
+           a diffused edge at rest, then a stronger but contained glow on hover. */
+        .dashboard-neon-button,
+        .tab-btn,
+        .btn-primary,
+        .btn-cyber,
+        .btn-gui,
+        .btn-copy,
+        .btn-mini-copy,
+        .filter-btn {
+            --button-accent: var(--neon-cyan);
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+        }
+
+        .btn-gui { --button-accent: var(--neon-emerald); }
+
+        .dashboard-neon-button::before,
+        .tab-btn::before,
+        .btn-primary::before,
+        .btn-cyber::before,
+        .btn-gui::before,
+        .btn-copy::before,
+        .btn-mini-copy::before,
+        .filter-btn::before {
+            content: '';
+            position: absolute;
+            z-index: 0;
+            pointer-events: none;
+            left: 18%;
+            right: 18%;
+            bottom: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--button-accent) 22%, var(--button-accent) 78%, transparent);
+            box-shadow: 0 0 7px var(--button-accent), 0 0 16px var(--button-accent);
+            filter: blur(0.35px);
+            opacity: 0.28;
+            transition: opacity 0.18s ease, left 0.18s ease, right 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .dashboard-neon-button:hover::before,
+        .tab-btn:hover::before,
+        .btn-primary:hover::before,
+        .btn-cyber:hover::before,
+        .btn-gui:hover::before,
+        .btn-copy:hover::before,
+        .btn-mini-copy:hover::before,
+        .filter-btn:hover::before {
+            left: 10%;
+            right: 10%;
+            opacity: 0.64;
+            box-shadow: 0 0 10px var(--button-accent), 0 0 24px var(--button-accent);
+        }
+
+        .tab-btn[data-icon="overview"] { --button-accent: var(--neon-cyan); }
+        .tab-btn[data-icon="health"] { --button-accent: var(--neon-emerald); }
+        .tab-btn[data-icon="cve"] { --button-accent: var(--neon-rose); }
+        .tab-btn[data-icon="network"] { --button-accent: var(--neon-cyan); }
+        .tab-btn[data-icon="disks"] { --button-accent: var(--neon-amber); }
+        .tab-btn[data-icon="startup"] { --button-accent: var(--neon-purple); }
+        .tab-btn[data-icon="belgian"] { --button-accent: var(--neon-cyan); }
+        .tab-btn[data-icon="benchmarks"] { --button-accent: var(--neon-amber); }
+        .tab-btn[data-icon="security"] { --button-accent: var(--neon-emerald); }
+        .tab-btn[data-icon="foss"] { --button-accent: var(--neon-purple); }
+        .tab-btn[data-icon="journal"] { --button-accent: var(--neon-blue); }
+        .tab-btn[data-icon="profiles"] { --button-accent: var(--neon-purple); }
+        .tab-btn[data-icon="shortcuts"] { --button-accent: var(--neon-blue); }
+        .tab-btn[data-icon="export"] { --button-accent: var(--neon-emerald); }
+        .tab-btn[data-icon="docs"] { --button-accent: var(--neon-cyan); }
+        .tab-btn[data-icon="archive"] { --button-accent: var(--neon-purple); }
+        .tab-btn[data-icon="relaunch"] { --button-accent: var(--neon-emerald); }
+        .tab-btn[data-icon="print"] { --button-accent: var(--neon-amber); }
+
         .tab-btn:hover {
             color: var(--text);
-            border-color: var(--neon-cyan);
-            background: rgba(0, 240, 255, 0.1);
-            box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+            border-color: var(--button-accent);
+            background: rgba(15, 23, 42, 0.88);
+            box-shadow: 0 0 12px var(--button-accent);
         }
 
         .tab-btn.active {
-            color: #ffffff;
-            border-color: var(--neon-cyan);
-            background: linear-gradient(180deg, rgba(0, 240, 255, 0.25) 0%, rgba(8, 14, 28, 0.95) 100%);
-            box-shadow: inset 0 2px 0 var(--neon-cyan), 0 0 14px rgba(0, 240, 255, 0.25);
+            color: var(--text);
+            border-color: var(--button-accent);
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.88) 0%, rgba(8, 14, 28, 0.95) 100%);
+            box-shadow: inset 0 2px 0 var(--button-accent), 0 0 14px var(--button-accent);
         }
 
         [data-theme="light"] .tab-btn.active {
-            border-color: #f59e0b;
-            background: linear-gradient(180deg, rgba(245, 158, 11, 0.3) 0%, rgba(26, 12, 4, 0.95) 100%);
-            box-shadow: inset 0 2px 0 #f59e0b, 0 0 14px rgba(245, 158, 11, 0.3);
-            color: #ffffff;
+            border-color: var(--button-accent);
+            background: linear-gradient(180deg, rgba(67, 30, 8, 0.82) 0%, rgba(26, 12, 4, 0.95) 100%);
+            box-shadow: inset 0 2px 0 var(--button-accent), 0 0 14px var(--button-accent);
+            color: var(--text);
         }
 
         .tab-led-dot {
@@ -2911,7 +3869,7 @@ __THREE_JS__
             font-size: 16px;
             font-weight: 800;
             margin-bottom: 20px;
-            color: var(--neon-amber);
+            color: var(--ui-amber);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -2921,8 +3879,8 @@ __THREE_JS__
 
         .res-card {
             background: rgba(10, 15, 26, 0.90);
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            border-left: 4px solid var(--neon-cyan);
+            border: 1px solid var(--ui-frame);
+            border-left: 4px solid var(--ui-cyan);
             border-radius: 0;
             padding: 18px 20px;
             margin-bottom: 16px;
@@ -2933,8 +3891,8 @@ __THREE_JS__
             border: 1px solid rgba(245, 158, 11, 0.4);
         }
 
-        .res-card-warn { border-left-color: var(--neon-amber) !important; }
-        .res-card-err { border-left-color: var(--neon-rose) !important; }
+        .res-card-warn { border-left-color: var(--ui-amber) !important; }
+        .res-card-err { border-left-color: var(--ui-rose) !important; }
 
         .res-header {
             display: flex;
@@ -2946,9 +3904,9 @@ __THREE_JS__
         }
 
         .tag-cat {
-            background: rgba(56, 189, 248, 0.1);
-            color: var(--neon-cyan);
-            border: 1px solid rgba(56, 189, 248, 0.3);
+            background: rgba(115, 185, 197, 0.075);
+            color: var(--ui-cyan);
+            border: 1px solid rgba(115, 185, 197, 0.26);
             padding: 3px 8px;
             border-radius: 0;
             font-size: 11px;
@@ -2959,9 +3917,9 @@ __THREE_JS__
         }
 
         [data-theme="light"] .tag-cat {
-            background: rgba(245, 158, 11, 0.15);
-            border-color: rgba(245, 158, 11, 0.4);
-            color: #fde047;
+            background: rgba(208, 161, 95, 0.13);
+            border-color: rgba(208, 161, 95, 0.32);
+            color: var(--ui-cyan);
         }
 
         .action-btn-group {
@@ -2972,8 +3930,8 @@ __THREE_JS__
 
         .btn-copy {
             background: #020617;
-            border: 1px solid rgba(56, 189, 248, 0.4);
-            color: var(--neon-cyan);
+            border: 1px solid rgba(115, 185, 197, 0.32);
+            color: var(--ui-cyan);
             padding: 6px 14px;
             border-radius: 0;
             font-size: 11px;
@@ -2993,15 +3951,15 @@ __THREE_JS__
         }
 
         .btn-copy:hover {
-            background: var(--neon-cyan);
-            color: #000000;
-            box-shadow: var(--glow-cyan);
+            background: rgba(115, 185, 197, 0.16);
+            color: #d7e7eb;
+            box-shadow: 0 0 12px rgba(115, 185, 197, 0.22);
         }
 
         .btn-mini-copy {
             background: transparent;
-            border: 1px solid var(--border-bright);
-            color: var(--neon-cyan);
+            border: 1px solid rgba(115, 185, 197, 0.28);
+            color: var(--ui-cyan);
             padding: 3px 8px;
             border-radius: 0;
             font-size: 10.5px;
@@ -3011,8 +3969,8 @@ __THREE_JS__
         }
 
         .btn-mini-copy:hover {
-            background: var(--neon-cyan);
-            color: #000000;
+            background: rgba(115, 185, 197, 0.14);
+            color: #d7e7eb;
         }
 
         [data-theme="light"] .btn-mini-copy {
@@ -3028,11 +3986,11 @@ __THREE_JS__
         .res-body p {
             margin: 6px 0;
             font-size: 13.5px;
-            color: #f8fafc;
+            color: var(--text);
         }
 
         .action-highlight {
-            color: #38bdf8 !important;
+            color: #77b8c9 !important;
             font-weight: 600;
         }
 
@@ -3041,12 +3999,12 @@ __THREE_JS__
         }
 
         .exam-tip-box {
-            background: rgba(168, 85, 247, 0.12);
-            border-left: 3px solid var(--neon-purple);
+            background: rgba(170, 145, 187, 0.08);
+            border-left: 3px solid var(--ui-purple);
             padding: 8px 12px;
             margin-top: 10px;
             font-size: 12.5px;
-            color: #e9d5ff;
+            color: #d7c6df;
         }
 
         [data-theme="light"] .exam-tip-box {
@@ -3185,9 +4143,9 @@ __THREE_JS__
             text-transform: uppercase;
         }
 
-        .badge-ok { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
-        .badge-warn { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
-        .badge-err { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.4); }
+        .badge-ok { background: rgba(120, 185, 154, 0.12); color: var(--ui-emerald); border: 1px solid rgba(120, 185, 154, 0.30); }
+        .badge-warn { background: rgba(200, 165, 101, 0.12); color: var(--ui-amber); border: 1px solid rgba(200, 165, 101, 0.30); }
+        .badge-err { background: rgba(201, 138, 154, 0.12); color: var(--ui-rose); border: 1px solid rgba(201, 138, 154, 0.30); }
         [data-theme="light"] .badge-ok { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
         [data-theme="light"] .badge-warn { background: #78350f; color: #fde047; border: 1px solid #f59e0b; }
         [data-theme="light"] .badge-err { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
@@ -3229,6 +4187,143 @@ __THREE_JS__
             background: rgba(245, 158, 11, 0.35);
             border-color: #f59e0b;
             box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+        }
+
+        /* BUSINESS SOFTWARE CATALOGUE */
+        .business-catalog-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 18px;
+            padding: 14px 16px;
+            margin: 0 0 14px;
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            border-left: 3px solid var(--neon-cyan);
+            background: linear-gradient(120deg, rgba(8, 47, 73, 0.32), rgba(15, 23, 42, 0.72));
+        }
+
+        .business-catalog-kicker {
+            color: var(--neon-cyan);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .business-catalog-toolbar p {
+            margin: 0;
+            max-width: 820px;
+            color: #94a3b8;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .business-country-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 190px;
+        }
+
+        .business-country-field label {
+            color: #cbd5e1;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        #businessCountrySelect {
+            min-height: 35px;
+            padding: 6px 10px;
+            color: #e0f2fe;
+            background: #071426;
+            border: 1px solid rgba(56, 189, 248, 0.55);
+            border-radius: 3px;
+            font-weight: 800;
+            cursor: pointer;
+            outline: none;
+        }
+
+        #businessCountrySelect:hover,
+        #businessCountrySelect:focus {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.22);
+        }
+
+        .business-catalog-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            min-height: 24px;
+            margin: 0 0 16px;
+            color: #94a3b8;
+            font-size: 11px;
+        }
+
+        .business-catalog-meta strong { color: #e2e8f0; }
+        .business-catalog-meta .catalog-meta-chip {
+            padding: 3px 8px;
+            border: 1px solid rgba(52, 211, 153, 0.35);
+            background: rgba(16, 185, 129, 0.10);
+            color: #6ee7b7;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .business-catalog-card {
+            min-height: 182px;
+            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .business-catalog-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(56, 189, 248, 0.62) !important;
+            box-shadow: 0 8px 24px rgba(2, 132, 199, 0.13);
+        }
+
+        .business-source-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            color: #94a3b8;
+            font-size: 10.5px;
+        }
+
+        .business-source-kind {
+            padding: 3px 6px;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            color: #7dd3fc;
+            background: rgba(14, 116, 144, 0.13);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .business-source-kind.official {
+            border-color: rgba(52, 211, 153, 0.42);
+            color: #6ee7b7;
+            background: rgba(16, 185, 129, 0.13);
+        }
+
+        .business-source-line a {
+            color: var(--neon-cyan);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .business-source-line a:hover { text-decoration: underline; }
+
+        @media (max-width: 720px) {
+            .business-catalog-toolbar { align-items: stretch; flex-direction: column; }
+            .business-country-field { min-width: 0; }
         }
 
         .code-block {
@@ -3401,6 +4496,167 @@ __THREE_JS__
             background: var(--neon-cyan);
             color: #000000;
         }
+
+        /* Dense technician reference: keep the useful information above the fold. */
+        #tab-shortcuts .shortcuts-compact {
+            padding: 16px;
+        }
+
+        #tab-shortcuts .shortcuts-compact > h2 {
+            margin: 0 0 5px;
+            font-size: 18px;
+            letter-spacing: 0.2px;
+        }
+
+        #tab-shortcuts .shortcuts-compact > p {
+            margin: 0;
+            font-size: 11px !important;
+            line-height: 1.4;
+        }
+
+        #tab-shortcuts .guide-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+            align-items: start;
+        }
+
+        #tab-shortcuts .guide-card {
+            padding: 14px;
+            min-width: 0;
+        }
+
+        #tab-shortcuts .guide-card h3 {
+            margin-bottom: 8px;
+            font-size: 12px;
+            line-height: 1.25;
+            letter-spacing: 0.25px;
+            gap: 6px;
+        }
+
+        #tab-shortcuts .shortcut-table {
+            margin-top: 5px;
+            font-size: 10.5px;
+        }
+
+        #tab-shortcuts .shortcut-table td {
+            padding: 6px 7px;
+            line-height: 1.25;
+            vertical-align: middle;
+        }
+
+        #tab-shortcuts .shortcut-table td:first-child {
+            width: 1%;
+            white-space: nowrap;
+        }
+
+        #tab-shortcuts .shortcut-key {
+            padding: 2px 6px;
+            font-size: 10px;
+        }
+
+        .powertoys-brief {
+            margin-top: 12px;
+            padding: 11px 12px;
+            border: 1px solid rgba(56, 189, 248, 0.45);
+            background: linear-gradient(135deg, rgba(14, 116, 144, 0.18), rgba(2, 6, 23, 0.75));
+            box-shadow: inset 3px 0 0 var(--neon-cyan);
+        }
+
+        .powertoys-brief-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .powertoys-brief-title {
+            color: #e0f2fe;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.35px;
+            text-transform: uppercase;
+        }
+
+        .powertoys-brief-title .diag-icon {
+            width: 1.18em;
+            height: 1.18em;
+            margin-right: 5px;
+            vertical-align: -0.2em;
+            color: var(--neon-cyan);
+        }
+
+        .powertoys-badge {
+            padding: 3px 6px;
+            border: 1px solid rgba(52, 211, 153, 0.35);
+            color: #6ee7b7;
+            background: rgba(16, 185, 129, 0.09);
+            font-size: 9px;
+            font-family: 'Consolas', monospace;
+            white-space: nowrap;
+        }
+
+        .powertoys-brief p {
+            margin: 0 0 8px;
+            color: var(--text-muted);
+            font-size: 10.5px;
+            line-height: 1.45;
+        }
+
+        .powertoys-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 7px 0 9px;
+        }
+
+        .powertoys-tags span {
+            padding: 3px 6px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #7dd3fc;
+            background: rgba(56, 189, 248, 0.08);
+            font-size: 9.5px;
+            font-family: 'Consolas', monospace;
+        }
+
+        .powertoys-links {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .powertoys-links a,
+        .powertoys-links button {
+            font-family: 'Consolas', monospace;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .powertoys-links a {
+            color: var(--neon-cyan);
+            text-decoration: none;
+            border-bottom: 1px dashed currentColor;
+            padding-bottom: 1px;
+        }
+
+        .powertoys-links a:hover {
+            color: #ffffff;
+            border-bottom-style: solid;
+        }
+
+        @media (max-width: 1100px) {
+            #tab-shortcuts .guide-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 720px) {
+            #tab-shortcuts .guide-grid {
+                grid-template-columns: 1fr;
+            }
+        }
         [data-theme="light"] .shortcut-key {
             background: #050201;
             color: #fde047;
@@ -3555,6 +4811,34 @@ __THREE_JS__
             transform: translateY(-2px);
             border-color: var(--neon-cyan);
             box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+        }
+
+        #tab-foss .drawer-title {
+            color: #d2dce8;
+        }
+
+        .foss-card-title {
+            color: #8bcbb5;
+            font-size: 15px;
+            font-weight: 750;
+            letter-spacing: 0.3px;
+        }
+
+        .foss-card-description {
+            color: #b8c5d5;
+            font-size: 12.5px;
+            line-height: 1.45;
+            margin-bottom: 10px;
+        }
+
+        .module-doc-detail {
+            color: #c3cfdd;
+            line-height: 1.52;
+        }
+
+        .module-doc-line {
+            display: block;
+            margin: 1px 0;
         }
 
                         .print-footer-strip {
@@ -4151,9 +5435,104 @@ __THREE_JS__
             box-shadow: 0 0 14px rgba(52, 211, 153, 0.35);
             transform: translateY(-1px);
         }
+
+        /* Consistent wireframe language: crisp, scalable, and theme-aware. */
+        .diag-icon {
+            width: 1.08em;
+            height: 1.08em;
+            display: inline-block;
+            flex: 0 0 auto;
+            vertical-align: -0.16em;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.7;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            pointer-events: none;
+        }
+
+        .diag-icon.emoji-icon {
+            filter: drop-shadow(0 0 4px currentColor);
+        }
+
+        .tab-btn .diag-icon {
+            width: 1.16em;
+            height: 1.16em;
+            vertical-align: -0.22em;
+            margin-left: 0.36em;
+            margin-right: 0;
+        }
+
+        .theme-toggle .diag-icon,
+        .filter-btn .diag-icon,
+        .btn-primary .diag-icon,
+        .btn-copy .diag-icon,
+        .btn-mini-copy .diag-icon {
+            margin-right: 0.28em;
+        }
+
+        .diag-icon-inline {
+            width: 1.15em;
+            height: 1.15em;
+            vertical-align: -0.2em;
+        }
 </style>
 </head>
 <body>
+    <!-- WIREFRAME ICON SYSTEM: one self-contained SVG sprite for the whole report. -->
+    <svg id="diagIconSprite" aria-hidden="true" focusable="false" width="0" height="0" style="position:absolute; width:0; height:0; overflow:hidden;">
+        <defs>
+            <symbol id="diag-icon-overview" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/><path d="M10 7h4M7 10v4M17 10v4M10 17h4"/></symbol>
+            <symbol id="diag-icon-health" viewBox="0 0 24 24"><path d="M3 13h4l2-6 4 11 2-6h6"/><path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></symbol>
+            <symbol id="diag-icon-cve" viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5-3.2 8.3-8 10-4.8-1.7-8-5-8-10V6l8-3z"/><path d="M12 8v5M12 16v.1"/><path d="M18 8.5 21 6"/></symbol>
+            <symbol id="diag-icon-network" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.2 2.2 3.3 4.9 3.3 8S14.2 17.8 12 20c-2.2-2.2-3.3-4.9-3.3-8S9.8 6.2 12 4z"/><path d="M17.5 5.5 21 3M19.5 3H21v1.5"/></symbol>
+            <symbol id="diag-icon-disks" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/><circle cx="12" cy="6" r="1.3"/></symbol>
+            <symbol id="diag-icon-startup" viewBox="0 0 24 24"><path d="M13 3c4.3 1 6.8 3.5 7.8 7.8l-4.5 4.5-4.6-4.6L13 3z"/><path d="m11.7 10.7-5.4 5.4M8.3 17.4 6.6 21l3.6-1.7M5 12l-2 2 3 1M12 19l2 2 1-3"/><circle cx="16.2" cy="7.8" r="1.2"/></symbol>
+            <symbol id="diag-icon-belgian" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 3v18M16 3v18M8 8h8M8 16h8"/><rect x="10" y="10" width="4" height="4" rx=".7"/></symbol>
+            <symbol id="diag-icon-benchmarks" viewBox="0 0 24 24"><path d="M4 17a8 8 0 1 1 16 0"/><path d="m12 13 4-4M6 17h1M17 17h1M12 9V8"/><path d="M4 20h16"/></symbol>
+            <symbol id="diag-icon-security" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5 20c.5-3.4 2.8-5 7-5s6.5 1.6 7 5"/><path d="m17 13 4 1.5v2.6c0 2.5-1.6 4.1-4 4.9-2.4-.8-4-2.4-4-4.9v-2.6l4-1.5z"/></symbol>
+            <symbol id="diag-icon-foss" viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="12" r="2"/><circle cx="4" cy="20" r="2"/><circle cx="12" cy="20" r="2"/><circle cx="20" cy="20" r="2"/><path d="M12 6v3M12 9 6 10M12 9l6 1M6 14v2M6 16l-2 2M6 16l6 2M18 14v2M18 16l2 2M18 16l-6 2"/></symbol>
+            <symbol id="diag-icon-journal" viewBox="0 0 24 24"><path d="M6 4h13v16H6a3 3 0 0 1 0-16zM6 4v16"/><path d="m9 9 1.3 1.3L13 7.8M9 14h6M9 17h4"/></symbol>
+            <symbol id="diag-icon-profiles" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="m4 7.5 8 4.6 8-4.6M12 12.1V21"/></symbol>
+            <symbol id="diag-icon-shortcuts" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M6 9h2M10 9h2M14 9h2M18 9h0M6 13h2M10 13h2M14 13h4M7 16h10"/></symbol>
+            <symbol id="diag-icon-export" viewBox="0 0 24 24"><path d="M5 4h9l5 5v11H5zM14 4v5h5"/><path d="M12 11v6M9.5 14.5 12 17l2.5-2.5"/></symbol>
+            <symbol id="diag-icon-docs" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5zM16 4v4h3"/><path d="M8 12h7M8 15h7M8 18h4"/></symbol>
+            <symbol id="diag-icon-archive" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="2.5"/><path d="M4 5v6c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5V5M4 11v6c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5v-6"/><path d="M9 8h6"/></symbol>
+            <symbol id="diag-icon-relaunch" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0 1 4"/><path d="m20 4v7h-7"/><path d="M12 8v4l3 2"/></symbol>
+            <symbol id="diag-icon-print" viewBox="0 0 24 24"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M7 14h10v7H7zM18 12h.1"/></symbol>
+            <symbol id="diag-icon-theme" viewBox="0 0 24 24"><circle cx="10" cy="10" r="5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.3 4.3l1.4 1.4M14.3 14.3l1.4 1.4"/><path d="M15 5a6 6 0 0 1 4 10.5A6 6 0 0 1 15 5z"/></symbol>
+            <symbol id="diag-icon-ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8 12 2.5 2.5L16 9"/></symbol>
+            <symbol id="diag-icon-warn" viewBox="0 0 24 24"><path d="m12 3 9 17H3L12 3z"/><path d="M12 9v5M12 17v.1"/></symbol>
+            <symbol id="diag-icon-error" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m9 9 6 6M15 9l-6 6"/></symbol>
+            <symbol id="diag-icon-alert" viewBox="0 0 24 24"><path d="M12 3 2.8 20h18.4L12 3z"/><path d="M12 8v6M12 17v.1"/></symbol>
+            <symbol id="diag-icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></symbol>
+            <symbol id="diag-icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19 12 2-1-2-4-2 1-2-2 1-2-4-2-1 2H9L8 2 4 4l1 2-2 2-2-1-1 4 2 1v3l-2 1 2 4 2-1 2 2-1 2 4 2 1-2h3l1 2 4-2-1-2 2-2 2 1 2-4-2-1z"/></symbol>
+            <symbol id="diag-icon-repair" viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.2-.8L18.5 7.9a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20z"/><path d="M4 4h5M6.5 2v4"/></symbol>
+            <symbol id="diag-icon-inspect" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5M10 7v6M7 10h6"/></symbol>
+            <symbol id="diag-icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 10v6M12 7v.1"/></symbol>
+            <symbol id="diag-icon-gui" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3M7 8h4M7 12h8"/></symbol>
+            <symbol id="diag-icon-copy" viewBox="0 0 24 24"><rect x="8" y="7" width="11" height="13" rx="1"/><path d="M16 7V4H5a1 1 0 0 0-1 1v12h4"/></symbol>
+            <symbol id="diag-icon-package" viewBox="0 0 24 24"><path d="m12 3 8 4v10l-8 4-8-4V7l8-4z"/><path d="m4 7 8 4 8-4M12 11v10"/></symbol>
+            <symbol id="diag-icon-folder" viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v10a2 2 0 0 1-2 2H3z"/><path d="M3 6v-1h7l2 2"/></symbol>
+            <symbol id="diag-icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></symbol>
+            <symbol id="diag-icon-stop" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></symbol>
+            <symbol id="diag-icon-zoom-in" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="M10 7v6M7 10h6M15 15l5 5"/></symbol>
+            <symbol id="diag-icon-zoom-out" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="M7 10h6M15 15l5 5"/></symbol>
+            <symbol id="diag-icon-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+            <symbol id="diag-icon-pov" viewBox="0 0 24 24"><path d="m4 17 8-12 8 12-8 4-8-4z"/><path d="M8 15h8M10 12h4"/></symbol>
+            <symbol id="diag-icon-back" viewBox="0 0 24 24"><path d="M19 12H5M10 6l-6 6 6 6"/></symbol>
+            <symbol id="diag-icon-download" viewBox="0 0 24 24"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></symbol>
+            <symbol id="diag-icon-cleanup" viewBox="0 0 24 24"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></symbol>
+            <symbol id="diag-icon-smart" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></symbol>
+            <symbol id="diag-icon-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol>
+            <symbol id="diag-icon-users" viewBox="0 0 24 24"><circle cx="9" cy="9" r="3"/><path d="M3 20c.4-3.2 2.4-5 6-5s5.6 1.8 6 5M16 7a3 3 0 0 1 0 6M17 15c2.3.4 3.6 2 4 5"/></symbol>
+            <symbol id="diag-icon-gpu" viewBox="0 0 24 24"><rect x="3" y="5" width="16" height="12" rx="1"/><path d="M7 9h8v4H7zM19 9h2v4h-2M6 20h2M16 20h2M8 17v3M16 17v3"/></symbol>
+            <symbol id="diag-icon-ram" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="1"/><path d="M7 7v10M11 7v10M15 7v10M19 7v10M6 20v-3M10 20v-3M14 20v-3M18 20v-3"/></symbol>
+            <symbol id="diag-icon-cpu" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10"/><path d="M9 3v4M12 3v4M15 3v4M9 17v4M12 17v4M15 17v4M3 9h4M3 12h4M3 15h4M17 9h4M17 12h4M17 15h4"/><rect x="10" y="10" width="4" height="4"/></symbol>
+            <symbol id="diag-icon-language" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.2 2.2 3.3 4.9 3.3 8S14.2 17.8 12 20c-2.2-2.2-3.3-4.9-3.3-8S9.8 6.2 12 4z"/></symbol>
+            <symbol id="diag-icon-spark" viewBox="0 0 24 24"><path d="m12 3 1.4 6.6L20 12l-6.6 1.4L12 20l-1.4-6.6L4 12l6.6-2.4L12 3z"/><path d="m19 3 .5 2.5L22 6l-2.5.5L19 9l-.5-2.5L16 6l2.5-.5z"/></symbol>
+        </defs>
+    </svg>
     <!-- THREE.JS 3D CANVAS -->
     <canvas id="three-bg"></canvas>
 
@@ -4179,16 +5558,16 @@ __THREE_JS__
                 <div class="cockpit-right" style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                         <select id="langSelect" onchange="applyLanguage(this.value)" class="theme-toggle" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); color:var(--neon-cyan); font-weight:700; font-size:12px; padding:5px 10px; cursor:pointer; outline:none; border-radius:4px;" title="Changer de langue / Change Language">
-                            <option value="fr" style="background:#0f172a; color:#f1f5f9;">🇫🇷 Français</option>
-                            <option value="nl" style="background:#0f172a; color:#f1f5f9;">🇳🇱 Nederlands</option>
-                            <option value="en" style="background:#0f172a; color:#f1f5f9;">🇬🇧 English</option>
-                            <option value="de" style="background:#0f172a; color:#f1f5f9;">🇩🇪 Deutsch</option>
+                            <option value="fr" style="background:#0f172a; color:#f1f5f9;">FR · Français</option>
+                            <option value="nl" style="background:#0f172a; color:#f1f5f9;">NL · Nederlands</option>
+                            <option value="en" style="background:#0f172a; color:#f1f5f9;">EN · English</option>
+                            <option value="de" style="background:#0f172a; color:#f1f5f9;">DE · Deutsch</option>
                         </select>
                         <button class="theme-toggle" id="themeToggleBtn" style="font-size:12px; padding:6px 12px;" onclick="toggleTheme()">🌓 Thème</button>
                     </div>
                     <div style="font-size: 11.5px; text-align: right; color: var(--text-muted); font-family: 'Consolas', monospace;">
-                        <div>HORODATAGE : <strong style="color:var(--text);">__SCAN_DATE__</strong></div>
-                        <div style="color: var(--neon-cyan); font-weight: bold; letter-spacing: 1px;">CONSOLE D'ADMINISTRATION // TIER-3 PRO</div>
+                        <div><span id="timestampLabel">HORODATAGE</span> : <strong id="scanDateValue" style="color:var(--text);">__SCAN_DATE__</strong></div>
+                        <div id="consoleTierLabel" style="color: var(--neon-cyan); font-weight: bold; letter-spacing: 1px;">CONSOLE D'ADMINISTRATION // TIER-3 PRO</div>
                     </div>
                 </div>
             </div>
@@ -4196,13 +5575,13 @@ __THREE_JS__
 
         <!-- 📡 COCKPIT TELEMETRY INSTRUMENT STRIP -->
         <div class="telemetry-bar glass-panel">
-            <div class="telemetry-item"><strong>// NOM MACHINE</strong><span>__HOSTNAME__</span></div>
-            <div class="telemetry-item"><strong>// SYSTÈME D'EXPLOITATION</strong><span>__OS_NAME__</span></div>
-            <div class="telemetry-item"><strong>// VERSION / ARCHITECTURE</strong><span>__OS_VER__</span></div>
-            <div class="telemetry-item"><strong>// PROCESSEUR (CPU)</strong><span>__CPU__</span></div>
-            <div class="telemetry-item"><strong>// MÉMOIRE VIVE (RAM)</strong><span>__RAM__ Go</span></div>
-            <div class="telemetry-item"><strong>// TEMPS D'ACTIVITÉ</strong><span>__UPTIME__</span></div>
-            <div class="telemetry-item"><strong>// MODE DÉMARRAGE</strong><span>__BOOTMODE__</span></div>
+            <div class="telemetry-item"><strong id="telemetryHostLabel">// NOM MACHINE</strong><span>__HOSTNAME__</span></div>
+            <div class="telemetry-item"><strong id="telemetryOsLabel">// SYSTÈME D'EXPLOITATION</strong><span>__OS_NAME__</span></div>
+            <div class="telemetry-item"><strong id="telemetryVersionLabel">// VERSION / ARCHITECTURE</strong><span>__OS_VER__</span></div>
+            <div class="telemetry-item"><strong id="telemetryCpuLabel">// PROCESSEUR (CPU)</strong><span>__CPU__</span></div>
+            <div class="telemetry-item"><strong id="telemetryMemoryLabel">// MÉMOIRE VIVE (RAM)</strong><span id="telemetryMemoryValue" data-value="__RAM__">__RAM__ __RAM_UNIT__</span></div>
+            <div class="telemetry-item"><strong id="telemetryUptimeLabel">// TEMPS D'ACTIVITÉ</strong><span id="telemetryUptimeValue" data-days="__UPTIME_DAYS__" data-hours="__UPTIME_HOURS__" data-minutes="__UPTIME_MINUTES__">__UPTIME__</span></div>
+            <div class="telemetry-item"><strong id="telemetryBootLabel">// MODE DÉMARRAGE</strong><span id="telemetryBootValue" data-boot-key="__BOOTMODE_KEY__">__BOOTMODE__</span></div>
         </div>
 
         <!-- KPI SUMMARY GRID -->
@@ -4216,24 +5595,24 @@ __THREE_JS__
 
         <!-- 🎛️ COCKPIT COMMAND NAVIGATION TABS (NO HORIZONTAL SCROLLBAR) -->
                 <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('tab-resolution')">■ 📊 BILAN & PANNES</button>
-            <button class="tab-btn" onclick="switchTab('tab-health')">■ 📈 SANTÉ & TENDANCES</button>
-            <button class="tab-btn" onclick="switchTab('tab-cve')">■ 🔴 VULNÉRABILITÉS CVE</button>
-            <button class="tab-btn" onclick="switchTab('tab-network-audit')">■ 🌐 AUDIT RÉSEAU & RDP</button>
-            <button class="tab-btn" onclick="switchTab('tab-disk-audit')">■ 💾 ANALYSE DISQUE</button>
-            <button class="tab-btn" onclick="switchTab('tab-performance')">■ 🚀 DÉMARRAGE & STARTUP</button>
-            <button class="tab-btn" onclick="switchTab('tab-belgian-apps')">■ 🇧🇪 LOGICIELS BELGIQUE</button>
-            <button class="tab-btn" onclick="switchTab('tab-benchmarks')">■ ⚡ BENCHMARKS & SMART</button>
-            <button class="tab-btn" onclick="switchTab('tab-sec-users')">■ 👤 SÉCURITÉ & ANOMALIES</button>
-            <button class="tab-btn" onclick="switchTab('tab-foss')">■ 🌐 ARBRE 3D FOSS</button>
-            <button class="tab-btn" onclick="switchTab('tab-journal')">■ 📋 TOUS LES TESTS (26)</button>
-            <button class="tab-btn" onclick="switchTab('tab-packages')">■ 📦 PROFILS WINGET</button>
-            <button class="tab-btn" onclick="switchTab('tab-shortcuts')">■ ⌨️ RACCOURCIS PRO</button>
-            <button class="tab-btn" onclick="switchTab('tab-rmm-export')">■ 📦 EXPORT LOCAL & CLIENT</button>
-            <button class="tab-btn" style="background:rgba(56,189,248,0.15); border-color:#38bdf8; color:#38bdf8; font-weight:800;" onclick="switchTab('tab-readme')">■ 📖 DOCUMENTATION & GUIDE</button>
-            <button class="tab-btn" onclick="launchBatchDiagnostic(this)" style="background:linear-gradient(135deg, rgba(16,185,129,0.25) 0%, rgba(15,23,42,0.95) 100%); border-color:#10b981; color:#34d399; font-weight:800;" id="btnRunDiagTab" title="Relancer l'analyse complète via le lanceur .bat">⚡ RELANCER DIAG (.BAT)</button>
-            <button class="tab-btn" onclick="refreshReportView()" style="background:rgba(56,189,248,0.18); border-color:#38bdf8; color:#38bdf8; font-weight:700;" id="btnRefreshTab" title="Actualiser les données du rapport">🔄 ACTUALISER</button>
-            <button class="tab-btn" onclick="window.print()" style="background:rgba(168,85,247,0.18); border-color:#c084fc; color:#c084fc; font-weight:700;" id="btnPrintTab" title="Imprimer ou exporter en PDF">🖨️ IMPRIMER</button>
+            <button class="tab-btn active" data-icon="overview" onclick="switchTab('tab-resolution')">■ BILAN & PANNES</button>
+            <button class="tab-btn" data-icon="health" onclick="switchTab('tab-health')">■ SANTÉ & TENDANCES</button>
+            <button class="tab-btn" data-icon="cve" onclick="switchTab('tab-cve')">■ VULNÉRABILITÉS CVE</button>
+            <button class="tab-btn" data-icon="network" onclick="switchTab('tab-network-audit')">■ AUDIT RÉSEAU & RDP</button>
+            <button class="tab-btn" data-icon="disks" onclick="switchTab('tab-disk-audit')">■ ANALYSES DISQUES</button>
+            <button class="tab-btn" data-icon="startup" onclick="switchTab('tab-performance')">■ DÉMARRAGE & STARTUP</button>
+            <button class="tab-btn" data-icon="belgian" onclick="switchTab('tab-belgian-apps')">■ LOGICIELS BELGIQUE</button>
+            <button class="tab-btn" data-icon="benchmarks" onclick="switchTab('tab-benchmarks')">■ BENCHMARKS GPU & RAM</button>
+            <button class="tab-btn" data-icon="security" onclick="switchTab('tab-sec-users')">■ SÉCURITÉ & ANOMALIES</button>
+            <button class="tab-btn" data-icon="foss" onclick="switchTab('tab-foss')">■ ARBRE 3D FOSS</button>
+            <button class="tab-btn" data-icon="journal" onclick="switchTab('tab-journal')">■ TOUS LES TESTS (26)</button>
+            <button class="tab-btn" data-icon="profiles" onclick="switchTab('tab-packages')">■ PROFILS WINGET</button>
+            <button class="tab-btn" data-icon="shortcuts" onclick="switchTab('tab-shortcuts')">■ RACCOURCIS PRO</button>
+            <button class="tab-btn" data-icon="export" onclick="switchTab('tab-rmm-export')">■ EXPORT LOCAL & CLIENT</button>
+            <button class="tab-btn" data-icon="docs" style="background:rgba(56,189,248,0.15); border-color:#38bdf8; color:#38bdf8; font-weight:800;" onclick="switchTab('tab-readme')">■ DOCUMENTATION & GUIDE</button>
+            <button class="tab-btn" data-icon="archive" onclick="switchTab('tab-archive')" style="background:rgba(168,85,247,0.15); border-color:#c084fc; color:#d8b4fe; font-weight:800;" id="btnArchiveTab" title="Consulter les diagnostics archivés">■ LOGS / ARCHIVE</button>
+            <button class="tab-btn" data-icon="relaunch" onclick="launchBatchDiagnostic(this)" style="background:linear-gradient(135deg, rgba(16,185,129,0.25) 0%, rgba(15,23,42,0.95) 100%); border-color:#10b981; color:#34d399; font-weight:800;" id="btnRunDiagTab" title="Relancer l'analyse complète via le lanceur .bat">■ RELANCER DIAG (.BAT)</button>
+            <button class="tab-btn" data-icon="print" onclick="window.print()" style="background:rgba(168,85,247,0.18); border-color:#c084fc; color:#c084fc; font-weight:700;" id="btnPrintTab" title="Imprimer ou exporter en PDF">■ IMPRIMER</button>
         </div>
 
         <!-- TAB 1: RESOLUTION CENTER -->
@@ -4419,7 +5798,7 @@ __THREE_JS__
                         <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8; margin-bottom:10px;">📉 Tendances Matérielles & Dérives</div>
                         <div style="font-size:12.5px; line-height:1.8; color:#e2e8f0;">
                             <div>💾 Espace Disque C: Libre : <strong style="color:#38bdf8;" id="histDiskFree">__C_FREE_INFO__</strong></div>
-                            <div>⚡ Performance CPU (Score Math) : <strong style="color:#f59e0b;">__CPU_BENCH_SCORE__ pts</strong> (__CPU_BENCH_MS__ ms)</div>
+                            <div>⚡ Performance CPU (indice médian) : <strong style="color:#f59e0b;">__CPU_BENCH_SCORE__/100</strong> (__CPU_BENCH_MS__ ms)</div>
                             <div>🔴 Vulnérabilités CVE Détectées : <strong style="color:#34d399;" id="histCveCount">__CVE_COUNT_INFO__</strong></div>
                             <div>📅 Runs Historisés dans la base : <strong style="color:#38bdf8;" id="histTotalRuns">__TOTAL_RUNS_INFO__</strong></div>
                         </div>
@@ -4429,6 +5808,36 @@ __THREE_JS__
 
                 <!-- Conteneur Dynamique de la Trajectoire 3D -->
                 <div id="historyTimelineContainer"></div>
+            </div>
+        </div>
+
+        <!-- TAB: LOGS / ARCHIVE -->
+        <div id="tab-archive" class="tab-content">
+            <div class="table-section glass-panel">
+                <div class="section-title" id="archiveTitle">🌀 Chronologie des Diagnostics</div>
+                <p id="archiveSubtitle" style="color:#94a3b8; font-size:12.5px; margin:0 0 16px 0;">Historique local des diagnostics enregistrés sur ce poste.</p>
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px; padding:12px 14px; background:rgba(168,85,247,0.09); border:1px solid rgba(192,132,252,0.30); border-left:4px solid #c084fc; border-radius:7px; color:#e9d5ff; font-size:12px;">
+                    <span style="font-size:20px;">🗃️</span>
+                    <span><strong id="archiveRunCount">0</strong> <span id="archiveRunLabel">diagnostics archivés</span></span>
+                </div>
+                <div id="archiveLogEmpty" style="display:none; padding:28px 18px; text-align:center; color:#94a3b8; border:1px dashed rgba(148,163,184,0.25); border-radius:8px;">Aucun diagnostic archivé pour le moment.</div>
+                <div style="overflow-x:auto;">
+                    <table id="archiveLogTable" style="width:100%; border-collapse:collapse; min-width:820px;">
+                        <thead>
+                            <tr style="background:rgba(56,189,248,0.08); color:#7dd3fc; text-align:left;">
+                                <th id="archiveThDate" style="padding:10px 12px; font-size:11px; text-transform:uppercase;">Date</th>
+                                <th id="archiveThHost" style="padding:10px 12px; font-size:11px; text-transform:uppercase;">Machine</th>
+                                <th id="archiveThScore" style="padding:10px 12px; font-size:11px; text-transform:uppercase;">Score</th>
+                                <th id="archiveThOk" style="padding:10px 12px; font-size:11px; text-transform:uppercase;">OK</th>
+                                <th id="archiveThWarn" style="padding:10px 12px; font-size:11px; text-transform:uppercase;">WARN</th>
+                                <th id="archiveThErr" style="padding:10px 12px; font-size:11px; text-transform:uppercase;">ERROR</th>
+                                <th id="archiveThDisk" style="padding:10px 12px; font-size:11px; text-transform:uppercase;">Disque libre</th>
+                                <th id="archiveThCve" style="padding:10px 12px; font-size:11px; text-transform:uppercase;">CVE</th>
+                            </tr>
+                        </thead>
+                        <tbody id="archiveLogBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -4476,9 +5885,75 @@ __ADAPTER_OPTIONS_HTML__
                     </div>
                 </div>
 
-                <div class="section-title" style="font-size:14px;">⚡ Matrice de Latence & Réactivité Réseau (Temps Réel)</div>
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:14px; margin-bottom:24px;" id="networkLatencyGrid">
-                    <!-- Ping Badges -->
+                <div id="networkLatencyTitle" class="section-title" style="font-size:14px;">⚡ Matrice de latence & réactivité réseau</div>
+                <div class="network-latency-shell">
+                    <div id="networkLatencyControls" class="network-latency-controls">
+                        <div id="networkLatencySummary" class="network-latency-summary">3 échantillons ICMP par cible • min / moyenne / max • gigue • pertes</div>
+                        <div class="network-latency-options">
+                            <label class="speed-control-label" for="networkLatencyFilter" id="networkLatencyFilterLabel">Afficher</label>
+                            <select id="networkLatencyFilter" onchange="renderNetworkLatencyMatrix()">
+                                <option value="all">Toutes les cibles</option>
+                                <option value="local">Réseau local</option>
+                                <option value="dns">DNS publics</option>
+                                <option value="cloud">Services cloud</option>
+                            </select>
+                            <label class="speed-control-label" for="networkLatencySort" id="networkLatencySortLabel">Trier</label>
+                            <select id="networkLatencySort" onchange="renderNetworkLatencyMatrix()">
+                                <option value="default">Ordre logique</option>
+                                <option value="fastest">Plus rapide</option>
+                                <option value="loss">Pertes d'abord</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="network-latency-grid" id="networkLatencyGrid">
+                        <!-- Detailed latency cards -->
+                    </div>
+                </div>
+
+                <div id="networkSpeedTestCard" class="network-speed-card">
+                    <div>
+                        <div id="networkSpeedTestTitle" class="speed-kicker">⚡ Test de débit Internet (mesure réelle)</div>
+                        <div id="networkSpeedTestDescription" class="speed-desc">Action volontaire : 20 s de mesure stabilisée (10 s réception + 10 s envoi), 4 flux via l'edge Cloudflare, jusqu'à environ 2,5 Go. Aucun fichier n'est créé : les tampons mémoire sont libérés après le test.</div>
+                    </div>
+                    <div class="speed-actions">
+                        <button id="networkSpeedTestBtn" type="button" class="btn-primary" onclick="runNetworkSpeedTest(this)" style="min-height:38px; padding:8px 14px; font-weight:800; white-space:nowrap;">⚡ Lancer le test de débit</button>
+                        <span id="networkSpeedTestStatus" style="color:#94a3b8; font-size:11px;">Test non lancé</span>
+                    </div>
+                    <div class="speed-visual-stage">
+                        <canvas id="networkSpeedCanvas" width="960" height="238" aria-label="Courbe animée du débit réseau"></canvas>
+                        <div id="networkSpeedScale" class="speed-scale-badge">Échelle : 0–1 000 Mbps</div>
+                        <div id="networkSpeedAxisY" class="speed-axis-y"><span>1 000 Mbps</span><span>750</span><span>500</span><span>250</span><span>0</span></div>
+                        <div id="networkSpeedAxisX" class="speed-axis-x"><span>0 s</span><span>5 s</span><span>10 s</span></div>
+                        <div id="networkSpeedLegend" class="speed-chart-legend" aria-label="Légende du graphe">
+                            <span class="speed-legend-item"><i id="networkSpeedDownloadSwatch" class="speed-legend-swatch"></i><span id="networkSpeedDownloadLegend">Téléchargement</span></span>
+                            <span class="speed-legend-item"><i id="networkSpeedUploadSwatch" class="speed-legend-swatch"></i><span id="networkSpeedUploadLegend">Envoi</span></span>
+                        </div>
+                        <div class="speed-visual-overlay">
+                            <div>
+                                <div id="networkSpeedLiveValue" class="speed-live-metrics" aria-live="polite">
+                                    <div class="speed-live-metric speed-live-download"><span id="networkSpeedLiveDownloadLabel">Téléchargement</span><strong id="networkSpeedLiveDownloadValue">—</strong></div>
+                                    <div class="speed-live-metric speed-live-upload"><span id="networkSpeedLiveUploadLabel">Envoi</span><strong id="networkSpeedLiveUploadValue">—</strong></div>
+                                </div>
+                                <div id="networkSpeedLiveCaption" class="speed-live-caption">Projectile de débit prêt</div>
+                            </div>
+                            <div class="speed-visual-controls">
+                                <label id="networkSpeedQualityLabel" class="speed-control-label" for="networkSpeedQuality">Qualité</label>
+                                <select id="networkSpeedQuality">
+                                    <option value="auto">Auto</option>
+                                    <option value="eco">Éco</option>
+                                    <option value="ultra">Ultra</option>
+                                </select>
+                                <label id="networkSpeedVisualModeLabel" class="speed-control-label" for="networkSpeedVisualMode">Vue</label>
+                                <select id="networkSpeedVisualMode" onchange="setNetworkSpeedVisualMode(this.value)">
+                                    <option value="final">Finale</option>
+                                    <option value="curves">Courbes seules</option>
+                                    <option value="particles">Particules</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="networkSpeedTestResult" class="speed-result" aria-live="polite"></div>
+                    <div id="networkSpeedTestDetails" class="speed-detail-grid"></div>
                 </div>
 
                 <div class="section-title" style="font-size:14px; margin-top:16px;">📁 Partages Réseau Locaux Exécutables (SMB Shares)</div>
@@ -4518,11 +5993,11 @@ __ADAPTER_OPTIONS_HTML__
         </div>
 
         <!-- ============================================================= -->
-        <!-- TAB: ANALYSE DISQUE INTELLIGENTE -->
+        <!-- TAB: ANALYSES DISQUES INTELLIGENTES -->
         <!-- ============================================================= -->
         <div id="tab-disk-audit" class="tab-content">
             <div class="table-section glass-panel">
-                <div class="section-title">💾 Analyse Disque Intelligente & Récupération d'Espace</div>
+                <div class="section-title">💾 Analyses Disques Intelligentes & Récupération d'Espace</div>
                 <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:18px; margin-bottom:20px;">
                     <div style="background:rgba(15,23,42,0.85); padding:20px; border:1px solid rgba(56,189,248,0.25); border-radius:8px;">
                         <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8;">Occupation Partition Système C:</div>
@@ -4542,6 +6017,14 @@ __ADAPTER_OPTIONS_HTML__
                         <button class="btn-primary" style="padding:7px 14px; font-size:12px;" onclick="copyDirect(this)" data-cmd="Remove-Item -Path $env:TEMP\* -Recurse -Force -ErrorAction SilentlyContinue; Clear-RecycleBin -Force -ErrorAction SilentlyContinue">🧹 Copier Commande Nettoyage 1-Clic</button>
                     </div>
                 </div>
+                <div class="section-title" style="font-size:14px; margin-top:16px;">🗂️ Volumes locaux & espace disponible</div>
+                <div id="diskVolumesContainer" style="overflow-x:auto; margin-bottom:22px;">
+                    <!-- All local fixed volumes -->
+                </div>
+                <div class="section-title" style="font-size:14px; margin-top:16px;">💿 Télémétrie SMART & usure des disques physiques</div>
+                <div id="smartDisksContainer" style="overflow-x:auto;">
+                    <!-- SMART Disks Table -->
+                </div>
             </div>
         </div>
 
@@ -4550,12 +6033,28 @@ __ADAPTER_OPTIONS_HTML__
         <!-- ============================================================= -->
         <div id="tab-belgian-apps" class="tab-content">
             <div class="table-section glass-panel">
-                <div class="section-title">🇧🇪 Détection des Logiciels Métiers Belges, E-Banking & Fiscalité</div>
-                <p style="color:#94a3b8; font-size:12.5px; margin-bottom:16px;">
-                    Inventaire automatique des logiciels comptables, financiers et passerelles d'authentification eID belges (Winbooks, Sage BOB, Isabel 6, Silverfin, Accon, SuperFisc, e-ID Middleware, etc.).
-                </p>
+                <div class="section-title">Détection des Logiciels Métiers, E-Banking & Fiscalité</div>
+                <div class="business-catalog-toolbar">
+                    <div>
+                        <div class="business-catalog-kicker">Catalogue national & preuves de source</div>
+                        <p>Choisissez le pays de référence pour afficher les portails administratifs officiels et les solutions métiers reconnues dans son écosystème. La présence d'une carte confirme l'application détectée localement ; une fiche catalogue ne vaut pas agrément gouvernemental.</p>
+                    </div>
+                    <div class="business-country-field">
+                        <label for="businessCountrySelect">Pays de référence</label>
+                        <select id="businessCountrySelect" onchange="changeBusinessCountry(this.value)" aria-label="Pays de référence du catalogue">
+                            <option value="be">BE · Belgique</option>
+                            <option value="fr">FR · France</option>
+                            <option value="uk">UK/US · Royaume-Uni / États-Unis</option>
+                            <option value="de">DE · Allemagne</option>
+                            <option value="es">ES · Espagne</option>
+                            <option value="it">IT · Italie</option>
+                            <option value="pt">PT · Portugal</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="businessCatalogMeta" class="business-catalog-meta" role="status" aria-live="polite"></div>
                 <div id="belgianAppsGrid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:14px; margin-bottom:28px;">
-                    <!-- Belgian Apps Cards -->
+                    <!-- Business Apps Cards -->
                 </div>
 
                 <div class="section-title" style="font-size:15px; border-top:1px solid rgba(56,189,248,0.2); padding-top:18px;">🔐 Magasin de Certificats & Cartes d'Identité eID (Authentification & Signature)</div>
@@ -4569,23 +6068,64 @@ __ADAPTER_OPTIONS_HTML__
         </div>
 
         <!-- ============================================================= -->
-        <!-- TAB: BENCHMARKS & SMART -->
+        <!-- TAB: BENCHMARKS GPU & RAM -->
         <!-- ============================================================= -->
         <div id="tab-benchmarks" class="tab-content">
             <div class="table-section glass-panel">
-                <div class="section-title">⚡ Indice de Performance CPU & Comparatif Hardware Réel</div>
+                <div class="section-title">⚡ Indice de Performance CPU, GPU & RAM</div>
                 
+                <div class="benchmark-composition">
+                <!-- GPU PERFORMANCE CARD (left rail) -->
+                <div id="gpuBenchCard" class="benchmark-gpu-card" style="background:rgba(15,23,42,0.90); padding:20px; border:1px solid __GPU_TIER_COL__; border-left:4px solid __GPU_TIER_COL__; border-radius:8px;">
+                    <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8;">🎮 Indice GPU (télémétrie)</div>
+                    <div style="font-size:1.35rem; font-weight:800; color:#f1f5f9; margin:8px 0 3px;">__GPU_NAME__</div>
+                    <div style="font-size:2.2rem; font-weight:900; font-family:'Rajdhani', monospace; color:__GPU_TIER_COL__;"><span>__GPU_SCORE__</span> <span style="font-size:1rem; color:#cbd5e1;">/ 100</span></div>
+                    <div style="font-size:12px; color:#cbd5e1;">VRAM : <strong>__GPU_VRAM__ Go</strong> • __GPU_TIER__</div>
+                    <div style="font-size:11.5px; color:#94a3b8; margin-top:7px; line-height:1.4;">__GPU_DESC__</div>
+                    <div class="gpu-stress-toolbar">
+                        <button id="gpuQuickTestBtn" class="btn-primary" type="button" onclick="runGpuQuickTest(this)" style="min-height:34px; font-size:10.5px; padding:6px 9px;">⚡ Stress GPU (10 s)</button>
+                        <select id="gpuQuickTestQuality" class="gpu-stress-select" aria-label="Niveau de qualité GPU">
+                            <option id="gpuQualityAuto" value="auto">AUTO</option>
+                            <option id="gpuQualityHigh" value="high">HAUTE</option>
+                            <option id="gpuQualityExtreme" value="extreme">EXTRÊME</option>
+                        </select>
+                        <select id="gpuQuickTestViewMode" class="gpu-stress-select" aria-label="Mode visuel GPU" onchange="setGpuQuickTestViewMode(this.value)">
+                            <option id="gpuViewFinal" value="final">FINAL</option>
+                            <option id="gpuViewBaseline" value="baseline">PBR BRUT</option>
+                            <option id="gpuViewOverdraw" value="overdraw">CHARGE</option>
+                        </select>
+                    </div>
+                    <div id="gpuQuickTestViewport" class="gpu-stress-viewport" data-view-mode="final">
+                        <canvas id="gpuQuickTestCanvas" width="256" height="256"></canvas>
+                        <span id="gpuQuickTestPlaceholder" class="gpu-stress-placeholder">Réacteur holographique prêt.<br>Lancez le test pour mesurer la charge réelle.</span>
+                        <div class="gpu-stress-hud">
+                            <span id="gpuQuickTestTier">AUTO</span>
+                            <span id="gpuQuickTestPhase">PRÊT</span>
+                        </div>
+                    </div>
+                    <div class="gpu-stress-progress" aria-hidden="true"><span id="gpuQuickTestProgress"></span></div>
+                    <div id="gpuQuickTestResult" style="min-height:17px; margin-top:8px; font-size:11px; color:#94a3b8; text-align:center;">Test non lancé</div>
+                    <div id="gpuQuickTestMetrics" class="gpu-stress-metrics">
+                        <div class="gpu-stress-metric"><span id="gpuMetricFpsLabel">FPS MÉDIAN</span><strong id="gpuMetricFps">—</strong></div>
+                        <div class="gpu-stress-metric"><span id="gpuMetricLowLabel">1% LOW</span><strong id="gpuMetricLow">—</strong></div>
+                        <div class="gpu-stress-metric"><span id="gpuMetricGpuLabel">GPU TIMER</span><strong id="gpuMetricGpu">—</strong></div>
+                        <div class="gpu-stress-metric"><span id="gpuMetricThroughputLabel">DÉBIT 3D</span><strong id="gpuMetricThroughput">—</strong></div>
+                    </div>
+                    <div id="gpuQuickTestSpec" style="font-size:10px; color:#64748b; text-align:center; margin-top:7px; line-height:1.45;">Graine fixe • qualité adaptative • PBR + hologramme • post-FX • charge hors écran</div>
+                </div>
+
+                <div class="benchmark-right-rail">
                 <!-- TOP BENCHMARK SUMMARY -->
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:18px; margin-bottom:20px;">
+                <div class="benchmark-top-grid">
                     <!-- Score & Speed Card -->
-                    <div style="background:rgba(15,23,42,0.90); padding:20px; border:1px solid rgba(56,189,248,0.35); border-left:4px solid __CPU_TIER_COL__; border-radius:8px;">
+                    <div class="benchmark-cpu-card" style="background:rgba(15,23,42,0.90); padding:20px; border:1px solid rgba(56,189,248,0.35); border-left:4px solid __CPU_TIER_COL__; border-radius:8px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8;">Calcul de Primalité (15 000 Itérations)</div>
+                            <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8;">Calcul de Primalité (12 000 Itérations, médiane 5 passes)</div>
                             <span class="badge" style="background:rgba(15,23,42,0.9); border:1px solid __CPU_TIER_COL__; color:__CPU_TIER_COL__; font-weight:bold;">__CPU_TIER_BADGE__</span>
                         </div>
                         <div style="display:flex; align-items:baseline; gap:12px; margin:8px 0;">
                             <div style="font-size:2.6rem; font-weight:900; font-family:'Rajdhani', monospace; color:__CPU_TIER_COL__;">__CPU_BENCH_MS__ <span style="font-size:1.2rem; font-weight:normal; color:#cbd5e1;">ms</span></div>
-                            <div style="font-size:1.1rem; color:#94a3b8;">(Indice : <strong style="color:#f1f5f9;">__CPU_BENCH_SCORE__ pts</strong>)</div>
+                            <div style="font-size:1.1rem; color:#94a3b8;">(Indice : <strong style="color:#f1f5f9;">__CPU_BENCH_SCORE__/100</strong>)</div>
                         </div>
                         <div style="font-size:12.5px; color:#cbd5e1; margin-bottom:6px;">
                             ⚡ Débit d'exécution brut : <strong style="color:#38bdf8;">__CPU_OPS_PER_SEC__ calculs/sec</strong>
@@ -4596,7 +6136,7 @@ __ADAPTER_OPTIONS_HTML__
                     </div>
 
                     <!-- Visual Performance Scale Card -->
-                    <div style="background:rgba(15,23,42,0.90); padding:20px; border:1px solid rgba(56,189,248,0.25); border-radius:8px; display:flex; flex-direction:column; justify-content:space-between;">
+                    <div class="benchmark-scale-card" style="background:rgba(15,23,42,0.90); padding:20px; border:1px solid rgba(56,189,248,0.25); border-radius:8px; display:flex; flex-direction:column; justify-content:space-between;">
                         <div>
                             <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8; margin-bottom:10px;">Échelle Relative de Réactivité Système :</div>
                             <div style="position:relative; height:18px; background:linear-gradient(to right, #10b981 0%, #38bdf8 30%, #f59e0b 60%, #ef4444 100%); border-radius:9px; margin:14px 0;">
@@ -4614,6 +6154,25 @@ __ADAPTER_OPTIONS_HTML__
                             🔍 <strong>Principe du test :</strong> Évalue la vitesse d'exécution monothread, la latence des caches L1/L2/L3 et la capacité de calcul brut de l'architecture processeur.
                         </div>
                     </div>
+                </div>
+
+                <!-- RAM / GLOBAL PERFORMANCE CARDS -->
+                <div class="benchmark-performance-grid">
+                    <div id="ramBenchCard" class="benchmark-ram-card" style="background:rgba(15,23,42,0.90); padding:20px; border:1px solid __RAM_TIER_COL__; border-left:4px solid __RAM_TIER_COL__; border-radius:8px;">
+                        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8;">🧠 Indice RAM & profil XMP/EXPO</div>
+                        <div style="font-size:2.2rem; font-weight:900; font-family:'Rajdhani', monospace; color:__RAM_TIER_COL__; margin:8px 0 3px;">__RAM_SCORE__ <span style="font-size:1rem; color:#cbd5e1;">/ 100</span></div>
+                        <div style="font-size:12px; color:#cbd5e1;"><strong>__RAM_TOTAL__ Go</strong> • <strong>__RAM_SPEED__ MHz</strong> • __RAM_TIER__</div>
+                        <div style="font-size:12px; color:__RAM_TIER_COL__; margin-top:7px; font-weight:700;">__RAM_XMP__</div>
+                        <div style="font-size:11.5px; color:#94a3b8; margin-top:5px; line-height:1.4;">__RAM_DESC__</div>
+                    </div>
+                    <div id="globalPerfCard" class="benchmark-global-card" style="background:linear-gradient(135deg, rgba(15,23,42,0.96), rgba(30,41,59,0.92)); padding:20px; border:1px solid __GLOBAL_PERF_COLOR__; border-left:4px solid __GLOBAL_PERF_COLOR__; border-radius:8px;">
+                        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8;">📊 Bilan global des 3 piliers</div>
+                        <div style="font-size:3rem; font-weight:900; font-family:'Rajdhani', monospace; color:__GLOBAL_PERF_COLOR__; margin:7px 0 0;">__GLOBAL_PERF_SCORE__ <span style="font-size:1rem; color:#cbd5e1;">/ 100</span></div>
+                        <div style="font-size:13px; color:__GLOBAL_PERF_COLOR__; font-weight:800;">__GLOBAL_PERF_LABEL__</div>
+                        <div style="font-size:11.5px; color:#94a3b8; margin-top:9px; line-height:1.4;">Moyenne équilibrée CPU + GPU + RAM pour repérer un goulot d'étranglement matériel.</div>
+                    </div>
+                </div>
+                </div>
                 </div>
 
                 <!-- COMPARATIVE MATRIX WITH REFERENCE PROCESSORS -->
@@ -4634,50 +6193,46 @@ __ADAPTER_OPTIONS_HTML__
                                 <td><span class="badge" style="background:#10b981; color:#020617; font-weight:bold;">🚀 Tier 1</span> <strong>Station Pro & Gaming Haut de Gamme</strong></td>
                                 <td>AMD Ryzen 9 7950X / Intel Core i9-14900K / Apple M3 Max</td>
                                 <td><strong>25 - 35 ms</strong></td>
-                                <td>300 - 400 pts</td>
+                                <td>85 - 100 / 100</td>
                                 <td>Virtualisation lourde, IA locale, rendu cinéma 3D</td>
                             </tr>
                             <tr style="__CPU_HIGHLIGHT_ROW_PRO__">
                                 <td><span class="badge" style="background:#38bdf8; color:#020617; font-weight:bold;">⚡ Tier 2</span> <strong>PC Créateur & Gamer Polyvalent</strong></td>
                                 <td>AMD Ryzen 7 5800X / Intel Core i7-12700 / Ryzen 7 7700</td>
                                 <td><strong>40 - 55 ms</strong></td>
-                                <td>180 - 250 pts</td>
+                                <td>70 - 84 / 100</td>
                                 <td>Multitâche pro intensif, gaming 144Hz, compilation</td>
                             </tr>
                             <tr style="__CPU_HIGHLIGHT_CURRENT__">
                                 <td colspan="5" style="background:rgba(56,189,248,0.18); border-left:4px solid #38bdf8; padding:10px 14px; font-size:12.5px;">
-                                    <strong>👉 VOTRE MACHINE ACTUELLE :</strong> <span style="color:#f1f5f9;">__CPU_NAME_FULL__</span> • <strong style="color:#38bdf8;">__CPU_BENCH_MS__ ms (__CPU_BENCH_SCORE__ pts)</strong> • <em>__CPU_TIER_NAME__</em>
+                                    <strong>👉 VOTRE MACHINE ACTUELLE :</strong> <span style="color:#f1f5f9;">__CPU_NAME_FULL__</span> • <strong style="color:#38bdf8;">__CPU_BENCH_MS__ ms (__CPU_BENCH_SCORE__/100)</strong> • <em>__CPU_TIER_NAME__</em>
                                 </td>
                             </tr>
                             <tr>
                                 <td><span class="badge" style="background:#0ea5e9; color:#020617; font-weight:bold;">💻 Tier 3</span> <strong>PC Entreprise & Bureautique Récente</strong></td>
                                 <td>Intel Core i5-12400 / AMD Ryzen 5 5600 / Core i5-11400</td>
                                 <td><strong>60 - 90 ms</strong></td>
-                                <td>110 - 165 pts</td>
+                                <td>55 - 69 / 100</td>
                                 <td>Bureautique avancée, navigation 50+ onglets, Teams/Zoom</td>
                             </tr>
                             <tr>
                                 <td><span class="badge" style="background:#f59e0b; color:#020617; font-weight:bold;">🟡 Tier 4</span> <strong>Bureautique Standard & PC Antérieur</strong></td>
                                 <td>Intel Core i5-8400 / Ryzen 5 2600 / Core i3-10100</td>
                                 <td><strong>100 - 150 ms</strong></td>
-                                <td>65 - 100 pts</td>
+                                <td>35 - 54 / 100</td>
                                 <td>Traitement de texte, navigation simple, ERP légers</td>
                             </tr>
                             <tr>
                                 <td><span class="badge" style="background:#ef4444; color:#ffffff; font-weight:bold;">🔴 Tier 5</span> <strong>Entrée de Gamme / Ancien / Throttling</strong></td>
                                 <td>Intel Core i3-6100 / Celeron G5905 / Athlon 3000G</td>
                                 <td><strong>> 180 ms</strong></td>
-                                <td>< 55 pts</td>
+                                <td>< 35 / 100</td>
                                 <td>Ralentissements perceptibles, risque de saturation</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="section-title" style="font-size:14px; margin-top:16px;">💿 Télémétrie SMART & Usure des Disques Physiques</div>
-                <div id="smartDisksContainer" style="overflow-x:auto;">
-                    <!-- SMART Disks Table -->
-                </div>
             </div>
         </div>
 
@@ -4721,18 +6276,18 @@ __ADAPTER_OPTIONS_HTML__
                         <p style="font-size:12px; color:#94a3b8; margin-bottom:14px;">Choisissez la section ciblée ou imprimez le dossier complet prêt pour remise client :</p>
                         <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
                             <select id="printSectionSelect" style="background:#0f172a; border:1px solid #38bdf8; color:#f1f5f9; padding:8px 12px; font-size:12.5px; border-radius:4px; outline:none; cursor:pointer; flex:1; min-width:230px;">
-                                <option value="all">📑 Rapport Complet (Toutes les sections)</option>
-                                <option value="tab-resolution" selected>📊 Bilan Synthétique & Pannes (Recommandé Client)</option>
-                                <option value="tab-health">📈 Score de Santé & Historique Temporel</option>
-                                <option value="tab-cve">🔴 Audit Vulnérabilités Logicielles CVE</option>
-                                <option value="tab-network-audit">🌐 Audit Réseau, Partages SMB & RDP</option>
-                                <option value="tab-disk-audit">💾 Analyse Disque & Caches Temporaires</option>
-                                <option value="tab-belgian-apps">🇧🇪 Logiciels Métiers Belges & eID</option>
-                                <option value="tab-benchmarks">⚡ Benchmarks & Télémétrie SMART</option>
-                                <option value="tab-sec-users">👤 Audit Sécurité Utilisateurs & Anomalies</option>
-                                <option value="tab-journal">📋 Journal Exhaustif des 26 Tests</option>
-                                <option value="tab-packages">📦 Profils Applicatifs & Runtimes</option>
-                                <option value="tab-readme">📖 Guide d'Utilisation & Documentation</option>
+                                <option value="all">Rapport Complet (Toutes les sections)</option>
+                                <option value="tab-resolution" selected>Bilan Synthétique & Pannes (Recommandé Client)</option>
+                                <option value="tab-health">Score de Santé & Historique Temporel</option>
+                                <option value="tab-cve">Audit Vulnérabilités Logicielles CVE</option>
+                                <option value="tab-network-audit">Audit Réseau, Partages SMB & RDP</option>
+                                <option value="tab-disk-audit">Analyses Disques & Caches Temporaires</option>
+                                <option value="tab-belgian-apps">Logiciels Métiers Belges & eID</option>
+                                <option value="tab-benchmarks">Benchmarks CPU, GPU & RAM</option>
+                                <option value="tab-sec-users">Audit Sécurité Utilisateurs & Anomalies</option>
+                                <option value="tab-journal">Journal Exhaustif des 26 Tests</option>
+                                <option value="tab-packages">Profils Applicatifs & Runtimes</option>
+                                <option value="tab-readme">Guide d'Utilisation & Documentation</option>
                             </select>
                             <button class="btn-primary" style="background:#10b981; border-color:#059669; font-weight:700; padding:8px 16px; display:inline-flex; align-items:center; gap:6px;" onclick="printSelectiveReport()">🖨️ Imprimer la Sélection</button>
                         </div>
@@ -4794,92 +6349,92 @@ __ADAPTER_OPTIONS_HTML__
                             <tr>
                                 <td><strong>1</strong></td>
                                 <td><span style="color:#38bdf8; font-weight:700;">📊 Bilan & Pannes</span></td>
-                                <td>Synthèse de toutes les anomalies actives, cartes correctives avec commandes PowerShell copiables en 1 clic et filtres instantanés (Réseau, Hardware, Système, Sécurité, Logiciel).</td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Centralise les alertes actives et les priorise par gravité.</span><span class="module-doc-line">Chaque carte décrit le constat, la correction et le contexte technique.</span><span class="module-doc-line">Les filtres Réseau, matériel, système, sécurité et logiciel isolent rapidement une famille.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>2</strong></td>
                                 <td><span style="color:#34d399; font-weight:700;">📈 Santé & Tendances</span></td>
-                                <td>Calcul du Score de Santé Prédictif sur 100, jauge radar des 5 piliers sectoriels et graphique d'évolution historique des 30 dernières exécutions (FIFO).</td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Calcule un score prédictif sur 100 à partir de cinq piliers d'audit.</span><span class="module-doc-line">Expose les pondérations, anomalies et tendances qui expliquent le résultat.</span><span class="module-doc-line">Compare l'exécution courante aux 120 diagnostics locaux conservés en FIFO.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>3</strong></td>
                                 <td><span style="color:#f43f5e; font-weight:700;">🔴 Vulnérabilités CVE</span></td>
-                                <td>Scanner de vulnérabilités logicielles (CVSS $\ge$ 7.0), affichage des CVE actives avec descriptions détaillées, boutons de mise à jour Winget 1-clic et synchroniseur de base CVE.</td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Détecte les logiciels concernés par les CVE à sévérité CVSS élevée.</span><span class="module-doc-line">Affiche la description, le score et la version locale observée.</span><span class="module-doc-line">Propose une mise à jour Winget ou une actualisation explicite de la base CVE.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>4</strong></td>
                                 <td><span style="color:#38bdf8; font-weight:700;">🌐 Audit Réseau & RDP</span></td>
-                                <td>Sélecteur dynamique de carte réseau (.NET), ping en direct passerelle/DNS/Internet, statut RDP (Port 3389, NLA), partages SMB actifs, MTU, configuration DNS et Winsock.</td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Audite la carte sélectionnée, la passerelle, DNS, RDP, SMB, MTU et Winsock.</span><span class="module-doc-line">La matrice conserve min/moyenne/max, gigue, pertes et réponses par cible.</span><span class="module-doc-line">Le test de débit volontaire mesure réception et envoi sans écrire de fichier disque.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>5</strong></td>
-                                <td><span style="color:#f59e0b; font-weight:700;">💾 Analyse Disque</span></td>
-                                <td>Télémétrie SMART SSD/NVMe (taux d'usure, température, heures de vol, erreurs), arborescence TreeSize des dossiers volumineux, calcul des caches temporaires et purge 1-clic.</td>
+                                <td><span style="color:#f59e0b; font-weight:700;">💾 Analyses Disques</span></td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Recense les volumes locaux, l'espace libre et les dossiers les plus volumineux.</span><span class="module-doc-line">Présente la télémétrie SMART disponible : santé, usure, température, heures et erreurs.</span><span class="module-doc-line">Calcule les caches temporaires et fournit une action de purge explicitement déclenchée.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>6</strong></td>
                                 <td><span style="color:#a855f7; font-weight:700;">🚀 Démarrage & Startup</span></td>
-                                <td>Analyse de l'impact au démarrage (Fast Startup, hibernation), détection du Thermal Throttling CPU, audit du plan d'alimentation, tableau interactif des programmes au démarrage avec filtrage heuristique.</td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Évalue Fast Startup, hibernation, plan d'alimentation et signes de throttling CPU.</span><span class="module-doc-line">Liste les programmes au démarrage avec leur emplacement et une heuristique de risque.</span><span class="module-doc-line">Les actions proposées restent des commandes explicites et copiables.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>7</strong></td>
                                 <td><span style="color:#38bdf8; font-weight:700;">🇧🇪 Logiciels Métiers & eID</span></td>
-                                <td>Catalogue adaptatif selon le pays sélectionné (BE, FR, UK/US, DE, ES, IT, PT), statut installé/non installé avec fiches descriptives, magasin de certificats eID avec jours restants.</td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Catalogue national adaptatif (BE, FR, UK/US, DE, ES, IT, PT) limité par liste blanche.</span><span class="module-doc-line">Sépare les portails administratifs officiels des références éditeur métier.</span><span class="module-doc-line">Chaque fiche expose source, catégorie et statut local sans revendiquer d'agrément.</span><span class="module-doc-line">L'audit eID ajoute émetteur, portée, expiration et jours restants des certificats.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>8</strong></td>
-                                <td><span style="color:#eab308; font-weight:700;">⚡ Benchmarks & SMART</span></td>
-                                <td>Benchmark synthétique Single-Core CPU en temps réel (millions d'opérations/s), positionnement parmi les gammes matérielles réelles et spécifications d'horloge.</td>
+                                <td><span style="color:#eab308; font-weight:700;">⚡ Benchmarks CPU, GPU & RAM</span></td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Mesure le CPU après échauffement, sur cinq passes et via une médiane stable.</span><span class="module-doc-line">Estime GPU et RAM, avec contrôle indirect du profil XMP/EXPO.</span><span class="module-doc-line">Le bilan des trois piliers met en évidence un éventuel déséquilibre matériel.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>9</strong></td>
                                 <td><span style="color:#10b981; font-weight:700;">👤 Sécurité & Anomalies</span></td>
-                                <td>Audit des membres du groupe Administrateurs locaux, inventaire des comptes utilisateurs Windows, âge des mots de passe, détection des processus suspects exécutés depuis <code>%TEMP%</code> ou <code>Public</code>, cartographie des ports d'écoute TCP.</td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Inventorie administrateurs locaux, comptes Windows et âge des mots de passe.</span><span class="module-doc-line">Repère des processus inhabituels lancés depuis <code>%TEMP%</code> ou <code>Public</code>.</span><span class="module-doc-line">Cartographie les ports TCP en écoute pour faciliter une vérification humaine.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>10</strong></td>
                                 <td><span style="color:#38bdf8; font-weight:700;">🌐 Arbre 3D FOSS</span></td>
-                                <td>Visualiseur WebGL Three.js immersif de 90+ outils Open Source classés en 18 thématiques professionnelles, tiroirs d'applications, alternatives propriétaires et générateur de packs Winget.</td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Visualise plus de 90 outils libres dans 18 thématiques professionnelles.</span><span class="module-doc-line">Les tiroirs relient alternatives propriétaires, description, site officiel et commande Winget.</span><span class="module-doc-line">Le rendu Three.js reste intégré localement et ne dépend pas d'un CDN.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>11</strong></td>
                                 <td><span style="color:#94a3b8; font-weight:700;">📋 Tous les Tests (26)</span></td>
-                                <td>Journal exhaustif des 26 sondes de contrôle Niveau 3 avec statut détaillé (OK, Avertissement, Panne), métriques brutes et horodatages.</td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Présente chaque sonde Niveau 3 avec son statut OK, avertissement ou panne.</span><span class="module-doc-line">Conserve les métriques brutes, le contexte et l'horodatage de l'exécution.</span><span class="module-doc-line">Les filtres du journal permettent une revue ciblée sans masquer les alertes actives.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>12</strong></td>
                                 <td><span style="color:#06b6d4; font-weight:700;">📦 Profils Winget</span></td>
-                                <td>12 profils de déploiement logiciel par métier (Développeur Web, SysAdmin/DevOps, Bureautique Pro, Multimédia/Graphisme, Cybersécurité, Étudiant IT, etc.).</td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Regroupe les outils par profil : développement, administration, création, sécurité ou études.</span><span class="module-doc-line">Chaque profil compose des commandes Winget prêtes à relire puis copier.</span><span class="module-doc-line">Aucune installation n'est déclenchée automatiquement par le rapport.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>13</strong></td>
                                 <td><span style="color:#cbd5e1; font-weight:700;">⌨️ Raccourcis Pro</span></td>
-                                <td>Console de lancement rapide des utilitaires Windows d'administration (MMC, Gestionnaire de disques, Services, Éditeur de registre, God Mode, Moniteur de ressources).</td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Rassemble les consoles Windows d'administration usuelles : MMC, services, disques et registre.</span><span class="module-doc-line">Les raccourcis sont organisés en cartes compactes avec une action de copie ou d'ouverture.</span><span class="module-doc-line">PowerToys y est décrit avec ses liens officiels et sa commande d'installation.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>14</strong></td>
                                 <td><span style="color:#10b981; font-weight:700;">📦 Export local & Client</span></td>
-                                <td>Génération locale de fichiers JSON compatibles RMM/ITSM, export d'inventaire CSV et résumé client, sans transmission automatique.</td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Produit localement un JSON RMM/ITSM, un inventaire CSV et un résumé de remise client.</span><span class="module-doc-line">Les données restent sur le poste tant qu'un opérateur ne les transmet pas.</span><span class="module-doc-line">Les formats facilitent l'archivage, le support et le suivi d'intervention.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>15</strong></td>
                                 <td><span style="color:#38bdf8; font-weight:700;">📖 Documentation & Guide</span></td>
-                                <td>Guide technique complet, référentiel méthodologique L3, cheat-sheet des commandes PowerShell de maintenance et architecture interne de la suite.</td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Décrit les 18 modules, les principes de collecte et les limites de chaque lecture.</span><span class="module-doc-line">Inclut une boîte à outils PowerShell pour les actions de maintenance courantes.</span><span class="module-doc-line">Renvoie au README, à l'architecture et aux règles de sécurité de la suite.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>16</strong></td>
                                 <td><span style="color:#34d399; font-weight:700;">⚡ RELANCER DIAG (.BAT)</span></td>
-                                <td>Déclencheur 1-clic du protocole URL <code>diagit://run</code> pour réexécuter le diagnostic en arrière-plan sans quitter la page ni fermer l'onglet du navigateur.</td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Relance le lanceur local via <code>diagit://run?lang=XX</code> avec FR, NL, EN ou DE.</span><span class="module-doc-line">Le protocole applique une liste blanche stricte et ne transmet aucun argument arbitraire.</span><span class="module-doc-line">Le nouveau diagnostic conserve la langue active puis produit un nouveau rapport local.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>17</strong></td>
-                                <td><span style="color:#38bdf8; font-weight:700;">🔄 ACTUALISER</span></td>
-                                <td>Rafraîchissement instantané des données de la vue sans réinitialiser vos filtres.</td>
+                                <td><span style="color:#c084fc; font-weight:700;">🌀 LOGS / ARCHIVE</span></td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Affiche la chronologie locale stockée dans <code>history_db.json</code>.</span><span class="module-doc-line">Chaque exécution conserve date, machine, score, alertes, espace disque et CVE.</span><span class="module-doc-line">La rétention garde au plus 120 diagnostics et s'effectue localement en FIFO.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>18</strong></td>
                                 <td><span style="color:#f59e0b; font-weight:700;">🖨️ IMPRIMER</span></td>
-                                <td>Modal d'impression professionnelle avec choix entre le Bilan Exécutif Synthétique (1 page), l'Onglet Actif ou le Rapport Technique Intégral.</td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Prépare une impression selon le besoin : bilan exécutif, onglet actif ou rapport complet.</span><span class="module-doc-line">Le mode synthétique cible une page de décision, le complet conserve les détails techniques.</span><span class="module-doc-line">L'impression réutilise le rapport local et ne publie aucune donnée en ligne.</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -5026,7 +6581,7 @@ sfc /scannow</pre>
                                 
                                 <div style="display:flex; flex-direction:column; gap:6px; border-bottom:1px solid rgba(56,189,248,0.25); padding-bottom:10px;">
                                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-                                        <div id="specFossTitle" style="font-size:17px; font-weight:900; color:#34d399; letter-spacing:0.5px; display:flex; align-items:center; gap:6px;">
+                                        <div id="specFossTitle" style="font-size:17px; font-weight:750; color:#8bcbb5; letter-spacing:0.5px; display:flex; align-items:center; gap:6px;">
                                             <span>✨</span> <span id="specFossName">Nom de l'App</span>
                                         </div>
                                         <div id="specCategory" style="font-size:11px; color:var(--neon-cyan); font-weight:700; text-transform:uppercase;">Domaine Thématique</div>
@@ -5105,7 +6660,7 @@ sfc /scannow</pre>
 
         <!-- TAB 5: WINDOWS 11 SHORTCUTS -->
         <div id="tab-shortcuts" class="tab-content">
-            <div class="table-section glass-panel">
+            <div class="table-section glass-panel shortcuts-compact">
                 <h2>⌨️ Raccourcis Clavier Windows 11 & Guide Expert IT</h2>
                 <p style="color:var(--text-muted); font-size:14px;">Issu du document <em>« Boostez votre Productivité sous Windows 11 : Raccourcis, PowerToys et Astuces d'Expert »</em>.</p>
                 
@@ -5152,6 +6707,21 @@ sfc /scannow</pre>
                             <tr><td><span class="shortcut-key" onclick="copyDirect(this)" data-cmd="Ctrl Ctrl">Ctrl Ctrl</span></td><td><strong>Find My Mouse</strong> : Mettre en surbrillance le curseur de souris</td></tr>
                             <tr><td><span class="shortcut-key" onclick="copyDirect(this)" data-cmd="Mouse Without Borders">Mouse Without Borders</span></td><td>Contrôler jusqu'à 4 PC avec une seule souris et un seul clavier</td></tr>
                         </table>
+                        <div class="powertoys-brief" id="powertoysBrief">
+                            <div class="powertoys-brief-head">
+                                <div class="powertoys-brief-title"><svg class="diag-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#diag-icon-package" xlink:href="#diag-icon-package"></use></svg> Fiche PowerToys</div>
+                                <span class="powertoys-badge">Microsoft · open source</span>
+                            </div>
+                            <p>Suite gratuite d’utilitaires Windows pour organiser les fenêtres, lancer des outils, remapper le clavier, extraire du texte et accélérer les tâches répétitives.</p>
+                            <div class="powertoys-tags">
+                                <span>FancyZones</span><span>Run</span><span>Keyboard Manager</span><span>Text Extractor</span><span>PowerRename</span><span>Peek</span>
+                            </div>
+                            <div class="powertoys-links">
+                                <a href="https://learn.microsoft.com/fr-fr/windows/powertoys/install" target="_blank" rel="noopener noreferrer">Documentation & installation</a>
+                                <a href="https://github.com/microsoft/PowerToys" target="_blank" rel="noopener noreferrer">Dépôt GitHub</a>
+                                <button class="btn-mini-copy" type="button" onclick="copyDirect(this)" data-cmd="winget install Microsoft.PowerToys -s winget">Copier WinGet</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -6095,10 +7665,177 @@ sfc /scannow</pre>
 
         
         
-                // =============================================================
-        // 🌐 MOTEUR D'INTERNATIONALISATION COMPLET (FR, NL, EN, DE)
+        // =============================================================
+        // WIREFRAME ICON LANGUAGE
+        // =============================================================
+        // Emoji are kept in legacy translation/data strings for compatibility, then
+        // converted at render time. This deliberately touches visible text nodes only:
+        // commands, scripts, JSON, and other executable payloads remain byte-for-byte safe.
+        var wireframeIconNames = {
+            overview: true, health: true, cve: true, network: true, disks: true, startup: true,
+            belgian: true, benchmarks: true, security: true, foss: true, journal: true, profiles: true,
+            shortcuts: true, export: true, docs: true, archive: true, relaunch: true, print: true,
+            theme: true, ok: true, warn: true, error: true, alert: true, search: true, settings: true,
+            repair: true, inspect: true, info: true, gui: true, copy: true, package: true, folder: true,
+            clock: true, stop: true, 'zoom-in': true, 'zoom-out': true, target: true, pov: true,
+            back: true, download: true, cleanup: true, smart: true, lock: true, users: true,
+            gpu: true, ram: true, cpu: true, language: true, spark: true
+        };
+
+        var wireframeEmojiIcons = {
+            '🛠': 'overview', '✅': 'ok', '❌': 'error', '📊': 'overview', '📦': 'package', '📁': 'folder',
+            '📈': 'health', '🔴': 'cve', '🌐': 'network', '💾': 'disks', '🚀': 'startup', '🇧🇪': 'belgian',
+            '⚡': 'benchmarks', '👤': 'security', '📋': 'journal', '🌀': 'archive', '📖': 'docs',
+            '🖨': 'print', '🌓': 'theme', '⚠': 'warn', '💻': 'cpu', '⚙': 'settings', '🛡': 'security',
+            '🔍': 'search', '🎛': 'settings', '📐': 'inspect', '✨': 'spark', '🖥': 'cpu', '📉': 'health',
+            '📅': 'clock', '🗃': 'archive', '🔄': 'relaunch', '🔧': 'repair', '💡': 'info', '🪟': 'gui',
+            '🧹': 'cleanup', '🗂': 'folder', '💿': 'smart', '🔐': 'lock', '👥': 'users', '🚨': 'alert',
+            '📥': 'download', '📄': 'docs', '📑': 'journal', '🧠': 'ram', '🎮': 'gpu', '➕': 'zoom-in',
+            '➖': 'zoom-out', '🎢': 'pov', '🎯': 'target', '🛑': 'stop', '🔙': 'back', '🟢': 'ok',
+            '🟠': 'warn', '🟡': 'warn', '🟣': 'spark', '🔒': 'lock', '🚫': 'stop', '📜': 'docs',
+            '⏰': 'clock', '✔': 'ok', '✖': 'error', '➔': 'back', '🐍': 'foss', '☕': 'foss', '🦀': 'foss',
+            '🐹': 'foss', '🐘': 'foss', '💎': 'foss', '🍞': 'foss', '🐳': 'foss', '🐧': 'foss', '🐙': 'foss',
+            '⚖': 'security', '🩺': 'health', '🎬': 'benchmarks', '🎨': 'benchmarks', '🏠': 'profiles',
+            '🏡': 'profiles', '🧱': 'profiles', '💼': 'profiles', '☁': 'network', '💬': 'journal',
+            '🏢': 'profiles', '🕵': 'security', '🗄': 'archive', '📚': 'docs', '❖': 'spark', '■': 'overview',
+            '🌳': 'foss', '🌌': 'foss', '🎓': 'docs', '🧰': 'repair', '🌡': 'health', '📡': 'network',
+            '📠': 'print', '🏷': 'package', '🔓': 'lock', '🔗': 'network', '🧭': 'network', '🔬': 'inspect',
+            '🧪': 'inspect', '📌': 'archive', '🧬': 'health', '🔋': 'benchmarks', '🩹': 'repair', '🪄': 'spark',
+            '⌨': 'shortcuts'
+        };
+
+        // Match BMP symbols, supplementary emoji, flags, and their optional variation/ZWJ tails.
+        var wireframeEmojiPattern = /(?:[\uD83C][\uDDE6-\uDDFF]){2}|[\u2300-\u23FF\u2600-\u27BF](?:\uFE0F)?(?:\u200D(?:[\u2300-\u23FF\u2600-\u27BF]|[\uD800-\uDBFF][\uDC00-\uDFFF])(?:\uFE0F)?)?|[\uD800-\uDBFF][\uDC00-\uDFFF](?:\uFE0F)?(?:\u200D(?:[\u2300-\u23FF\u2600-\u27BF]|[\uD800-\uDBFF][\uDC00-\uDFFF])(?:\uFE0F)?)?/g;
+
+        function wireframeIconName(token) {
+            var normalized = String(token || '').replace(/[\uFE0F\u200D]/g, '');
+            if (wireframeEmojiIcons[normalized]) return wireframeEmojiIcons[normalized];
+            // Regional-indicator flags intentionally become a neutral language glyph.
+            if (/^(?:\uD83C[\uDDE6-\uDDFF]){2}$/.test(normalized)) return 'language';
+            return 'spark';
+        }
+
+        function wireframeIconSvg(name, extraClass) {
+            var safeName = wireframeIconNames[name] ? name : 'spark';
+            var className = 'diag-icon emoji-icon' + (extraClass ? ' ' + extraClass : '');
+            return '<svg class="' + className + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#diag-icon-' + safeName + '" xlink:href="#diag-icon-' + safeName + '"></use></svg>';
+        }
+
+        function applyWireframeIcons(root) {
+            if (!document || !document.body) return;
+            var scope = root && root.nodeType === 1 ? root : document.body;
+            var walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, null, false);
+            var nodes = [];
+            var node;
+            while ((node = walker.nextNode())) {
+                var parent = node.parentElement;
+                if (!parent || /^(SCRIPT|STYLE|CODE|PRE|TEXTAREA|OPTION)$/.test(parent.tagName)) continue;
+                if (parent.closest && parent.closest('#diagIconSprite, script, style, code, pre, textarea, option')) continue;
+                if (wireframeEmojiPattern.test(node.nodeValue)) {
+                    wireframeEmojiPattern.lastIndex = 0;
+                    nodes.push(node);
+                }
+                wireframeEmojiPattern.lastIndex = 0;
+            }
+
+            nodes.forEach(function(textNode) {
+                var value = textNode.nodeValue;
+                var fragment = document.createDocumentFragment();
+                var cursor = 0;
+                var match;
+                wireframeEmojiPattern.lastIndex = 0;
+                while ((match = wireframeEmojiPattern.exec(value))) {
+                    if (match.index > cursor) fragment.appendChild(document.createTextNode(value.slice(cursor, match.index)));
+                    var holder = document.createElement('span');
+                    holder.innerHTML = wireframeIconSvg(wireframeIconName(match[0]), 'diag-icon-inline');
+                    fragment.appendChild(holder.firstChild);
+                    cursor = match.index + match[0].length;
+                }
+                if (cursor < value.length) fragment.appendChild(document.createTextNode(value.slice(cursor)));
+                if (textNode.parentNode) textNode.parentNode.replaceChild(fragment, textNode);
+            });
+
+            // SVG cannot be embedded in title/placeholder attributes; strip legacy glyphs there.
+            scope.querySelectorAll('[title],[placeholder],[aria-label]').forEach(function(elem) {
+                ['title', 'placeholder', 'aria-label'].forEach(function(attribute) {
+                    if (elem.hasAttribute(attribute)) {
+                        var clean = elem.getAttribute(attribute).replace(wireframeEmojiPattern, '').replace(/\s{2,}/g, ' ').trim();
+                        elem.setAttribute(attribute, clean);
+                    }
+                });
+            });
+            scope.querySelectorAll('option').forEach(function(option) {
+                var optionText = option.textContent;
+                var cleanOptionText = optionText.replace(wireframeEmojiPattern, '').replace(/\s{2,}/g, ' ').trim();
+                if (cleanOptionText !== optionText) option.textContent = cleanOptionText;
+            });
+        }
+
+        function bindWireframeTabIcons() {
+            document.querySelectorAll('.tabs .tab-btn[data-icon]').forEach(function(button) {
+                var name = button.getAttribute('data-icon');
+                var icon = null;
+                var child = button.firstElementChild;
+                while (child) {
+                    var next = child.nextElementSibling;
+                    if (child.classList && child.classList.contains('diag-icon')) {
+                        if (!icon) icon = child;
+                        else button.removeChild(child);
+                    }
+                    child = next;
+                }
+                if (!icon) {
+                    var holder = document.createElement('span');
+                    holder.innerHTML = wireframeIconSvg(name, 'diag-icon-tab');
+                    icon = holder.firstChild;
+                }
+                // Keep the tab's readable label first, then append its single wireframe mark.
+                if (button.lastElementChild !== icon) button.appendChild(icon);
+            });
+        }
+
+        (function installWireframeIconObserver() {
+            var refresh = function() {
+                bindWireframeTabIcons();
+                applyWireframeIcons();
+            };
+            if (document && document.body) refresh();
+            if (window.MutationObserver && document && document.body) {
+                var scheduled = false;
+                var pendingRoots = [];
+                var observer = new MutationObserver(function() {
+                    for (var i = 0; i < arguments[0].length; i++) {
+                        var mutation = arguments[0][i];
+                        for (var j = 0; j < mutation.addedNodes.length; j++) {
+                            var added = mutation.addedNodes[j];
+                            if (added.nodeType === 1) pendingRoots.push(added);
+                            else if (added.parentElement) pendingRoots.push(added.parentElement);
+                        }
+                    }
+                    if (scheduled) return;
+                    scheduled = true;
+                    window.setTimeout(function() {
+                        scheduled = false;
+                        bindWireframeTabIcons();
+                        var roots = pendingRoots.splice(0, pendingRoots.length);
+                        if (!roots.length) applyWireframeIcons();
+                        else roots.forEach(function(root) { if (root && document.body.contains(root)) applyWireframeIcons(root); });
+                    }, 0);
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+            }
+        }());
+
+        // =============================================================
+        // MOTEUR D'INTERNATIONALISATION COMPLET (FR, NL, EN, DE)
         // =============================================================
         var currentLang = '__INITIAL_LANG__';
+        var allowedProtocolLanguages = { fr: 'FR', nl: 'NL', en: 'EN', de: 'DE' };
+
+        function normalizeUiLanguage(lang) {
+            var normalized = String(lang || '').toLowerCase();
+            return Object.prototype.hasOwnProperty.call(allowedProtocolLanguages, normalized) ? normalized : 'fr';
+        }
 
         // =========================================================================
         // =========================================================================
@@ -6114,6 +7851,19 @@ sfc /scannow</pre>
                 status_data_safe: "DONNÉES LOCALES SÉCURISÉES",
                 timestamp_lbl: "HORODATAGE",
                 console_tier: "CONSOLE D'ADMINISTRATION // TIER-3 PRO",
+                telemetry_host: "// NOM MACHINE",
+                telemetry_os: "// SYSTÈME D'EXPLOITATION",
+                telemetry_version: "// VERSION / ARCHITECTURE",
+                telemetry_cpu: "// PROCESSEUR (CPU)",
+                telemetry_memory: "// MÉMOIRE VIVE (RAM)",
+                telemetry_uptime: "// TEMPS D'ACTIVITÉ",
+                telemetry_boot: "// MODE DÉMARRAGE",
+                RamUnit: "Go",
+                UptimeFormat: "{0}j {1}h {2}min",
+                ScanDateFormat: "dd/MM/yyyy 'à' HH:mm:ss",
+                BootUefiOn: "UEFI (SecureBoot ACTIVÉ)",
+                BootUefiOff: "UEFI (SecureBoot DÉSACTIVÉ)",
+                BootLegacy: "BIOS Legacy",
                 card_total: "Contrôles L3",
                 card_ok: "Conformes (OK)",
                 card_warn: "Avertissements",
@@ -6123,10 +7873,10 @@ sfc /scannow</pre>
                 tab_health: "■ 📈 SANTÉ & TENDANCES",
                 tab_cve: "■ 🔴 VULNÉRABILITÉS CVE",
                 tab_network: "■ 🌐 AUDIT RÉSEAU & RDP",
-                tab_disk: "■ 💾 ANALYSE DISQUE",
+                tab_disk: "■ 💾 ANALYSES DISQUES",
                 tab_performance: "■ 🚀 DÉMARRAGE & STARTUP",
                 tab_belgian: "■ 🇧🇪 LOGICIELS BELGIQUE",
-                tab_benchmarks: "■ ⚡ BENCHMARKS & SMART",
+                tab_benchmarks: "■ ⚡ BENCHMARKS GPU & RAM",
                 tab_security: "■ 👤 SÉCURITÉ & ANOMALIES",
                 tab_foss: "■ 🌐 ARBRE 3D FOSS",
                 tab_all: "■ 📋 TOUS LES TESTS (26)",
@@ -6134,8 +7884,8 @@ sfc /scannow</pre>
                 tab_shortcuts: "■ ⌨️ RACCOURCIS PRO",
                 tab_rmm: "■ 📦 EXPORT LOCAL & CLIENT",
                 tab_docs: "■ 📖 DOCUMENTATION & GUIDE",
+                tab_archive: "■ 🌀 LOGS / ARCHIVE",
                 btn_run_tab: "⚡ RELANCER DIAG (.BAT)",
-                btn_refresh_tab: "🔄 ACTUALISER",
                 btn_print_tab: "🖨️ IMPRIMER",
                 btn_pov: "🎢 Vue POV",
                 btn_pov_exit: "🛑 Quitter Vue POV",
@@ -6143,16 +7893,109 @@ sfc /scannow</pre>
                 btn_autospin_off: "🔄 Auto-Spin : OFF",
                 btn_autospin_on: "🔄 Auto-Spin : ON",
                 btn_view_journal: "📋 Voir Journal",
+                archive_title: "🌀 Chronologie des Diagnostics",
+                archive_subtitle: "Historique local des diagnostics enregistrés sur ce poste.",
+                archive_run_label: "diagnostics archivés",
+                archive_empty: "Aucun diagnostic archivé pour le moment.",
+                archive_date: "Date",
+                archive_host: "Machine",
+                archive_score: "Score",
+                archive_ok: "OK",
+                archive_warn: "WARN",
+                archive_error: "ERROR",
+                archive_disk: "Disque libre",
+                archive_cve: "CVE",
                 btn_close: "✖ Fermer",
                 search_placeholder: "🔍 Filtrer par composant, service, test ou commande PowerShell...",
                 toast_launch: "⚡ Lancement du diagnostic via protocole diagit://...",
-                toast_refresh: "🔄 Actualisation des données du rapport...",
                 cve_update_title: "🛡️ Actualiser la base CVE locale",
                 cve_update_desc: "Action volontaire nécessitant Internet : contacte uniquement l'API publique OSV.dev et n'envoie ni inventaire ni rapport.",
-                cve_update_btn: "🔄 Mettre à jour la base CVE",
-                cve_update_confirm: "Mettre à jour la base CVE locale maintenant ?\n\nCette action ouvre PowerShell et contacte uniquement l'API publique OSV.dev. Aucun inventaire ni rapport DiagToolIT n'est transmis.",
-                cve_update_toast: "🔄 Ouverture de la mise à jour CVE locale...",
-                lbl_finding: "🔍 Constat technique :",
+                 cve_update_btn: "🔄 Mettre à jour la base CVE",
+                 cve_update_confirm: "Mettre à jour la base CVE locale maintenant ?\n\nCette action ouvre PowerShell et contacte uniquement l'API publique OSV.dev. Aucun inventaire ni rapport DiagToolIT n'est transmis.",
+                 cve_update_toast: "🔄 Ouverture de la mise à jour CVE locale...",
+                 network_speed_title: "⚡ Test de débit Internet (mesure réelle)",
+                 network_speed_desc: "Action volontaire : 20 s de mesure stabilisée (10 s réception + 10 s envoi), 4 flux via l'edge Cloudflare, jusqu'à environ 2,5 Go. Aucun fichier n'est créé : les tampons mémoire sont libérés après le test.",
+                 network_speed_btn: "⚡ Lancer le test de débit",
+                 network_speed_idle: "Test non lancé",
+                 network_speed_running: "Mesure en cours…",
+                 network_speed_phase_warmup: "Échauffement de la connexion…",
+                 network_speed_phase_download: "Mesure du téléchargement…",
+                 network_speed_phase_upload: "Mesure de l'envoi…",
+                 network_speed_done: "Mesure terminée",
+                 network_speed_unavailable: "Test indisponible dans ce navigateur",
+                 network_speed_error: "Échec du test de débit",
+                 network_speed_download: "Téléchargement",
+                 network_speed_upload: "Envoi",
+                 network_speed_elapsed: "Durée",
+                 network_speed_data: "Données transférées",
+                 network_speed_mb_unit: "Mo",
+                 network_speed_median: "Médiane",
+                 network_speed_range: "Plage P10–P90",
+                 network_speed_peak: "Pic",
+                 network_speed_stability: "Stabilité",
+                 network_speed_samples: "Échantillons",
+                 network_speed_streams: "Flux parallèles",
+                 network_speed_cleanup: "Nettoyage",
+                 network_speed_cleanup_done: "Tampons mémoire libérés • aucun fichier disque",
+                 network_speed_visual_ready: "Projectile de débit prêt",
+                 network_speed_visual_quality: "Qualité",
+                 network_speed_visual_view: "Vue",
+                 network_speed_visual_final: "Finale",
+                 network_speed_visual_curves: "Courbes seules",
+                 network_speed_visual_particles: "Particules",
+                 network_speed_legend_download: "Téléchargement",
+                 network_speed_legend_upload: "Envoi",
+                 network_speed_axis_scale: "Échelle",
+                 network_speed_axis_seconds: "s",
+                 network_latency_title: "⚡ Matrice de latence & réactivité réseau",
+                 network_latency_summary: "3 échantillons ICMP par cible • min / moyenne / max • gigue • pertes",
+                 network_latency_filter_label: "Afficher",
+                 network_latency_sort_label: "Trier",
+                 network_latency_filter_all: "Toutes les cibles",
+                 network_latency_filter_local: "Réseau local",
+                 network_latency_filter_dns: "DNS publics",
+                 network_latency_filter_cloud: "Services cloud",
+                 network_latency_sort_default: "Ordre logique",
+                 network_latency_sort_fastest: "Plus rapide",
+                 network_latency_sort_loss: "Pertes d'abord",
+                 network_latency_min: "Min",
+                 network_latency_avg: "Moy.",
+                 network_latency_max: "Max",
+                 network_latency_jitter: "Gigue",
+                 network_latency_loss: "Pertes",
+                 network_latency_excellent: "Excellent",
+                 network_latency_good: "Bon",
+                 network_latency_fair: "Moyen",
+                 network_latency_high: "Élevé",
+                 network_latency_unreachable: "Injoignable",
+                 network_latency_gateway: "Passerelle locale",
+                 network_latency_replies: "Réponses",
+                 gpu_test_btn: "⚡ Stress GPU (10 s)",
+                 gpu_test_idle: "Test non lancé",
+                 gpu_test_running: "Test GPU en cours…",
+                 gpu_test_unavailable: "WebGL indisponible — test ignoré",
+                 gpu_test_result: "Résultat",
+                 gpu_test_placeholder: "Réacteur holographique prêt.<br>Lancez le test pour mesurer la charge réelle.",
+                 gpu_test_ready: "PRÊT",
+                 gpu_test_warmup: "ÉCHAUFFEMENT",
+                 gpu_test_calibrate: "CALIBRATION",
+                 gpu_test_measure: "MESURE",
+                 gpu_test_done: "TERMINÉ",
+                 gpu_test_error: "ERREUR",
+                 gpu_quality_auto: "AUTO",
+                 gpu_quality_high: "HAUTE",
+                 gpu_quality_extreme: "EXTRÊME",
+                 gpu_view_final: "FINAL",
+                 gpu_view_baseline: "PBR BRUT",
+                 gpu_view_overdraw: "CHARGE",
+                 gpu_metric_fps_label: "FPS MÉDIAN",
+                 gpu_metric_low_label: "1% LOW",
+                 gpu_metric_gpu_label: "GPU TIMER",
+                 gpu_metric_throughput_label: "DÉBIT 3D",
+                 gpu_metric_stability: "stabilité",
+                 gpu_test_spec_ready: "Graine fixe • qualité adaptative • PBR + hologramme • post-FX • charge hors écran",
+                 gpu_test_spec_template: "{tier} • {passes} passes/image • {calls} draw calls/passe • {triangles} ktri/passe • {points} points",
+                 lbl_finding: "🔍 Constat technique :",
                 lbl_fix: "🔧 Action corrective :",
                 lbl_exam_tip: "💡 Explication Formateur / Règle UAA 3 :",
                 lbl_gui_shortcut: "🪟 Raccourci GUI :",
@@ -6205,6 +8048,19 @@ sfc /scannow</pre>
                 status_data_safe: "LOKALE GEGEVENS BEVEILIGD",
                 timestamp_lbl: "TIJDSTEMPEL",
                 console_tier: "BEHEERSCONSOLE // TIER-3 PRO",
+                telemetry_host: "// MACHINENAAM",
+                telemetry_os: "// BESTURINGSSYSTEEM",
+                telemetry_version: "// VERSIE / ARCHITECTUUR",
+                telemetry_cpu: "// PROCESSOR (CPU)",
+                telemetry_memory: "// WERKGEHEUGEN (RAM)",
+                telemetry_uptime: "// ACTIVITEITSDUUR",
+                telemetry_boot: "// OPSTARTMODUS",
+                RamUnit: "GB",
+                UptimeFormat: "{0}d {1}u {2}min",
+                ScanDateFormat: "dd/MM/yyyy 'om' HH:mm:ss",
+                BootUefiOn: "UEFI (Secure Boot INGESCHAKELD)",
+                BootUefiOff: "UEFI (Secure Boot UITGESCHAKELD)",
+                BootLegacy: "Legacy-BIOS",
                 card_total: "L3 Controles",
                 card_ok: "Conform (OK)",
                 card_warn: "Waarschuwingen",
@@ -6214,10 +8070,10 @@ sfc /scannow</pre>
                 tab_health: "■ 📈 GEZONDHEID & TRENDS",
                 tab_cve: "■ 🔴 CVE KWETSBAARHEDEN",
                 tab_network: "■ 🌐 NETWERK & RDP AUDIT",
-                tab_disk: "■ 💾 SCHIJFANALYSE",
+                tab_disk: "■ 💾 SCHIJFANALYSES",
                 tab_performance: "■ 🚀 OPSTARTEN & STARTUP",
                 tab_belgian: "■ 🇧🇪 BELGISCHE SOFTWARE & eID",
-                tab_benchmarks: "■ ⚡ BENCHMARKS & SMART",
+                tab_benchmarks: "■ ⚡ BENCHMARKS GPU & RAM",
                 tab_security: "■ 👤 BEVEILIGING & GEBRUIKERS",
                 tab_foss: "■ 🌐 3D FOSS BOOM",
                 tab_all: "■ 📋 ALLE TESTS (26)",
@@ -6225,8 +8081,8 @@ sfc /scannow</pre>
                 tab_shortcuts: "■ ⌨️ PRO SNELKOPPELINGEN",
                 tab_rmm: "■ 📦 LOKALE EXPORT & KLANT",
                 tab_docs: "■ 📖 DOCUMENTATIE & GIDS",
+                tab_archive: "■ 🌀 LOGBOEK / ARCHIEF",
                 btn_run_tab: "⚡ HERSTART DIAG (.BAT)",
-                btn_refresh_tab: "🔄 VERNIEUWEN",
                 btn_print_tab: "🖨️ AFDRUKKEN",
                 btn_pov: "🎢 POV Weergave",
                 btn_pov_exit: "🛑 Sluit POV",
@@ -6234,16 +8090,109 @@ sfc /scannow</pre>
                 btn_autospin_off: "🔄 Auto-Spin : OFF",
                 btn_autospin_on: "🔄 Auto-Spin : ON",
                 btn_view_journal: "📋 Bekijk Logboek",
+                archive_title: "🌀 Chronologie van Diagnoses",
+                archive_subtitle: "Lokale geschiedenis van diagnoses die op deze computer zijn opgeslagen.",
+                archive_run_label: "gearchiveerde diagnoses",
+                archive_empty: "Er zijn nog geen diagnoses gearchiveerd.",
+                archive_date: "Datum",
+                archive_host: "Machine",
+                archive_score: "Score",
+                archive_ok: "OK",
+                archive_warn: "WARN",
+                archive_error: "ERROR",
+                archive_disk: "Vrije schijf",
+                archive_cve: "CVE",
                 btn_close: "✖ Sluiten",
                 search_placeholder: "🔍 Filter op component, service, test of PowerShell-opdracht...",
                 toast_launch: "⚡ Diagnose starten via diagit:// protocol...",
-                toast_refresh: "🔄 Gegevens vernieuwen...",
                 cve_update_title: "🛡️ Lokale CVE-database bijwerken",
                 cve_update_desc: "Vrijwillige actie waarvoor internet nodig is: neemt alleen contact op met de openbare OSV.dev-API en verzendt geen inventaris of rapport.",
-                cve_update_btn: "🔄 CVE-database bijwerken",
-                cve_update_confirm: "De lokale CVE-database nu bijwerken?\n\nDeze actie opent PowerShell en neemt alleen contact op met de openbare OSV.dev-API. Er wordt geen inventaris of DiagToolIT-rapport verzonden.",
-                cve_update_toast: "🔄 Lokale CVE-update openen...",
-                lbl_finding: "🔍 Technische bevinding:",
+                 cve_update_btn: "🔄 CVE-database bijwerken",
+                 cve_update_confirm: "De lokale CVE-database nu bijwerken?\n\nDeze actie opent PowerShell en neemt alleen contact op met de openbare OSV.dev-API. Er wordt geen inventaris of DiagToolIT-rapport verzonden.",
+                 cve_update_toast: "🔄 Lokale CVE-update openen...",
+                 network_speed_title: "⚡ Internet-snelheidstest (echte meting)",
+                 network_speed_desc: "Vrijwillige actie: 20 s gestabiliseerde meting (10 s download + 10 s upload), 4 streams via de Cloudflare-edge, tot ongeveer 2,5 GB. Er wordt geen bestand aangemaakt; geheugenbuffers worden na de test vrijgegeven.",
+                 network_speed_btn: "⚡ Snelheidstest starten",
+                 network_speed_idle: "Test niet gestart",
+                 network_speed_running: "Meting bezig…",
+                 network_speed_phase_warmup: "Verbinding opwarmen…",
+                 network_speed_phase_download: "Downloadsnelheid meten…",
+                 network_speed_phase_upload: "Uploadsnelheid meten…",
+                 network_speed_done: "Meting voltooid",
+                 network_speed_unavailable: "Test niet beschikbaar in deze browser",
+                 network_speed_error: "Snelheidstest mislukt",
+                 network_speed_download: "Download",
+                 network_speed_upload: "Upload",
+                 network_speed_elapsed: "Duur",
+                 network_speed_data: "Overgedragen gegevens",
+                 network_speed_mb_unit: "MB",
+                 network_speed_median: "Mediaan",
+                 network_speed_range: "P10–P90-bereik",
+                 network_speed_peak: "Piek",
+                 network_speed_stability: "Stabiliteit",
+                 network_speed_samples: "Metingen",
+                 network_speed_streams: "Parallelle streams",
+                 network_speed_cleanup: "Opruiming",
+                 network_speed_cleanup_done: "Geheugenbuffers vrijgegeven • geen schijfbestand",
+                 network_speed_visual_ready: "Snelheidsprojectiel gereed",
+                 network_speed_visual_quality: "Kwaliteit",
+                 network_speed_visual_view: "Weergave",
+                 network_speed_visual_final: "Eindbeeld",
+                 network_speed_visual_curves: "Alleen curves",
+                 network_speed_visual_particles: "Deeltjes",
+                 network_speed_legend_download: "Download",
+                 network_speed_legend_upload: "Upload",
+                 network_speed_axis_scale: "Schaal",
+                 network_speed_axis_seconds: "s",
+                 network_latency_title: "⚡ Matrix voor netwerklatentie en responsiviteit",
+                 network_latency_summary: "3 ICMP-metingen per doel • min / gemiddeld / max • jitter • verlies",
+                 network_latency_filter_label: "Tonen",
+                 network_latency_sort_label: "Sorteren",
+                 network_latency_filter_all: "Alle doelen",
+                 network_latency_filter_local: "Lokaal netwerk",
+                 network_latency_filter_dns: "Openbare DNS",
+                 network_latency_filter_cloud: "Clouddiensten",
+                 network_latency_sort_default: "Logische volgorde",
+                 network_latency_sort_fastest: "Snelste eerst",
+                 network_latency_sort_loss: "Verlies eerst",
+                 network_latency_min: "Min",
+                 network_latency_avg: "Gem.",
+                 network_latency_max: "Max",
+                 network_latency_jitter: "Jitter",
+                 network_latency_loss: "Verlies",
+                 network_latency_excellent: "Uitstekend",
+                 network_latency_good: "Goed",
+                 network_latency_fair: "Redelijk",
+                 network_latency_high: "Hoog",
+                 network_latency_unreachable: "Onbereikbaar",
+                 network_latency_gateway: "Lokale gateway",
+                 network_latency_replies: "Antwoorden",
+                 gpu_test_btn: "⚡ GPU-stresstest (10 s)",
+                 gpu_test_idle: "Test niet gestart",
+                 gpu_test_running: "GPU-test bezig…",
+                 gpu_test_unavailable: "WebGL niet beschikbaar — test overgeslagen",
+                 gpu_test_result: "Resultaat",
+                 gpu_test_placeholder: "Holografische reactor gereed.<br>Start de test om de werkelijke belasting te meten.",
+                 gpu_test_ready: "GEREED",
+                 gpu_test_warmup: "OPWARMEN",
+                 gpu_test_calibrate: "KALIBRATIE",
+                 gpu_test_measure: "METING",
+                 gpu_test_done: "VOLTOOID",
+                 gpu_test_error: "FOUT",
+                 gpu_quality_auto: "AUTO",
+                 gpu_quality_high: "HOOG",
+                 gpu_quality_extreme: "EXTREEM",
+                 gpu_view_final: "EIND",
+                 gpu_view_baseline: "RUWE PBR",
+                 gpu_view_overdraw: "BELASTING",
+                 gpu_metric_fps_label: "MEDIAAN FPS",
+                 gpu_metric_low_label: "1% LOW",
+                 gpu_metric_gpu_label: "GPU-TIMER",
+                 gpu_metric_throughput_label: "3D-DEBIET",
+                 gpu_metric_stability: "stabiliteit",
+                 gpu_test_spec_ready: "Vaste seed • adaptieve kwaliteit • PBR + hologram • post-FX • offscreen belasting",
+                 gpu_test_spec_template: "{tier} • {passes} passes/frame • {calls} draw calls/pass • {triangles} ktri/pass • {points} punten",
+                 lbl_finding: "🔍 Technische bevinding:",
                 lbl_fix: "🔧 Corrigerende maatregel:",
                 lbl_exam_tip: "💡 Instructeur Tip / Niveau 3 Regel:",
                 lbl_gui_shortcut: "🪟 GUI Snelkoppeling:",
@@ -6296,6 +8245,19 @@ sfc /scannow</pre>
                 status_data_safe: "LOCAL DATA SECURED",
                 timestamp_lbl: "TIMESTAMP",
                 console_tier: "ADMINISTRATION CONSOLE // TIER-3 PRO",
+                telemetry_host: "// MACHINE NAME",
+                telemetry_os: "// OPERATING SYSTEM",
+                telemetry_version: "// VERSION / ARCHITECTURE",
+                telemetry_cpu: "// PROCESSOR (CPU)",
+                telemetry_memory: "// SYSTEM MEMORY (RAM)",
+                telemetry_uptime: "// UPTIME",
+                telemetry_boot: "// BOOT MODE",
+                RamUnit: "GB",
+                UptimeFormat: "{0}d {1}h {2}min",
+                ScanDateFormat: "dd/MM/yyyy 'at' HH:mm:ss",
+                BootUefiOn: "UEFI (Secure Boot ON)",
+                BootUefiOff: "UEFI (Secure Boot OFF)",
+                BootLegacy: "Legacy BIOS",
                 card_total: "L3 Checks",
                 card_ok: "Compliant (OK)",
                 card_warn: "Warnings",
@@ -6305,10 +8267,10 @@ sfc /scannow</pre>
                 tab_health: "■ 📈 HEALTH & TRENDS",
                 tab_cve: "■ 🔴 CVE VULNERABILITIES",
                 tab_network: "■ 🌐 NETWORK & RDP AUDIT",
-                tab_disk: "■ 💾 DISK ANALYSIS",
+                tab_disk: "■ 💾 DISK ANALYSES",
                 tab_performance: "■ 🚀 STARTUP & PERF",
                 tab_belgian: "■ 🇧🇪 BELGIAN SOFTWARE",
-                tab_benchmarks: "■ ⚡ BENCHMARKS & SMART",
+                tab_benchmarks: "■ ⚡ GPU & RAM BENCHMARKS",
                 tab_security: "■ 👤 SECURITY & USERS",
                 tab_foss: "■ 🌐 3D FOSS TREE",
                 tab_all: "■ 📋 ALL TESTS (26)",
@@ -6316,8 +8278,8 @@ sfc /scannow</pre>
                 tab_shortcuts: "■ ⌨️ PRO SHORTCUTS",
                 tab_rmm: "■ 📦 LOCAL EXPORT & CLIENT",
                 tab_docs: "■ 📖 DOCS & METHODOLOGY",
+                tab_archive: "■ 🌀 LOGS / ARCHIVE",
                 btn_run_tab: "⚡ RERUN DIAG (.BAT)",
-                btn_refresh_tab: "🔄 REFRESH",
                 btn_print_tab: "🖨️ PRINT",
                 btn_pov: "🎢 POV View",
                 btn_pov_exit: "🛑 Exit POV View",
@@ -6325,16 +8287,109 @@ sfc /scannow</pre>
                 btn_autospin_off: "🔄 Auto-Spin : OFF",
                 btn_autospin_on: "🔄 Auto-Spin : ON",
                 btn_view_journal: "📋 View Journal",
+                archive_title: "🌀 Diagnostic Timeline",
+                archive_subtitle: "Local history of diagnostics saved on this computer.",
+                archive_run_label: "archived diagnostics",
+                archive_empty: "No diagnostics have been archived yet.",
+                archive_date: "Date",
+                archive_host: "Machine",
+                archive_score: "Score",
+                archive_ok: "OK",
+                archive_warn: "WARN",
+                archive_error: "ERROR",
+                archive_disk: "Free disk",
+                archive_cve: "CVE",
                 btn_close: "✖ Close",
                 search_placeholder: "🔍 Filter by component, service, test, or PowerShell command...",
                 toast_launch: "⚡ Launching diagnostic via diagit:// protocol...",
-                toast_refresh: "🔄 Refreshing report data...",
                 cve_update_title: "🛡️ Update the local CVE database",
                 cve_update_desc: "Explicit action requiring Internet access: contacts only the public OSV.dev API and sends no inventory or report.",
-                cve_update_btn: "🔄 Update CVE database",
-                cve_update_confirm: "Update the local CVE database now?\n\nThis action opens PowerShell and contacts only the public OSV.dev API. No inventory or DiagToolIT report is transmitted.",
-                cve_update_toast: "🔄 Opening the local CVE update...",
-                lbl_finding: "🔍 Technical Finding:",
+                 cve_update_btn: "🔄 Update CVE database",
+                 cve_update_confirm: "Update the local CVE database now?\n\nThis action opens PowerShell and contacts only the public OSV.dev API. No inventory or DiagToolIT report is transmitted.",
+                 cve_update_toast: "🔄 Opening the local CVE update...",
+                 network_speed_title: "⚡ Internet speed test (live measurement)",
+                 network_speed_desc: "Explicit action: 20 s stabilized measurement (10 s download + 10 s upload), 4 streams through the Cloudflare edge, up to about 2.5 GB. No file is created; memory buffers are released after the test.",
+                 network_speed_btn: "⚡ Run speed test",
+                 network_speed_idle: "Test not started",
+                 network_speed_running: "Measuring…",
+                 network_speed_phase_warmup: "Warming up the connection…",
+                 network_speed_phase_download: "Measuring download speed…",
+                 network_speed_phase_upload: "Measuring upload speed…",
+                 network_speed_done: "Measurement complete",
+                 network_speed_unavailable: "Test unavailable in this browser",
+                 network_speed_error: "Speed test failed",
+                 network_speed_download: "Download",
+                 network_speed_upload: "Upload",
+                 network_speed_elapsed: "Elapsed",
+                 network_speed_data: "Data transferred",
+                 network_speed_mb_unit: "MB",
+                 network_speed_median: "Median",
+                 network_speed_range: "P10–P90 range",
+                 network_speed_peak: "Peak",
+                 network_speed_stability: "Stability",
+                 network_speed_samples: "Samples",
+                 network_speed_streams: "Parallel streams",
+                 network_speed_cleanup: "Cleanup",
+                 network_speed_cleanup_done: "Memory buffers released • no disk file",
+                 network_speed_visual_ready: "Throughput projectile ready",
+                 network_speed_visual_quality: "Quality",
+                 network_speed_visual_view: "View",
+                 network_speed_visual_final: "Final",
+                 network_speed_visual_curves: "Curves only",
+                 network_speed_visual_particles: "Particles",
+                 network_speed_legend_download: "Download",
+                 network_speed_legend_upload: "Upload",
+                 network_speed_axis_scale: "Scale",
+                 network_speed_axis_seconds: "s",
+                 network_latency_title: "⚡ Network latency & responsiveness matrix",
+                 network_latency_summary: "3 ICMP samples per target • min / average / max • jitter • loss",
+                 network_latency_filter_label: "Show",
+                 network_latency_sort_label: "Sort",
+                 network_latency_filter_all: "All targets",
+                 network_latency_filter_local: "Local network",
+                 network_latency_filter_dns: "Public DNS",
+                 network_latency_filter_cloud: "Cloud services",
+                 network_latency_sort_default: "Logical order",
+                 network_latency_sort_fastest: "Fastest first",
+                 network_latency_sort_loss: "Loss first",
+                 network_latency_min: "Min",
+                 network_latency_avg: "Avg",
+                 network_latency_max: "Max",
+                 network_latency_jitter: "Jitter",
+                 network_latency_loss: "Loss",
+                 network_latency_excellent: "Excellent",
+                 network_latency_good: "Good",
+                 network_latency_fair: "Fair",
+                 network_latency_high: "High",
+                 network_latency_unreachable: "Unreachable",
+                 network_latency_gateway: "Local gateway",
+                 network_latency_replies: "Replies",
+                 gpu_test_btn: "⚡ GPU stress test (10 s)",
+                 gpu_test_idle: "Test not started",
+                 gpu_test_running: "GPU test running…",
+                 gpu_test_unavailable: "WebGL unavailable — test skipped",
+                 gpu_test_result: "Result",
+                 gpu_test_placeholder: "Holographic reactor ready.<br>Run the test to measure the real workload.",
+                 gpu_test_ready: "READY",
+                 gpu_test_warmup: "WARM-UP",
+                 gpu_test_calibrate: "CALIBRATION",
+                 gpu_test_measure: "MEASURING",
+                 gpu_test_done: "COMPLETE",
+                 gpu_test_error: "ERROR",
+                 gpu_quality_auto: "AUTO",
+                 gpu_quality_high: "HIGH",
+                 gpu_quality_extreme: "EXTREME",
+                 gpu_view_final: "FINAL",
+                 gpu_view_baseline: "RAW PBR",
+                 gpu_view_overdraw: "LOAD",
+                 gpu_metric_fps_label: "MEDIAN FPS",
+                 gpu_metric_low_label: "1% LOW",
+                 gpu_metric_gpu_label: "GPU TIMER",
+                 gpu_metric_throughput_label: "3D RATE",
+                 gpu_metric_stability: "stability",
+                 gpu_test_spec_ready: "Fixed seed • adaptive quality • PBR + hologram • post-FX • offscreen workload",
+                 gpu_test_spec_template: "{tier} • {passes} passes/frame • {calls} draw calls/pass • {triangles} ktri/pass • {points} points",
+                 lbl_finding: "🔍 Technical Finding:",
                 lbl_fix: "🔧 Corrective Action:",
                 lbl_exam_tip: "💡 Instructor Tip / Level 3 Rule:",
                 lbl_gui_shortcut: "🪟 GUI Shortcut:",
@@ -6387,6 +8442,19 @@ sfc /scannow</pre>
                 status_data_safe: "LOKALE DATEN GESICHERT",
                 timestamp_lbl: "ZEITSTEMPEL",
                 console_tier: "VERWALTUNGSKONSOLE // TIER-3 PRO",
+                telemetry_host: "// COMPUTERNAME",
+                telemetry_os: "// BETRIEBSSYSTEM",
+                telemetry_version: "// VERSION / ARCHITEKTUR",
+                telemetry_cpu: "// PROZESSOR (CPU)",
+                telemetry_memory: "// ARBEITSSPEICHER (RAM)",
+                telemetry_uptime: "// BETRIEBSZEIT",
+                telemetry_boot: "// STARTMODUS",
+                RamUnit: "GB",
+                UptimeFormat: "{0}T {1}Std {2}Min",
+                ScanDateFormat: "dd.MM.yyyy 'um' HH:mm:ss",
+                BootUefiOn: "UEFI (Secure Boot AKTIV)",
+                BootUefiOff: "UEFI (Secure Boot DEAKTIVIERT)",
+                BootLegacy: "Legacy-BIOS",
                 card_total: "L3 Kontrollen",
                 card_ok: "Konform (OK)",
                 card_warn: "Warnungen",
@@ -6396,10 +8464,10 @@ sfc /scannow</pre>
                 tab_health: "■ 📈 GESUNDHEIT & TRENDS",
                 tab_cve: "■ 🔴 CVE SCHWACHSTELLEN",
                 tab_network: "■ 🌐 NETZWERK & RDP AUDIT",
-                tab_disk: "■ 💾 FESTPLATTENANALYSE",
+                tab_disk: "■ 💾 FESTPLATTENANALYSEN",
                 tab_performance: "■ 🚀 AUTOSTART & LEISTUNG",
                 tab_belgian: "■ 🇧🇪 BELGISCHE SOFTWARE & eID",
-                tab_benchmarks: "■ ⚡ BENCHMARKS & SMART",
+                tab_benchmarks: "■ ⚡ GPU- & RAM-BENCHMARKS",
                 tab_security: "■ 👤 SICHERHEIT & BENUTZER",
                 tab_foss: "■ 🌐 3D FOSS BAUM",
                 tab_all: "■ 📋 ALLE TESTS (26)",
@@ -6407,8 +8475,8 @@ sfc /scannow</pre>
                 tab_shortcuts: "■ ⌨️ PRO TASTENKÜRZEL",
                 tab_rmm: "■ 📦 LOKALER EXPORT & KUNDE",
                 tab_docs: "■ 📖 DOKUMENTATION & LEITFADEN",
+                tab_archive: "■ 🌀 PROTOKOLL / ARCHIV",
                 btn_run_tab: "⚡ DIAG NEUSTARTEN (.BAT)",
-                btn_refresh_tab: "🔄 AKTUALISIEREN",
                 btn_print_tab: "🖨️ DRUCKEN",
                 btn_pov: "🎢 POV-Ansicht",
                 btn_pov_exit: "🛑 POV Beenden",
@@ -6416,16 +8484,109 @@ sfc /scannow</pre>
                 btn_autospin_off: "🔄 Auto-Spin : AUS",
                 btn_autospin_on: "🔄 Auto-Spin : EIN",
                 btn_view_journal: "📋 Protokoll Anzeigen",
+                archive_title: "🌀 Diagnose-Chronologie",
+                archive_subtitle: "Lokaler Verlauf der auf diesem Computer gespeicherten Diagnosen.",
+                archive_run_label: "archivierte Diagnosen",
+                archive_empty: "Noch keine Diagnose archiviert.",
+                archive_date: "Datum",
+                archive_host: "Computer",
+                archive_score: "Score",
+                archive_ok: "OK",
+                archive_warn: "WARN",
+                archive_error: "ERROR",
+                archive_disk: "Freier Speicher",
+                archive_cve: "CVE",
                 btn_close: "✖ Schließen",
                 search_placeholder: "🔍 Nach Komponente, Dienst, Test oder PowerShell-Befehl filtern...",
                 toast_launch: "⚡ Diagnose über diagit://-Protokoll wird gestartet...",
-                toast_refresh: "🔄 Berichtsdaten werden aktualisiert...",
                 cve_update_title: "🛡️ Lokale CVE-Datenbank aktualisieren",
                 cve_update_desc: "Bewusste Aktion mit Internetzugriff: kontaktiert ausschließlich die öffentliche OSV.dev-API und sendet weder Inventar noch Bericht.",
-                cve_update_btn: "🔄 CVE-Datenbank aktualisieren",
-                cve_update_confirm: "Lokale CVE-Datenbank jetzt aktualisieren?\n\nDiese Aktion öffnet PowerShell und kontaktiert ausschließlich die öffentliche OSV.dev-API. Es werden weder Inventar noch DiagToolIT-Bericht übertragen.",
-                cve_update_toast: "🔄 Lokale CVE-Aktualisierung wird geöffnet...",
-                lbl_finding: "🔍 Technischer Befund:",
+                 cve_update_btn: "🔄 CVE-Datenbank aktualisieren",
+                 cve_update_confirm: "Lokale CVE-Datenbank jetzt aktualisieren?\n\nDiese Aktion öffnet PowerShell und kontaktiert ausschließlich die öffentliche OSV.dev-API. Es werden weder Inventar noch DiagToolIT-Bericht übertragen.",
+                 cve_update_toast: "🔄 Lokale CVE-Aktualisierung wird geöffnet...",
+                 network_speed_title: "⚡ Internet-Geschwindigkeitstest (Live-Messung)",
+                 network_speed_desc: "Bewusste Aktion: 20 s stabilisierte Messung (10 s Download + 10 s Upload), 4 Datenströme über den Cloudflare-Edge, bis etwa 2,5 GB. Es wird keine Datei angelegt; Speicherpuffer werden nach dem Test freigegeben.",
+                 network_speed_btn: "⚡ Geschwindigkeit testen",
+                 network_speed_idle: "Test nicht gestartet",
+                 network_speed_running: "Messung läuft…",
+                 network_speed_phase_warmup: "Verbindung wird aufgewärmt…",
+                 network_speed_phase_download: "Downloadgeschwindigkeit wird gemessen…",
+                 network_speed_phase_upload: "Uploadgeschwindigkeit wird gemessen…",
+                 network_speed_done: "Messung abgeschlossen",
+                 network_speed_unavailable: "Test in diesem Browser nicht verfügbar",
+                 network_speed_error: "Geschwindigkeitstest fehlgeschlagen",
+                 network_speed_download: "Download",
+                 network_speed_upload: "Upload",
+                 network_speed_elapsed: "Dauer",
+                 network_speed_data: "Übertragene Daten",
+                 network_speed_mb_unit: "MB",
+                 network_speed_median: "Median",
+                 network_speed_range: "P10–P90-Bereich",
+                 network_speed_peak: "Spitze",
+                 network_speed_stability: "Stabilität",
+                 network_speed_samples: "Messwerte",
+                 network_speed_streams: "Parallele Datenströme",
+                 network_speed_cleanup: "Bereinigung",
+                 network_speed_cleanup_done: "Speicherpuffer freigegeben • keine Datei auf dem Datenträger",
+                 network_speed_visual_ready: "Durchsatzprojektil bereit",
+                 network_speed_visual_quality: "Qualität",
+                 network_speed_visual_view: "Ansicht",
+                 network_speed_visual_final: "Final",
+                 network_speed_visual_curves: "Nur Kurven",
+                 network_speed_visual_particles: "Partikel",
+                 network_speed_legend_download: "Download",
+                 network_speed_legend_upload: "Upload",
+                 network_speed_axis_scale: "Skala",
+                 network_speed_axis_seconds: "s",
+                 network_latency_title: "⚡ Matrix für Netzwerklatenz und Reaktionsfähigkeit",
+                 network_latency_summary: "3 ICMP-Messwerte je Ziel • Min / Mittel / Max • Jitter • Verlust",
+                 network_latency_filter_label: "Anzeigen",
+                 network_latency_sort_label: "Sortieren",
+                 network_latency_filter_all: "Alle Ziele",
+                 network_latency_filter_local: "Lokales Netzwerk",
+                 network_latency_filter_dns: "Öffentliche DNS",
+                 network_latency_filter_cloud: "Cloud-Dienste",
+                 network_latency_sort_default: "Logische Reihenfolge",
+                 network_latency_sort_fastest: "Schnellste zuerst",
+                 network_latency_sort_loss: "Verluste zuerst",
+                 network_latency_min: "Min",
+                 network_latency_avg: "Mittel",
+                 network_latency_max: "Max",
+                 network_latency_jitter: "Jitter",
+                 network_latency_loss: "Verlust",
+                 network_latency_excellent: "Ausgezeichnet",
+                 network_latency_good: "Gut",
+                 network_latency_fair: "Mittel",
+                 network_latency_high: "Hoch",
+                 network_latency_unreachable: "Nicht erreichbar",
+                 network_latency_gateway: "Lokales Gateway",
+                 network_latency_replies: "Antworten",
+                 gpu_test_btn: "⚡ GPU-Stresstest (10 s)",
+                 gpu_test_idle: "Test nicht gestartet",
+                 gpu_test_running: "GPU-Test läuft…",
+                 gpu_test_unavailable: "WebGL nicht verfügbar — Test übersprungen",
+                 gpu_test_result: "Ergebnis",
+                 gpu_test_placeholder: "Holografischer Reaktor bereit.<br>Test starten, um die reale Last zu messen.",
+                 gpu_test_ready: "BEREIT",
+                 gpu_test_warmup: "AUFWÄRMEN",
+                 gpu_test_calibrate: "KALIBRIERUNG",
+                 gpu_test_measure: "MESSUNG",
+                 gpu_test_done: "ABGESCHLOSSEN",
+                 gpu_test_error: "FEHLER",
+                 gpu_quality_auto: "AUTO",
+                 gpu_quality_high: "HOCH",
+                 gpu_quality_extreme: "EXTREM",
+                 gpu_view_final: "FINAL",
+                 gpu_view_baseline: "ROHES PBR",
+                 gpu_view_overdraw: "LAST",
+                 gpu_metric_fps_label: "MEDIAN-FPS",
+                 gpu_metric_low_label: "1% LOW",
+                 gpu_metric_gpu_label: "GPU-TIMER",
+                 gpu_metric_throughput_label: "3D-DURCHSATZ",
+                 gpu_metric_stability: "Stabilität",
+                 gpu_test_spec_ready: "Fester Seed • adaptive Qualität • PBR + Hologramm • Post-FX • Offscreen-Last",
+                 gpu_test_spec_template: "{tier} • {passes} Durchläufe/Bild • {calls} Draw Calls/Durchlauf • {triangles} kTri/Durchlauf • {points} Punkte",
+                 lbl_finding: "🔍 Technischer Befund:",
                 lbl_fix: "🔧 Korrekturmaßnahme:",
                 lbl_exam_tip: "💡 Ausbilder-Tipp / Stufe 3 Regel:",
                 lbl_gui_shortcut: "🪟 GUI Tastenkürzel:",
@@ -6619,6 +8780,26 @@ sfc /scannow</pre>
                 nl: "Belgisch Software Ecosysteem & eID Certificaten",
                 de: "Belgisches Software-Ökosystem & eID-Zertifikate"
             },
+            "Détection des Logiciels Métiers, E-Banking & Fiscalité": {
+                en: "Business Software, E-Banking & Tax Detection",
+                nl: "Detectie van bedrijfssoftware, e-banking en fiscaliteit",
+                de: "Erkennung von Branchensoftware, E-Banking & Steuern"
+            },
+            "Catalogue national & preuves de source": {
+                en: "National catalogue & source evidence",
+                nl: "Nationale catalogus & bronverwijzingen",
+                de: "Nationaler Katalog & Quellenbelege"
+            },
+            "Choisissez le pays de référence pour afficher les portails administratifs officiels et les solutions métiers reconnues dans son écosystème. La présence d'une carte confirme l'application détectée localement ; une fiche catalogue ne vaut pas agrément gouvernemental.": {
+                en: "Choose the reference country to display official administration portals and recognised business solutions in its ecosystem. A card confirms that an application was detected locally; a catalogue entry is not a government approval.",
+                nl: "Kies het referentieland om officiële overheidsportalen en erkende bedrijfsoplossingen in het ecosysteem te tonen. Een kaart bevestigt lokale detectie; een catalogusfiche is geen overheidsgoedkeuring.",
+                de: "Wählen Sie das Referenzland, um offizielle Verwaltungsportale und anerkannte Branchenlösungen anzuzeigen. Eine Karte bestätigt die lokale Erkennung; ein Katalogeintrag ist keine staatliche Zulassung."
+            },
+            "Pays de référence": {
+                en: "Reference country",
+                nl: "Referentieland",
+                de: "Referenzland"
+            },
             "Matrice Open-Source Alternatives (FOSS Tree 3D)": {
                 en: "Open-Source Alternative Matrix (3D FOSS Tree)",
                 nl: "Open-Source Alternatievenmatrix (3D FOSS Boom)",
@@ -6647,6 +8828,161 @@ sfc /scannow</pre>
 
         
         var probeTextDict = {
+        "Protection Antivirus Désactivée": {
+                "en": "Antivirus Protection Disabled",
+                "nl": "Antivirusbescherming Uitgeschakeld",
+                "de": "Virenschutz Deaktiviert"
+        },
+        "🪟 Raccourci GUI :": {
+                "en": "🪟 GUI Shortcut:",
+                "nl": "🪟 GUI-snelkoppeling:",
+                "de": "🪟 GUI-Verknüpfung:"
+        },
+        "⚡ Copier PowerShell :": {
+                "en": "⚡ Copy PowerShell:",
+                "nl": "⚡ PowerShell kopiëren:",
+                "de": "⚡ PowerShell kopieren:"
+        },
+        "🔍 Constat technique :": {
+                "en": "🔍 Technical finding:",
+                "nl": "🔍 Technische bevinding:",
+                "de": "🔍 Technischer Befund:"
+        },
+        "🔧 Action corrective :": {
+                "en": "🔧 Corrective action:",
+                "nl": "🔧 Corrigerende maatregel:",
+                "de": "🔧 Korrekturmaßnahme:"
+        },
+        "💡 Explication Formateur / Règle UAA 3 :": {
+                "en": "💡 Instructor explanation / UAA 3 rule:",
+                "nl": "💡 Uitleg van de instructeur / UAA 3-regel:",
+                "de": "💡 Erklärung des Ausbilders / UAA-3-Regel:"
+        },
+        "Spouleur d'impression (File bloquée)": {
+                "en": "Print Spooler (Blocked Queue)",
+                "nl": "Print Spooler (Geblokkeerde wachtrij)",
+                "de": "Druckspooler (Blockierte Warteschlange)"
+        },
+        "Redémarrage Système Requis": {
+                "en": "System Restart Required",
+                "nl": "Systeemherstart vereist",
+                "de": "Systemneustart erforderlich"
+        },
+        "Le spouleur d'impression est arrêté. Toutes les imprimantes refusent d'imprimer ou disparaissent.": {
+                "en": "The print spooler is stopped. All printers refuse to print or disappear.",
+                "nl": "De print spooler is gestopt. Alle printers weigeren af te drukken of verdwijnen.",
+                "de": "Der Druckspooler ist angehalten. Alle Drucker verweigern den Druck oder verschwinden."
+        },
+        "Démarrer le service Spooler et le mettre en démarrage Automatique.": {
+                "en": "Start the Spooler service and set it to Automatic startup.",
+                "nl": "Start de Spooler-service en stel automatisch opstarten in.",
+                "de": "Starten Sie den Spooler-Dienst und stellen Sie den automatischen Start ein."
+        },
+        "Un document corrompu fait parfois crasher le spouleur en boucle au démarrage.": {
+                "en": "A corrupt document can repeatedly crash the spooler at startup.",
+                "nl": "Een beschadigd document kan de spooler bij het opstarten herhaaldelijk laten crashen.",
+                "de": "Ein beschädigtes Dokument kann den Spooler beim Start wiederholt zum Absturz bringen."
+        },
+        "fichier(s) d'impression bloqué(s) dans le répertoire de spoule (": {
+                "en": "print job(s) blocked in the spool directory (",
+                "nl": "afdruktaak/taken geblokkeerd in de spoolmap (",
+                "de": "Druckauftrag/aufträge im Spoolverzeichnis blockiert ("
+        },
+        "Arrêter le spouleur, purger les fichiers bloqués dans ": {
+                "en": "Stop the print spooler, purge blocked files in ",
+                "nl": "Stop de print spooler en verwijder geblokkeerde bestanden in ",
+                "de": "Stoppen Sie den Druckspooler und löschen Sie blockierte Dateien in "
+        },
+        " et redémarrer le service.": {
+                "en": " and restart the service.",
+                "nl": " en start de service opnieuw.",
+                "de": " und starten Sie den Dienst neu."
+        },
+        "Pour débloquer une file d'attente d'impression gelée, vider le dossier PRINTERS pendant que le Spooler est arrêté.": {
+                "en": "To unblock a frozen print queue, empty the PRINTERS folder while the Spooler is stopped.",
+                "nl": "Maak bij een vastgelopen afdrukwachtrij de map PRINTERS leeg terwijl de Spooler is gestopt.",
+                "de": "Um eine eingefrorene Druckwarteschlange zu entsperren, leeren Sie den Ordner PRINTERS bei angehaltenem Spooler."
+        },
+        "Une installation ou mise à jour système Windows nécessite un redémarrage complet pour finaliser l'application.": {
+                "en": "A Windows installation or update requires a full restart to finish applying.",
+                "nl": "Een Windows-installatie of -update vereist een volledige herstart om te worden voltooid.",
+                "de": "Eine Windows-Installation oder ein Update erfordert einen vollständigen Neustart zum Abschluss."
+        },
+        "Redémarrer l'ordinateur pour appliquer les modifications système en attente.": {
+                "en": "Restart the computer to apply pending system changes.",
+                "nl": "Start de computer opnieuw op om openstaande systeemwijzigingen toe te passen.",
+                "de": "Starten Sie den Computer neu, um ausstehende Systemänderungen anzuwenden."
+        },
+        "Certains composants restent bloqués dans un état instable tant que le redémarrage requis n'est pas effectué.": {
+                "en": "Some components remain unstable until the required restart is performed.",
+                "nl": "Sommige onderdelen blijven instabiel totdat de vereiste herstart is uitgevoerd.",
+                "de": "Einige Komponenten bleiben instabil, bis der erforderliche Neustart durchgeführt wurde."
+        },
+        "Protection Antivirus Conforme": {
+                "en": "Antivirus Protection Compliant",
+                "nl": "Antivirusbescherming Conform",
+                "de": "Virenschutz Konform"
+        },
+        "Conflit Antivirus Multiple": {
+                "en": "Multiple Antivirus Conflict",
+                "nl": "Conflict met Meerdere Antivirusproducten",
+                "de": "Konflikt Mehrerer Virenschutzprodukte"
+        },
+        "Signatures Antivirus Obsolètes": {
+                "en": "Outdated Antivirus Signatures",
+                "nl": "Verouderde Antivirushandtekeningen",
+                "de": "Veraltete Virensignaturen"
+        },
+        "Aucune protection antivirus active. Produits inactifs ou non fiables :": {
+                "en": "No active antivirus protection. Inactive or untrusted products:",
+                "nl": "Geen actieve antivirusbescherming. Inactieve of niet-vertrouwde producten:",
+                "de": "Kein aktiver Virenschutz. Inaktive oder nicht vertrauenswürdige Produkte:"
+        },
+        "Réactiver Microsoft Defender ou un antivirus tiers valide avec protection en temps réel.": {
+                "en": "Enable Microsoft Defender or a valid third-party antivirus with real-time protection.",
+                "nl": "Schakel Microsoft Defender of een geldige externe antivirus met realtimebescherming in.",
+                "de": "Aktivieren Sie Microsoft Defender oder einen gültigen Drittanbieter-Virenschutz mit Echtzeitschutz."
+        },
+        "La présence d'un provider SecurityCenter2 ne prouve pas qu'il protège activement le poste.": {
+                "en": "The presence of a SecurityCenter2 provider does not prove that it actively protects the computer.",
+                "nl": "De aanwezigheid van een SecurityCenter2-provider bewijst niet dat die de computer actief beschermt.",
+                "de": "Das Vorhandensein eines SecurityCenter2-Anbieters beweist keinen aktiven Schutz des Computers."
+        },
+        "Plusieurs logiciels antivirus actifs détectés en simultané :": {
+                "en": "Several active antivirus products detected simultaneously:",
+                "nl": "Meerdere actieve antivirusproducten tegelijk gedetecteerd:",
+                "de": "Mehrere aktive Virenschutzprodukte gleichzeitig erkannt:"
+        },
+        "Désinstaller l'antivirus superflu pour éviter les conflits d'interception et les ralentissements I/O.": {
+                "en": "Uninstall the redundant antivirus to avoid interception conflicts and I/O slowdowns.",
+                "nl": "Verwijder de overbodige antivirus om onderscheppingsconflicten en I/O-vertragingen te voorkomen.",
+                "de": "Deinstallieren Sie den überflüssigen Virenschutz, um Abfangkonflikte und I/O-Verlangsamungen zu vermeiden."
+        },
+        "Deux antivirus simultanés créent des blocages de verrouillage de fichiers mutuels et divisent les débits disques.": {
+                "en": "Two simultaneous antivirus products can lock each other's files and reduce disk throughput.",
+                "nl": "Twee gelijktijdige antivirusproducten kunnen elkaars bestanden blokkeren en de schijfdoorvoer verlagen.",
+                "de": "Zwei gleichzeitig aktive Virenschutzprodukte können Dateien gegenseitig sperren und den Datendurchsatz verringern."
+        },
+        "La protection antivirus est active mais ses signatures sont obsolètes :": {
+                "en": "Antivirus protection is active but its signatures are outdated:",
+                "nl": "De antivirusbescherming is actief maar de handtekeningen zijn verouderd:",
+                "de": "Der Virenschutz ist aktiv, aber seine Signaturen sind veraltet:"
+        },
+        "Mettre à jour immédiatement les signatures antivirus.": {
+                "en": "Update the antivirus signatures immediately.",
+                "nl": "Werk de antivirus-handtekeningen onmiddellijk bij.",
+                "de": "Aktualisieren Sie die Virensignaturen sofort."
+        },
+        "Une protection active avec des signatures anciennes peut manquer les menaces récentes.": {
+                "en": "Active protection with old signatures may miss recent threats.",
+                "nl": "Actieve bescherming met oude handtekeningen kan recente bedreigingen missen.",
+                "de": "Aktiver Schutz mit alten Signaturen kann aktuelle Bedrohungen übersehen."
+        },
+        "Protection en temps réel active et opérationnelle (": {
+                "en": "Active and operational real-time protection (",
+                "nl": "Actieve en operationele realtimebescherming (",
+                "de": "Aktiver und funktionierender Echtzeitschutz ("
+        },
         "Passerelle par défaut": {
                 "en": "Default Gateway",
                 "nl": "Standaardgateway",
@@ -6797,6 +9133,26 @@ sfc /scannow</pre>
                 "nl": "Kritieke schijfruimte op",
                 "de": "Kritischer Speicherplatz auf"
         },
+        ": seulement": {
+                "en": ": only",
+                "nl": ": slechts",
+                "de": ": nur"
+        },
+        " Go restants (": {
+                "en": " GB remaining (",
+                "nl": " GB resterend (",
+                "de": " GB verbleibend ("
+        },
+        "% de ": {
+                "en": "% of ",
+                "nl": "% van ",
+                "de": "% von "
+        },
+        " Go).": {
+                "en": " GB).",
+                "nl": " GB).",
+                "de": " GB)."
+        },
         "seulement": {
                 "en": "only",
                 "nl": "slechts",
@@ -6905,9 +9261,9 @@ sfc /scannow</pre>
 
 
         function applyLanguage(lang) {
-            currentLang = lang;
-            localStorage.setItem('diag_lang', lang);
-            var t = translations[lang] || translations.fr;
+            currentLang = normalizeUiLanguage(lang);
+            localStorage.setItem('diag_lang', currentLang);
+            var t = translations[currentLang] || translations.fr;
 
             var sel = document.getElementById('langSelect');
             if (sel) sel.value = lang;
@@ -6920,6 +9276,44 @@ sfc /scannow</pre>
 
             var mainSub = document.querySelector('.cockpit-sub');
             if (mainSub) mainSub.innerText = t.main_sub;
+
+            var telemetryLabelIds = {
+                telemetryHostLabel: 'telemetry_host',
+                telemetryOsLabel: 'telemetry_os',
+                telemetryVersionLabel: 'telemetry_version',
+                telemetryCpuLabel: 'telemetry_cpu',
+                telemetryMemoryLabel: 'telemetry_memory',
+                telemetryUptimeLabel: 'telemetry_uptime',
+                telemetryBootLabel: 'telemetry_boot'
+            };
+            Object.keys(telemetryLabelIds).forEach(function(id) {
+                var telemetryLabel = document.getElementById(id);
+                var telemetryKey = telemetryLabelIds[id];
+                if (telemetryLabel && t[telemetryKey]) telemetryLabel.innerText = t[telemetryKey];
+            });
+
+            var timestampLabel = document.getElementById('timestampLabel');
+            if (timestampLabel && t.timestamp_lbl) timestampLabel.innerText = t.timestamp_lbl;
+            var consoleTierLabel = document.getElementById('consoleTierLabel');
+            if (consoleTierLabel && t.console_tier) consoleTierLabel.innerText = t.console_tier;
+
+            var memoryValue = document.getElementById('telemetryMemoryValue');
+            if (memoryValue && memoryValue.getAttribute('data-value')) {
+                memoryValue.innerText = memoryValue.getAttribute('data-value') + ' ' + (t.RamUnit || 'GB');
+            }
+            var uptimeValue = document.getElementById('telemetryUptimeValue');
+            if (uptimeValue && t.UptimeFormat) {
+                var uptimeText = t.UptimeFormat;
+                uptimeText = uptimeText.replace('{0}', uptimeValue.getAttribute('data-days') || '0');
+                uptimeText = uptimeText.replace('{1}', uptimeValue.getAttribute('data-hours') || '0');
+                uptimeText = uptimeText.replace('{2}', uptimeValue.getAttribute('data-minutes') || '0');
+                uptimeValue.innerText = uptimeText;
+            }
+            var bootValue = document.getElementById('telemetryBootValue');
+            if (bootValue) {
+                var bootKey = bootValue.getAttribute('data-boot-key');
+                if (bootKey && t[bootKey]) bootValue.innerText = t[bootKey];
+            }
 
             var leds = document.querySelectorAll('.cockpit-status-bar .cockpit-led');
             if (leds.length >= 3) {
@@ -6944,21 +9338,38 @@ sfc /scannow</pre>
                 'tab_resolution', 'tab_health', 'tab_cve', 'tab_network',
                 'tab_disk', 'tab_performance', 'tab_belgian', 'tab_benchmarks',
                 'tab_security', 'tab_foss', 'tab_all', 'tab_profiles',
-                'tab_shortcuts', 'tab_rmm', 'tab_docs'
+                'tab_shortcuts', 'tab_rmm', 'tab_docs', 'tab_archive'
             ];
             for (var i = 0; i < tabBtns.length && i < tabKeys.length; i++) {
                 var k = tabKeys[i];
-                if (t[k]) tabBtns[i].innerText = t[k];
+                if (t[k]) tabBtns[i].innerText = '■ ' + t[k].replace(/^\s*■\s*/, '').replace(wireframeEmojiPattern, '').trim();
             }
 
             var btnRunT = document.getElementById('btnRunDiagTab');
             if (btnRunT) btnRunT.innerText = t.btn_run_tab;
 
-            var btnRefT = document.getElementById('btnRefreshTab');
-            if (btnRefT) btnRefT.innerText = t.btn_refresh_tab;
-
             var btnPrT = document.getElementById('btnPrintTab');
             if (btnPrT) btnPrT.innerText = t.btn_print_tab;
+
+            var archiveTextIds = {
+                archiveTitle: 'archive_title',
+                archiveSubtitle: 'archive_subtitle',
+                archiveRunLabel: 'archive_run_label',
+                archiveEmpty: 'archive_empty',
+                archiveThDate: 'archive_date',
+                archiveThHost: 'archive_host',
+                archiveThScore: 'archive_score',
+                archiveThOk: 'archive_ok',
+                archiveThWarn: 'archive_warn',
+                archiveThErr: 'archive_error',
+                archiveThDisk: 'archive_disk',
+                archiveThCve: 'archive_cve'
+            };
+            Object.keys(archiveTextIds).forEach(function(id) {
+                var archiveElem = document.getElementById(id);
+                var archiveKey = archiveTextIds[id];
+                if (archiveElem && t[archiveKey]) archiveElem.innerText = t[archiveKey];
+            });
 
             var cveUpdateTitle = document.getElementById('cveUpdateTitle');
             if (cveUpdateTitle) cveUpdateTitle.innerText = t.cve_update_title;
@@ -6966,6 +9377,59 @@ sfc /scannow</pre>
             if (cveUpdateDesc) cveUpdateDesc.innerText = t.cve_update_desc;
             var cveUpdateBtn = document.getElementById('btnUpdateCve');
             if (cveUpdateBtn) cveUpdateBtn.innerText = t.cve_update_btn;
+
+            var networkSpeedTitle = document.getElementById('networkSpeedTestTitle');
+            if (networkSpeedTitle) networkSpeedTitle.innerText = t.network_speed_title;
+            var networkSpeedDesc = document.getElementById('networkSpeedTestDescription');
+            if (networkSpeedDesc) networkSpeedDesc.innerText = t.network_speed_desc;
+            var networkSpeedBtn = document.getElementById('networkSpeedTestBtn');
+            if (networkSpeedBtn && !networkSpeedBtn.disabled) networkSpeedBtn.innerText = t.network_speed_btn;
+            var networkSpeedLiveCaption = document.getElementById('networkSpeedLiveCaption');
+            if (networkSpeedLiveCaption && (window.networkSpeedTestState === 'idle' || !window.networkSpeedTestState)) networkSpeedLiveCaption.innerText = t.network_speed_visual_ready;
+            var networkSpeedLiveDownloadLabel = document.getElementById('networkSpeedLiveDownloadLabel');
+            if (networkSpeedLiveDownloadLabel) networkSpeedLiveDownloadLabel.innerText = t.network_speed_download;
+            var networkSpeedLiveUploadLabel = document.getElementById('networkSpeedLiveUploadLabel');
+            if (networkSpeedLiveUploadLabel) networkSpeedLiveUploadLabel.innerText = t.network_speed_upload;
+            var networkSpeedQualityLabel = document.getElementById('networkSpeedQualityLabel');
+            if (networkSpeedQualityLabel) networkSpeedQualityLabel.innerText = t.network_speed_visual_quality;
+            var networkSpeedVisualModeLabel = document.getElementById('networkSpeedVisualModeLabel');
+            if (networkSpeedVisualModeLabel) networkSpeedVisualModeLabel.innerText = t.network_speed_visual_view;
+            var networkSpeedVisualMode = document.getElementById('networkSpeedVisualMode');
+            if (networkSpeedVisualMode && networkSpeedVisualMode.options.length >= 3) {
+                networkSpeedVisualMode.options[0].text = t.network_speed_visual_final;
+                networkSpeedVisualMode.options[1].text = t.network_speed_visual_curves;
+                networkSpeedVisualMode.options[2].text = t.network_speed_visual_particles;
+            }
+            var networkSpeedDownloadLegend = document.getElementById('networkSpeedDownloadLegend');
+            if (networkSpeedDownloadLegend) networkSpeedDownloadLegend.innerText = t.network_speed_legend_download;
+            var networkSpeedUploadLegend = document.getElementById('networkSpeedUploadLegend');
+            if (networkSpeedUploadLegend) networkSpeedUploadLegend.innerText = t.network_speed_legend_upload;
+            var networkSpeedScale = document.getElementById('networkSpeedScale');
+            if (networkSpeedScale) networkSpeedScale.innerText = t.network_speed_axis_scale + ': 0–1 000 Mbps';
+            var networkLatencyTitle = document.getElementById('networkLatencyTitle');
+            if (networkLatencyTitle) networkLatencyTitle.innerText = t.network_latency_title;
+            var networkLatencySummary = document.getElementById('networkLatencySummary');
+            if (networkLatencySummary) networkLatencySummary.innerText = t.network_latency_summary;
+            var networkLatencyFilterLabel = document.getElementById('networkLatencyFilterLabel');
+            if (networkLatencyFilterLabel) networkLatencyFilterLabel.innerText = t.network_latency_filter_label;
+            var networkLatencySortLabel = document.getElementById('networkLatencySortLabel');
+            if (networkLatencySortLabel) networkLatencySortLabel.innerText = t.network_latency_sort_label;
+            var networkLatencyFilter = document.getElementById('networkLatencyFilter');
+            if (networkLatencyFilter && networkLatencyFilter.options.length >= 4) {
+                networkLatencyFilter.options[0].text = t.network_latency_filter_all;
+                networkLatencyFilter.options[1].text = t.network_latency_filter_local;
+                networkLatencyFilter.options[2].text = t.network_latency_filter_dns;
+                networkLatencyFilter.options[3].text = t.network_latency_filter_cloud;
+            }
+            var networkLatencySort = document.getElementById('networkLatencySort');
+            if (networkLatencySort && networkLatencySort.options.length >= 3) {
+                networkLatencySort.options[0].text = t.network_latency_sort_default;
+                networkLatencySort.options[1].text = t.network_latency_sort_fastest;
+                networkLatencySort.options[2].text = t.network_latency_sort_loss;
+            }
+            if (typeof window.setNetworkSpeedStatus === 'function' && (!networkSpeedBtn || !networkSpeedBtn.disabled)) window.setNetworkSpeedStatus(window.networkSpeedTestState || 'idle');
+            if (typeof window.renderNetworkSpeedResult === 'function') window.renderNetworkSpeedResult();
+            if (typeof window.renderNetworkLatencyMatrix === 'function') window.renderNetworkLatencyMatrix();
 
             var sInput = document.getElementById('searchInput');
             if (sInput && t.search_placeholder) sInput.placeholder = t.search_placeholder;
@@ -7027,12 +9491,17 @@ sfc /scannow</pre>
                 }
             });
 
-            renderCveTab(lang);
+            renderCveTab(currentLang);
             if (window.renderBelgianTab) {
-                window.renderBelgianTab(lang);
+                window.renderBelgianTab(currentLang);
             }
-            translateDomNodes(lang);
-            translateResolutionCards(lang);
+            if (window.renderGpuQuickTestUi) {
+                window.renderGpuQuickTestUi();
+            }
+            translateDomNodes(currentLang);
+            translateResolutionCards(currentLang);
+            bindWireframeTabIcons();
+            applyWireframeIcons();
         }
 
         window.addEventListener('DOMContentLoaded', function() {
@@ -7132,17 +9601,21 @@ sfc /scannow</pre>
 
 
         window.launchLocalProtocol = function(uri) {
-            var ifr = document.createElement('iframe');
-            ifr.style.position = 'absolute';
-            ifr.style.width = '1px';
-            ifr.style.height = '1px';
-            ifr.style.opacity = '0.01';
-            ifr.style.border = 'none';
-            ifr.setAttribute('aria-hidden', 'true');
-            ifr.src = uri;
-            document.body.appendChild(ifr);
+            var link = document.createElement('a');
+            link.href = uri;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.style.position = 'fixed';
+            link.style.left = '-10000px';
+            link.style.top = '0';
+            link.style.width = '1px';
+            link.style.height = '1px';
+            link.style.opacity = '0.01';
+            link.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(link);
+            link.click();
             setTimeout(function() {
-                if (ifr.parentNode) ifr.parentNode.removeChild(ifr);
+                if (link.parentNode) link.parentNode.removeChild(link);
             }, 2500);
         };
 
@@ -7151,7 +9624,8 @@ sfc /scannow</pre>
             showToast(t.toast_launch || "⚡ Lancement du diagnostic...");
 
             try {
-                window.launchLocalProtocol('diagit://run');
+                var normalizedLanguage = allowedProtocolLanguages[currentLang] || 'FR';
+                window.launchLocalProtocol('diagit://run?lang=' + normalizedLanguage);
             } catch(e) {
                 console.error("Launcher error:", e);
             }
@@ -8826,13 +11300,43 @@ sfc /scannow</pre>
             var rawHistory = decodeBase64Utf8('__HISTORY_JSON__');
             var rawCve = decodeBase64Utf8('__CVE_JSON__');
             var rawBench = decodeBase64Utf8('__BENCH_JSON__');
+            var rawSmart = decodeBase64Utf8('__SMART_JSON__');
             var rawDisk = decodeBase64Utf8('__DISK_AUDIT_JSON__');
             var rawNet = decodeBase64Utf8('__NETWORK_AUDIT_JSON__');
             var rawSec = decodeBase64Utf8('__SECURITY_AUDIT_JSON__');
             var rawBelgian = decodeBase64Utf8('__BELGIAN_APPS_JSON__');
 
             var historyData = [];
-        var latestRun = (window.historyData && window.historyData.length > 0) ? window.historyData[window.historyData.length - 1] : null;
+            var cveData = [];
+            var benchData = {};
+            var smartData = [];
+            var diskData = {};
+            var netData = {};
+            var secData = {};
+            var belgianData = [];
+
+            try {
+                historyData = JSON.parse(rawHistory);
+                if (!Array.isArray(historyData)) historyData = historyData ? [historyData] : [];
+            } catch(e) { historyData = []; }
+            try { cveData = JSON.parse(rawCve); } catch(e) {}
+            try { benchData = JSON.parse(rawBench) || {}; } catch(e) { benchData = {}; }
+            try { smartData = JSON.parse(rawSmart); if (!Array.isArray(smartData)) smartData = smartData ? [smartData] : []; } catch(e) { smartData = []; }
+            try { diskData = JSON.parse(rawDisk); } catch(e) {}
+            try { netData = JSON.parse(rawNet); } catch(e) {}
+            try { secData = JSON.parse(rawSec); } catch(e) {}
+            try { belgianData = JSON.parse(rawBelgian); } catch(e) {}
+
+            window.historyData = historyData;
+            window.cveData = cveData;
+            window.benchData = benchData;
+            window.smartData = smartData;
+            window.diskAuditData = diskData;
+            window.networkAuditData = netData;
+            window.securityAuditData = secData;
+            window.belgianData = belgianData;
+
+            var latestRun = historyData.length > 0 ? historyData[historyData.length - 1] : null;
             if (latestRun) {
                 var elemDisk = document.getElementById('histDiskFree');
                 if (elemDisk && latestRun.FreeDiskGB !== undefined) {
@@ -8844,33 +11348,869 @@ sfc /scannow</pre>
                     elemCve.style.color = latestRun.CveCount === 0 ? "#34d399" : "#f43f5e";
                 }
                 var elemRuns = document.getElementById('histTotalRuns');
-                if (elemRuns && window.historyData) {
-                    elemRuns.innerText = window.historyData.length + " diagnostics archivés";
+                if (elemRuns) {
+                    elemRuns.innerText = historyData.length + " diagnostics archivés";
                 }
             }
 
-            var cveData = [];
-            var benchData = [];
-            var diskData = {};
-            var netData = {};
-            var secData = {};
-            var belgianData = [];
+            function renderArchiveLogs() {
+                var body = document.getElementById('archiveLogBody');
+                var table = document.getElementById('archiveLogTable');
+                var empty = document.getElementById('archiveLogEmpty');
+                var countLabel = document.getElementById('archiveRunCount');
+                if (!body || !table || !empty) return;
 
-            try { historyData = JSON.parse(rawHistory); } catch(e) {}
-            try { cveData = JSON.parse(rawCve); } catch(e) {}
-            try { benchData = JSON.parse(rawBench); } catch(e) {}
-            try { diskData = JSON.parse(rawDisk); } catch(e) {}
-            try { netData = JSON.parse(rawNet); } catch(e) {}
-            try { secData = JSON.parse(rawSec); } catch(e) {}
-            try { belgianData = JSON.parse(rawBelgian); } catch(e) {}
+                var entries = Array.isArray(historyData) ? historyData.slice().reverse() : [];
+                body.innerHTML = '';
+                if (countLabel) countLabel.textContent = entries.length;
+                if (entries.length === 0) {
+                    table.style.display = 'none';
+                    empty.style.display = 'block';
+                    return;
+                }
 
-            window.historyData = historyData;
-            window.cveData = cveData;
-            window.benchData = benchData;
-            window.diskAuditData = diskData;
-            window.networkAuditData = netData;
-            window.securityAuditData = secData;
-            window.belgianData = belgianData;
+                table.style.display = 'table';
+                empty.style.display = 'none';
+                entries.forEach(function(run) {
+                    run = run || {};
+                    var row = document.createElement('tr');
+                    row.style.borderBottom = '1px solid rgba(148,163,184,0.12)';
+
+                    function addCell(value, className) {
+                        var cell = document.createElement('td');
+                        cell.textContent = value === undefined || value === null || value === '' ? '—' : String(value);
+                        if (className) cell.className = className;
+                        cell.style.padding = '10px 12px';
+                        cell.style.fontSize = '12px';
+                        cell.style.color = '#cbd5e1';
+                        row.appendChild(cell);
+                        return cell;
+                    }
+
+                    addCell(run.DateLabel || run.Timestamp || '—');
+                    addCell(run.HostName || '—');
+                    var score = Number(run.HealthScore);
+                    var scoreCell = addCell(Number.isFinite(score) ? score + '%' : '—');
+                    scoreCell.style.fontWeight = '800';
+                    scoreCell.style.color = Number.isFinite(score) && score >= 85 ? '#34d399' : (Number.isFinite(score) && score >= 60 ? '#fbbf24' : '#fb7185');
+                    addCell(run.OkCount);
+                    addCell(run.WarnCount);
+                    addCell(run.ErrCount);
+                    addCell(run.FreeDiskGB === undefined ? undefined : run.FreeDiskGB + ' Go');
+                    addCell(run.CveCount);
+                    body.appendChild(row);
+                });
+            }
+            window.renderArchiveLogs = renderArchiveLogs;
+            renderArchiveLogs();
+
+            // Opt-in GPU benchmark visual contract (Three.js r128 / WebGL).
+            // Subject: a deterministic holographic reactor rendered in a fixed 256x256 design camera.
+            // The visible image is one pass; calibrated off-screen passes provide repeatable GPU pressure.
+            var gpuQuickTestDurationMs = 10000;
+            var gpuStressSeed = 0xD1A61001;
+            var gpuStressVisualContract = {
+                subject: 'holographic-reactor',
+                viewport: 256,
+                camera: { fov: 42, near: 0.1, far: 40, distance: 8.2 },
+                warmupMs: 1200,
+                calibrationEndMs: 3800,
+                frameBudgetMs: 16.7,
+                invariants: ['pbr-baseline-readable', 'deterministic-seed', 'bounded-render-target', 'explicit-quality-tier']
+            };
+            var gpuStressProfiles = {
+                balanced: { label: 'BALANCED', particleCount: 9000, instanceCount: 84, crystalDetail: 2, targetSize: 320, maxPasses: 8 },
+                high: { label: 'HIGH', particleCount: 16000, instanceCount: 144, crystalDetail: 3, targetSize: 512, maxPasses: 18 },
+                extreme: { label: 'EXTREME', particleCount: 24000, instanceCount: 208, crystalDetail: 3, targetSize: 768, maxPasses: 28 }
+            };
+            var gpuQuickTestRunning = false;
+            var gpuQuickTestRuntime = null;
+            var gpuQuickTestLastMetrics = null;
+            var gpuQuickTestState = 'ready';
+
+            function createGpuSeededRandom(seed) {
+                var state = seed >>> 0;
+                return function() {
+                    state = (Math.imul(1664525, state) + 1013904223) >>> 0;
+                    return state / 4294967296;
+                };
+            }
+
+            function gpuQuickText(key, fallback) {
+                var table = (typeof translations !== 'undefined' && translations[currentLang]) ? translations[currentLang] : null;
+                return table && table[key] ? table[key] : fallback;
+            }
+
+            function percentile(values, ratio) {
+                if (!values || values.length === 0) return 0;
+                var sorted = values.slice().sort(function(a, b) { return a - b; });
+                var index = Math.min(sorted.length - 1, Math.max(0, Math.ceil(sorted.length * ratio) - 1));
+                return sorted[index];
+            }
+
+            function geometryTriangleCount(geometry) {
+                if (!geometry) return 0;
+                if (geometry.index) return Math.floor(geometry.index.count / 3);
+                var positions = geometry.getAttribute ? geometry.getAttribute('position') : null;
+                return positions ? Math.floor(positions.count / 3) : 0;
+            }
+
+            function setGpuMetric(id, value) {
+                var element = document.getElementById(id);
+                if (element) element.textContent = value;
+            }
+
+            function formatGpuQuickTestSummary(metrics) {
+                return metrics.fps + ' FPS • 1% low ' + metrics.onePercentLow + ' • ' +
+                    gpuQuickText('gpu_metric_stability', 'stabilité') + ' ' + metrics.stability + '%';
+            }
+
+            function formatGpuQuickTestSpec(metrics) {
+                var template = gpuQuickText(
+                    'gpu_test_spec_template',
+                    '{tier} • {passes} passes/image • {calls} draw calls/passe • {triangles} ktri/passe • {points} points'
+                );
+                return template
+                    .replace('{tier}', metrics.tier)
+                    .replace('{passes}', metrics.passes)
+                    .replace('{calls}', metrics.drawCalls)
+                    .replace('{triangles}', metrics.trianglesK)
+                    .replace('{points}', Number(metrics.points || 0).toLocaleString());
+            }
+
+            function setGpuQuickTestPhase(phase, progress) {
+                gpuQuickTestState = phase;
+                var phaseLabels = {
+                    ready: ['gpu_test_ready', 'PRÊT'],
+                    warmup: ['gpu_test_warmup', 'ÉCHAUFFEMENT'],
+                    calibrate: ['gpu_test_calibrate', 'CALIBRATION'],
+                    measure: ['gpu_test_measure', 'MESURE'],
+                    done: ['gpu_test_done', 'TERMINÉ'],
+                    error: ['gpu_test_error', 'ERREUR']
+                };
+                var tuple = phaseLabels[phase] || phaseLabels.ready;
+                var phaseElement = document.getElementById('gpuQuickTestPhase');
+                if (phaseElement) phaseElement.textContent = gpuQuickText(tuple[0], tuple[1]);
+                var progressElement = document.getElementById('gpuQuickTestProgress');
+                if (progressElement && typeof progress === 'number') {
+                    progressElement.style.width = Math.max(0, Math.min(100, progress)) + '%';
+                }
+            }
+
+            function renderGpuQuickTestUi() {
+                var button = document.getElementById('gpuQuickTestBtn');
+                if (button && !gpuQuickTestRunning) button.textContent = gpuQuickText('gpu_test_btn', '⚡ Stress GPU (10 s)');
+                var placeholder = document.getElementById('gpuQuickTestPlaceholder');
+                if (placeholder) placeholder.innerHTML = gpuQuickText('gpu_test_placeholder', 'Réacteur holographique prêt.<br>Lancez le test pour mesurer la charge réelle.');
+                var autoOption = document.getElementById('gpuQualityAuto');
+                var highOption = document.getElementById('gpuQualityHigh');
+                var extremeOption = document.getElementById('gpuQualityExtreme');
+                var finalOption = document.getElementById('gpuViewFinal');
+                var baselineOption = document.getElementById('gpuViewBaseline');
+                var overdrawOption = document.getElementById('gpuViewOverdraw');
+                if (autoOption) autoOption.textContent = gpuQuickText('gpu_quality_auto', 'AUTO');
+                if (highOption) highOption.textContent = gpuQuickText('gpu_quality_high', 'HAUTE');
+                if (extremeOption) extremeOption.textContent = gpuQuickText('gpu_quality_extreme', 'EXTRÊME');
+                if (finalOption) finalOption.textContent = gpuQuickText('gpu_view_final', 'FINAL');
+                if (baselineOption) baselineOption.textContent = gpuQuickText('gpu_view_baseline', 'PBR BRUT');
+                if (overdrawOption) overdrawOption.textContent = gpuQuickText('gpu_view_overdraw', 'CHARGE');
+                var metricLabels = {
+                    gpuMetricFpsLabel: ['gpu_metric_fps_label', 'FPS MÉDIAN'],
+                    gpuMetricLowLabel: ['gpu_metric_low_label', '1% LOW'],
+                    gpuMetricGpuLabel: ['gpu_metric_gpu_label', 'GPU TIMER'],
+                    gpuMetricThroughputLabel: ['gpu_metric_throughput_label', 'DÉBIT 3D']
+                };
+                Object.keys(metricLabels).forEach(function(id) {
+                    var metricLabel = document.getElementById(id);
+                    var tuple = metricLabels[id];
+                    if (metricLabel) metricLabel.textContent = gpuQuickText(tuple[0], tuple[1]);
+                });
+                setGpuQuickTestPhase(gpuQuickTestState);
+                var result = document.getElementById('gpuQuickTestResult');
+                var spec = document.getElementById('gpuQuickTestSpec');
+                if (gpuQuickTestLastMetrics) {
+                    if (result) {
+                        result.textContent = gpuQuickText('gpu_test_result', 'Résultat') + ' : ' + formatGpuQuickTestSummary(gpuQuickTestLastMetrics);
+                    }
+                    if (spec) spec.textContent = formatGpuQuickTestSpec(gpuQuickTestLastMetrics);
+                } else if (!gpuQuickTestRunning) {
+                    if (result) result.textContent = gpuQuickText('gpu_test_idle', 'Test non lancé');
+                    if (spec) spec.textContent = gpuQuickText('gpu_test_spec_ready', 'Graine fixe • qualité adaptative • PBR + hologramme • post-FX • charge hors écran');
+                }
+            }
+            window.renderGpuQuickTestUi = renderGpuQuickTestUi;
+
+            window.setGpuQuickTestViewMode = function setGpuQuickTestViewMode(mode) {
+                var normalized = (mode === 'baseline' || mode === 'overdraw') ? mode : 'final';
+                var viewport = document.getElementById('gpuQuickTestViewport');
+                if (viewport) viewport.setAttribute('data-view-mode', normalized);
+                if (!gpuQuickTestRuntime) return;
+                gpuQuickTestRuntime.viewMode = normalized;
+                gpuQuickTestRuntime.pbrGroup.visible = normalized !== 'overdraw';
+                gpuQuickTestRuntime.vfxGroup.visible = normalized !== 'baseline';
+                if (gpuQuickTestRuntime.hologramMaterial && gpuQuickTestRuntime.hologramMaterial.uniforms.uDebugMode) {
+                    gpuQuickTestRuntime.hologramMaterial.uniforms.uDebugMode.value = normalized === 'overdraw' ? 1 : 0;
+                }
+            };
+
+            window.getGpuQuickTestDebugState = function getGpuQuickTestDebugState() {
+                if (!gpuQuickTestRuntime) {
+                    return {
+                        running: false,
+                        seed: gpuStressSeed,
+                        visualContract: gpuStressVisualContract.subject,
+                        lastMetrics: gpuQuickTestLastMetrics
+                    };
+                }
+                return {
+                    running: gpuQuickTestRunning,
+                    seed: gpuStressSeed,
+                    tier: gpuQuickTestRuntime.profileLabel,
+                    viewMode: gpuQuickTestRuntime.viewMode,
+                    pbrVisible: gpuQuickTestRuntime.pbrGroup.visible,
+                    vfxVisible: gpuQuickTestRuntime.vfxGroup.visible,
+                    passes: gpuQuickTestRuntime.renderPassesPerFrame,
+                    gpuTimerAvailable: !!gpuQuickTestRuntime.timerExt
+                };
+            };
+
+            function selectGpuStressProfile(renderer, requestedTier) {
+                if (requestedTier === 'high') return gpuStressProfiles.high;
+                if (requestedTier === 'extreme') return gpuStressProfiles.extreme;
+                var capabilities = renderer.capabilities || {};
+                return capabilities.isWebGL2 && Number(capabilities.maxTextureSize || 0) >= 8192
+                    ? gpuStressProfiles.extreme
+                    : (capabilities.isWebGL2 ? gpuStressProfiles.high : gpuStressProfiles.balanced);
+            }
+
+            function disposeGpuStressResources(runtime) {
+                if (!runtime) return;
+                if (runtime.animationFrame) window.cancelAnimationFrame(runtime.animationFrame);
+                if (runtime.canvas && runtime.contextLostHandler) runtime.canvas.removeEventListener('webglcontextlost', runtime.contextLostHandler);
+                if (runtime.pendingQueries && runtime.gl) {
+                    runtime.pendingQueries.forEach(function(item) {
+                        try { runtime.gl.deleteQuery(item.query); } catch (queryError) {}
+                    });
+                    runtime.pendingQueries.length = 0;
+                }
+                runtime.geometries.forEach(function(resource) { if (resource && resource.dispose) resource.dispose(); });
+                runtime.materials.forEach(function(resource) { if (resource && resource.dispose) resource.dispose(); });
+                runtime.renderTargets.forEach(function(resource) { if (resource && resource.dispose) resource.dispose(); });
+                if (runtime.renderer) {
+                    runtime.renderer.setRenderTarget(null);
+                    runtime.renderer.dispose();
+                }
+            }
+
+            window.runGpuQuickTest = function runGpuQuickTest(button) {
+                if (gpuQuickTestRunning) return;
+                gpuQuickTestRunning = true;
+                gpuQuickTestLastMetrics = null;
+                var result = document.getElementById('gpuQuickTestResult');
+                var placeholder = document.getElementById('gpuQuickTestPlaceholder');
+                var qualitySelect = document.getElementById('gpuQuickTestQuality');
+                var viewSelect = document.getElementById('gpuQuickTestViewMode');
+                if (button) { button.disabled = true; button.setAttribute('aria-busy', 'true'); }
+                if (qualitySelect) qualitySelect.disabled = true;
+                if (result) { result.textContent = gpuQuickText('gpu_test_running', 'Test GPU en cours…'); result.style.color = '#fbbf24'; }
+                if (placeholder) placeholder.style.display = 'none';
+                setGpuMetric('gpuMetricFps', '—');
+                setGpuMetric('gpuMetricLow', '—');
+                setGpuMetric('gpuMetricGpu', '—');
+                setGpuMetric('gpuMetricThroughput', '—');
+                setGpuQuickTestPhase('warmup', 0);
+
+                if (!window.THREE || !THREE.WebGLRenderer) {
+                    if (result) { result.textContent = gpuQuickText('gpu_test_unavailable', 'WebGL indisponible — test ignoré'); result.style.color = '#94a3b8'; }
+                    if (button) { button.disabled = false; button.removeAttribute('aria-busy'); }
+                    if (qualitySelect) qualitySelect.disabled = false;
+                    gpuQuickTestRunning = false;
+                    setGpuQuickTestPhase('error', 0);
+                    return;
+                }
+
+                var canvas = document.getElementById('gpuQuickTestCanvas');
+                if (!canvas) {
+                    gpuQuickTestRunning = false;
+                    return;
+                }
+                canvas.width = 256;
+                canvas.height = 256;
+                canvas.style.cssText = 'display:block; width:256px; height:256px; max-width:100%;';
+
+                var runtime = {
+                    renderer: null,
+                    scene: null,
+                    camera: null,
+                    canvas: canvas,
+                    pbrGroup: new THREE.Group(),
+                    vfxGroup: new THREE.Group(),
+                    reactorGroup: new THREE.Group(),
+                    geometries: [],
+                    materials: [],
+                    renderTargets: [],
+                    pendingQueries: [],
+                    gpuTimeSamples: [],
+                    calibrationGpuTimes: [],
+                    frameTimes: [],
+                    animationFrame: 0,
+                    contextLostHandler: null,
+                    timerExt: null,
+                    gl: null,
+                    activeQuery: null,
+                    viewMode: viewSelect ? viewSelect.value : 'final',
+                    finished: false,
+                    measurementFrames: 0,
+                    totalTrianglesRendered: 0,
+                    pbrTrianglesPerPass: 0,
+                    vfxTrianglesPerPass: 0,
+                    pbrDrawCallsPerPass: 0,
+                    vfxDrawCallsPerPass: 0,
+                    renderPassesPerFrame: 2,
+                    profileLabel: ''
+                };
+                gpuQuickTestRuntime = runtime;
+                var profile = null;
+                var renderPassesPerFrame = 2;
+                var startedAt = 0;
+                var lastFrameAt = 0;
+                var measurementStartedAt = 0;
+                var lastCalibrationAt = 0;
+                var phase = 'warmup';
+                var coreMesh = null;
+                var crystalField = null;
+                var particleField = null;
+                var hologramMaterial = null;
+                var gpuPostProcessMaterial = null;
+                var keyLight = null;
+                var rimLight = null;
+
+                function registerGeometry(geometry) {
+                    runtime.geometries.push(geometry);
+                    return geometry;
+                }
+
+                function registerMaterial(material) {
+                    runtime.materials.push(material);
+                    return material;
+                }
+
+                function addTriangleBudget(geometry, count, channel) {
+                    var triangles = geometryTriangleCount(geometry) * (count || 1);
+                    if (channel === 'vfx') runtime.vfxTrianglesPerPass += triangles;
+                    else runtime.pbrTrianglesPerPass += triangles;
+                }
+
+                function addDrawCallBudget(count, channel) {
+                    if (channel === 'vfx') runtime.vfxDrawCallsPerPass += count || 1;
+                    else runtime.pbrDrawCallsPerPass += count || 1;
+                }
+
+                function currentTriangleBudget() {
+                    if (runtime.viewMode === 'baseline') return runtime.pbrTrianglesPerPass;
+                    if (runtime.viewMode === 'overdraw') return runtime.vfxTrianglesPerPass;
+                    return runtime.pbrTrianglesPerPass + runtime.vfxTrianglesPerPass;
+                }
+
+                function currentDrawCallBudget() {
+                    if (runtime.viewMode === 'baseline') return runtime.pbrDrawCallsPerPass;
+                    if (runtime.viewMode === 'overdraw') return runtime.vfxDrawCallsPerPass;
+                    return runtime.pbrDrawCallsPerPass + runtime.vfxDrawCallsPerPass;
+                }
+
+                function currentPointBudget() {
+                    return runtime.viewMode === 'baseline' ? 0 : profile.particleCount;
+                }
+
+                function pollGpuTimers() {
+                    if (!runtime.timerExt || !runtime.gl || runtime.pendingQueries.length === 0) return;
+                    for (var queryIndex = runtime.pendingQueries.length - 1; queryIndex >= 0; queryIndex--) {
+                        var queryItem = runtime.pendingQueries[queryIndex];
+                        var available = runtime.gl.getQueryParameter(queryItem.query, runtime.gl.QUERY_RESULT_AVAILABLE);
+                        var disjoint = runtime.gl.getParameter(runtime.timerExt.GPU_DISJOINT_EXT);
+                        if (available) {
+                            if (!disjoint) {
+                                var gpuMs = runtime.gl.getQueryParameter(queryItem.query, runtime.gl.QUERY_RESULT) / 1000000;
+                                if (queryItem.measurement) runtime.gpuTimeSamples.push(gpuMs);
+                                else runtime.calibrationGpuTimes.push(gpuMs);
+                            }
+                            runtime.gl.deleteQuery(queryItem.query);
+                            runtime.pendingQueries.splice(queryIndex, 1);
+                        }
+                    }
+                }
+
+                function beginGpuTimer() {
+                    if (!runtime.timerExt || !runtime.gl || runtime.activeQuery || runtime.pendingQueries.length >= 4) return;
+                    try {
+                        runtime.activeQuery = runtime.gl.createQuery();
+                        runtime.gl.beginQuery(runtime.timerExt.TIME_ELAPSED_EXT, runtime.activeQuery);
+                    } catch (timerError) {
+                        runtime.activeQuery = null;
+                        runtime.timerExt = null;
+                    }
+                }
+
+                function endGpuTimer() {
+                    if (!runtime.timerExt || !runtime.gl || !runtime.activeQuery) return;
+                    try {
+                        runtime.gl.endQuery(runtime.timerExt.TIME_ELAPSED_EXT);
+                        runtime.pendingQueries.push({ query: runtime.activeQuery, measurement: phase === 'measure' });
+                    } catch (timerError) {
+                        try { runtime.gl.deleteQuery(runtime.activeQuery); } catch (deleteError) {}
+                        runtime.timerExt = null;
+                    }
+                    runtime.activeQuery = null;
+                }
+
+                function finishGpuQuickTest(error) {
+                    if (runtime.finished) return;
+                    runtime.finished = true;
+                    pollGpuTimers();
+                    var endedAt = (window.performance && performance.now) ? performance.now() : Date.now();
+                    var measuredMs = Math.max(1, endedAt - (measurementStartedAt || startedAt));
+                    var medianFrameMs = percentile(runtime.frameTimes, 0.5);
+                    var p99FrameMs = percentile(runtime.frameTimes, 0.99);
+                    var medianFps = medianFrameMs > 0 ? Math.round(1000 / medianFrameMs) : 0;
+                    var onePercentLow = p99FrameMs > 0 ? Math.round(1000 / p99FrameMs) : 0;
+                    var gpuMedianMs = percentile(runtime.gpuTimeSamples, 0.5);
+                    var throughput = runtime.totalTrianglesRendered / (measuredMs / 1000) / 1000000;
+                    var stability = medianFps > 0 ? Math.min(100, Math.round((onePercentLow / medianFps) * 100)) : 0;
+                    var timerValue = gpuMedianMs > 0 ? gpuMedianMs.toFixed(1) + ' ms' : 'N/A';
+
+                    if (!error) {
+                        setGpuMetric('gpuMetricFps', String(medianFps));
+                        setGpuMetric('gpuMetricLow', String(onePercentLow));
+                        setGpuMetric('gpuMetricGpu', timerValue);
+                        setGpuMetric('gpuMetricThroughput', throughput.toFixed(0) + ' Mtri/s');
+                        var activeTriangles = currentTriangleBudget();
+                        gpuQuickTestLastMetrics = {
+                            fps: medianFps,
+                            onePercentLow: onePercentLow,
+                            stability: stability,
+                            gpuMs: gpuMedianMs,
+                            throughput: throughput,
+                            tier: profile.label,
+                            passes: renderPassesPerFrame,
+                            drawCalls: currentDrawCallBudget(),
+                            trianglesK: Math.round(activeTriangles / 1000),
+                            points: currentPointBudget()
+                        };
+                        if (result) {
+                            result.textContent = gpuQuickText('gpu_test_result', 'Résultat') + ' : ' + formatGpuQuickTestSummary(gpuQuickTestLastMetrics);
+                            result.style.color = onePercentLow >= 45 ? '#34d399' : (onePercentLow >= 25 ? '#fbbf24' : '#fb7185');
+                        }
+                        var spec = document.getElementById('gpuQuickTestSpec');
+                        if (spec) spec.textContent = formatGpuQuickTestSpec(gpuQuickTestLastMetrics);
+                        setGpuQuickTestPhase('done', 100);
+                    } else {
+                        if (result) { result.textContent = gpuQuickText('gpu_test_unavailable', 'WebGL indisponible — test ignoré'); result.style.color = '#94a3b8'; }
+                        setGpuQuickTestPhase('error', 0);
+                    }
+
+                    disposeGpuStressResources(runtime);
+                    if (button) { button.disabled = false; button.removeAttribute('aria-busy'); }
+                    if (qualitySelect) qualitySelect.disabled = false;
+                    gpuQuickTestRuntime = null;
+                    gpuQuickTestRunning = false;
+                }
+
+                runtime.contextLostHandler = function(event) {
+                    event.preventDefault();
+                    finishGpuQuickTest(true);
+                };
+                canvas.addEventListener('webglcontextlost', runtime.contextLostHandler, false);
+
+                try {
+                    runtime.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: true });
+                    runtime.renderer.setPixelRatio(1);
+                    runtime.renderer.setSize(256, 256, false);
+                    runtime.renderer.outputEncoding = THREE.sRGBEncoding;
+                    runtime.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                    runtime.renderer.toneMappingExposure = 0.84;
+                    runtime.renderer.physicallyCorrectLights = true;
+                    runtime.renderer.info.autoReset = true;
+
+                    profile = selectGpuStressProfile(runtime.renderer, qualitySelect ? qualitySelect.value : 'auto');
+                    var tierElement = document.getElementById('gpuQuickTestTier');
+                    if (tierElement) tierElement.textContent = profile.label;
+                    runtime.gl = runtime.renderer.getContext();
+                    if (runtime.renderer.capabilities.isWebGL2 && runtime.gl && runtime.gl.createQuery) {
+                        runtime.timerExt = runtime.gl.getExtension('EXT_disjoint_timer_query_webgl2');
+                    }
+
+                    runtime.scene = new THREE.Scene();
+                    runtime.scene.background = new THREE.Color(0x020617);
+                    runtime.scene.fog = new THREE.FogExp2(0x020617, 0.055);
+                    runtime.camera = new THREE.PerspectiveCamera(
+                        gpuStressVisualContract.camera.fov,
+                        1,
+                        gpuStressVisualContract.camera.near,
+                        gpuStressVisualContract.camera.far
+                    );
+                    runtime.camera.position.set(0, 0.35, gpuStressVisualContract.camera.distance);
+                    runtime.camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+                    runtime.scene.add(runtime.pbrGroup);
+                    runtime.scene.add(runtime.vfxGroup);
+                    runtime.pbrGroup.add(runtime.reactorGroup);
+
+                    var hemisphere = new THREE.HemisphereLight(0x7dd3fc, 0x111827, 0.95);
+                    runtime.scene.add(hemisphere);
+                    keyLight = new THREE.DirectionalLight(0xdbeafe, 2.1);
+                    keyLight.position.set(3.8, 5.0, 5.5);
+                    runtime.scene.add(keyLight);
+                    var fillLight = new THREE.PointLight(0xa855f7, 9, 18, 2);
+                    fillLight.position.set(-3.6, 1.8, 4.2);
+                    runtime.scene.add(fillLight);
+                    rimLight = new THREE.PointLight(0x22d3ee, 12, 16, 2);
+                    rimLight.position.set(3.2, -2.2, 2.0);
+                    runtime.scene.add(rimLight);
+
+                    var coreGeometry = registerGeometry(new THREE.TorusKnotGeometry(1.05, 0.29, 192, 28, 3, 5));
+                    var coreMaterial = registerMaterial(new THREE.MeshPhysicalMaterial({
+                        color: 0x0ea5e9,
+                        roughness: 0.17,
+                        metalness: 0.78,
+                        clearcoat: 1,
+                        clearcoatRoughness: 0.06,
+                        emissive: 0x082f49,
+                        emissiveIntensity: 0.32
+                    }));
+                    coreMesh = new THREE.Mesh(coreGeometry, coreMaterial);
+                    runtime.reactorGroup.add(coreMesh);
+                    addTriangleBudget(coreGeometry, 1, 'pbr');
+                    addDrawCallBudget(1, 'pbr');
+
+                    var ringGeometry = registerGeometry(new THREE.TorusGeometry(2.05, 0.045, 12, 160));
+                    var ringMaterial = registerMaterial(new THREE.MeshStandardMaterial({ color: 0x94a3b8, emissive: 0x0ea5e9, emissiveIntensity: 0.48, metalness: 0.92, roughness: 0.22 }));
+                    for (var ringIndex = 0; ringIndex < 3; ringIndex++) {
+                        var ring = new THREE.Mesh(ringGeometry, ringMaterial);
+                        ring.rotation.set(ringIndex === 0 ? Math.PI / 2 : Math.PI / 3, ringIndex * Math.PI / 3, ringIndex === 2 ? Math.PI / 4 : 0);
+                        ring.userData.spin = (ringIndex % 2 ? -1 : 1) * (0.32 + ringIndex * 0.11);
+                        runtime.reactorGroup.add(ring);
+                    }
+                    addTriangleBudget(ringGeometry, 3, 'pbr');
+                    addDrawCallBudget(3, 'pbr');
+
+                    var random = createGpuSeededRandom(gpuStressSeed);
+                    var crystalGeometry = registerGeometry(new THREE.IcosahedronGeometry(0.14, profile.crystalDetail));
+                    var crystalMaterial = registerMaterial(new THREE.MeshPhysicalMaterial({
+                        color: 0x67e8f9,
+                        roughness: 0.2,
+                        metalness: 0.55,
+                        clearcoat: 0.9,
+                        clearcoatRoughness: 0.08,
+                        emissive: 0x0c4a6e,
+                        emissiveIntensity: 0.27,
+                        vertexColors: true
+                    }));
+                    crystalField = new THREE.InstancedMesh(crystalGeometry, crystalMaterial, profile.instanceCount);
+                    var dummy = new THREE.Object3D();
+                    var crystalColor = new THREE.Color();
+                    for (var crystalIndex = 0; crystalIndex < profile.instanceCount; crystalIndex++) {
+                        var orbit = 2.45 + random() * 1.45;
+                        var theta = random() * Math.PI * 2;
+                        var phi = Math.acos(2 * random() - 1);
+                        dummy.position.set(
+                            Math.sin(phi) * Math.cos(theta) * orbit,
+                            Math.cos(phi) * orbit * 0.72,
+                            Math.sin(phi) * Math.sin(theta) * orbit
+                        );
+                        dummy.rotation.set(random() * Math.PI, random() * Math.PI, random() * Math.PI);
+                        dummy.scale.setScalar(0.55 + random() * 1.25);
+                        dummy.updateMatrix();
+                        crystalField.setMatrixAt(crystalIndex, dummy.matrix);
+                        crystalColor.setHSL(0.50 + random() * 0.22, 0.82, 0.55 + random() * 0.18);
+                        crystalField.setColorAt(crystalIndex, crystalColor);
+                    }
+                    crystalField.instanceMatrix.needsUpdate = true;
+                    if (crystalField.instanceColor) crystalField.instanceColor.needsUpdate = true;
+                    runtime.reactorGroup.add(crystalField);
+                    addTriangleBudget(crystalGeometry, profile.instanceCount, 'pbr');
+                    addDrawCallBudget(1, 'pbr');
+
+                    var particlePositions = new Float32Array(profile.particleCount * 3);
+                    var particleColors = new Float32Array(profile.particleCount * 3);
+                    for (var particleIndex = 0; particleIndex < profile.particleCount; particleIndex++) {
+                        var particleOffset = particleIndex * 3;
+                        var particleAngle = particleIndex * 2.399963 + random() * 0.35;
+                        var particleRadius = 1.45 + Math.pow(random(), 0.62) * 4.15;
+                        var particleY = (random() - 0.5) * 6.8 + Math.sin(particleAngle * 0.35) * 0.45;
+                        particlePositions[particleOffset] = Math.cos(particleAngle) * particleRadius;
+                        particlePositions[particleOffset + 1] = particleY;
+                        particlePositions[particleOffset + 2] = Math.sin(particleAngle) * particleRadius - 0.6;
+                        var hueMix = random();
+                        particleColors[particleOffset] = 0.12 + hueMix * 0.42;
+                        particleColors[particleOffset + 1] = 0.55 + hueMix * 0.38;
+                        particleColors[particleOffset + 2] = 1.0;
+                    }
+                    var particleGeometry = registerGeometry(new THREE.BufferGeometry());
+                    particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+                    particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+                    var particleMaterial = registerMaterial(new THREE.ShaderMaterial({
+                        uniforms: {
+                            uPointScale: { value: profile === gpuStressProfiles.extreme ? 19 : (profile === gpuStressProfiles.high ? 17 : 15) }
+                        },
+                        vertexShader: [
+                            'attribute vec3 color;',
+                            'uniform float uPointScale;',
+                            'varying vec3 vParticleColor;',
+                            'void main() {',
+                            '  vParticleColor = color;',
+                            '  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);',
+                            '  gl_PointSize = clamp(uPointScale / max(1.0, -mvPosition.z), 1.0, 3.25);',
+                            '  gl_Position = projectionMatrix * mvPosition;',
+                            '}'
+                        ].join('\n'),
+                        fragmentShader: [
+                            'varying vec3 vParticleColor;',
+                            'void main() {',
+                            '  vec2 centered = gl_PointCoord - vec2(0.5);',
+                            '  float radiusSquared = dot(centered, centered);',
+                            '  if (radiusSquared > 0.25) discard;',
+                            '  float core = 1.0 - smoothstep(0.0, 0.25, radiusSquared);',
+                            '  float halo = pow(core, 2.2);',
+                            '  gl_FragColor = vec4(vParticleColor * (0.34 + halo * 1.15), core * 0.42);',
+                            '}'
+                        ].join('\n'),
+                        transparent: true,
+                        blending: THREE.AdditiveBlending,
+                        depthWrite: false
+                    }));
+                    particleField = new THREE.Points(particleGeometry, particleMaterial);
+                    runtime.vfxGroup.add(particleField);
+                    addDrawCallBudget(1, 'vfx');
+
+                    var shellGeometry = registerGeometry(new THREE.IcosahedronGeometry(2.72, 4));
+                    hologramMaterial = registerMaterial(new THREE.ShaderMaterial({
+                        uniforms: {
+                            uTime: { value: 0 },
+                            uColorA: { value: new THREE.Color(0x22d3ee) },
+                            uColorB: { value: new THREE.Color(0xa855f7) },
+                            uDebugMode: { value: 0 }
+                        },
+                        vertexShader: [
+                            'uniform float uTime;',
+                            'varying vec3 vViewPosition;',
+                            'varying vec3 vNormal;',
+                            'varying float vBand;',
+                            'void main() {',
+                            '  vec3 displaced = position;',
+                            '  float wave = sin(position.y * 7.0 + uTime * 2.4) * 0.025;',
+                            '  displaced += normal * wave;',
+                            '  vec4 mvPosition = modelViewMatrix * vec4(displaced, 1.0);',
+                            '  vViewPosition = mvPosition.xyz;',
+                            '  vNormal = normalize(normalMatrix * normal);',
+                            '  vBand = displaced.y;',
+                            '  gl_Position = projectionMatrix * mvPosition;',
+                            '}'
+                        ].join('\n'),
+                        fragmentShader: [
+                            'uniform float uTime;',
+                            'uniform vec3 uColorA;',
+                            'uniform vec3 uColorB;',
+                            'uniform float uDebugMode;',
+                            'varying vec3 vViewPosition;',
+                            'varying vec3 vNormal;',
+                            'varying float vBand;',
+                            'void main() {',
+                            '  vec3 viewDir = normalize(-vViewPosition);',
+                            '  float fresnel = pow(1.0 - abs(dot(normalize(vNormal), viewDir)), 2.0);',
+                            '  float rimFalloff = smoothstep(0.96, 0.18, fresnel);',
+                            '  float cycles = (vBand - uTime * 0.28) * 18.0;',
+                            '  float density = pow(fract(cycles), 3.0);',
+                            '  float footprint = fwidth(cycles);',
+                            '  float bandKeep = 1.0 - smoothstep(0.25, 0.5, footprint);',
+                            '  density = mix(0.25, density, bandKeep);',
+                            '  float pulse = 0.78 + 0.22 * sin(uTime * 3.0 + vBand * 5.0);',
+                            '  float alpha = clamp((density * fresnel + fresnel * 0.82) * rimFalloff * pulse, 0.0, 0.48);',
+                            '  vec3 color = mix(uColorA, uColorB, smoothstep(-2.2, 2.2, vBand));',
+                            '  if (uDebugMode > 0.5) { color = vec3(density, fresnel, min(1.0, footprint)); alpha = 0.86; }',
+                            '  gl_FragColor = vec4(color, alpha);',
+                            '}'
+                        ].join('\n'),
+                        transparent: true,
+                        blending: THREE.AdditiveBlending,
+                        depthWrite: false,
+                        depthTest: true,
+                        side: THREE.FrontSide,
+                        extensions: { derivatives: true }
+                    }));
+                    runtime.hologramMaterial = hologramMaterial;
+                    var shellMesh = new THREE.Mesh(shellGeometry, hologramMaterial);
+                    runtime.vfxGroup.add(shellMesh);
+                    addTriangleBudget(shellGeometry, 1, 'vfx');
+                    addDrawCallBudget(1, 'vfx');
+
+                    var stressRenderTarget = new THREE.WebGLRenderTarget(profile.targetSize, profile.targetSize, {
+                        minFilter: THREE.LinearFilter,
+                        magFilter: THREE.LinearFilter,
+                        format: THREE.RGBAFormat,
+                        type: THREE.UnsignedByteType,
+                        depthBuffer: true,
+                        stencilBuffer: false
+                    });
+                    runtime.renderTargets.push(stressRenderTarget);
+                    runtime.stressRenderTarget = stressRenderTarget;
+                    runtime.postScene = new THREE.Scene();
+                    runtime.postCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 2);
+                    runtime.postCamera.position.z = 1;
+                    var postGeometry = registerGeometry(new THREE.PlaneGeometry(2, 2));
+                    gpuPostProcessMaterial = registerMaterial(new THREE.ShaderMaterial({
+                        uniforms: {
+                            uSceneTexture: { value: stressRenderTarget.texture },
+                            uTexelSize: { value: new THREE.Vector2(1 / profile.targetSize, 1 / profile.targetSize) },
+                            uTime: { value: 0 }
+                        },
+                        vertexShader: [
+                            'varying vec2 vUv;',
+                            'void main() {',
+                            '  vUv = uv;',
+                            '  gl_Position = vec4(position.xy, 0.0, 1.0);',
+                            '}'
+                        ].join('\n'),
+                        fragmentShader: [
+                            'uniform sampler2D uSceneTexture;',
+                            'uniform vec2 uTexelSize;',
+                            'uniform float uTime;',
+                            'varying vec2 vUv;',
+                            'float hash21(vec2 p) {',
+                            '  p = fract(p * vec2(123.34, 456.21));',
+                            '  p += dot(p, p + 45.32);',
+                            '  return fract(p.x * p.y);',
+                            '}',
+                            'void main() {',
+                            '  float chromaticOffset = 1.35;',
+                            '  vec3 center = texture2D(uSceneTexture, vUv).rgb;',
+                            '  vec3 base = center;',
+                            '  base.r = texture2D(uSceneTexture, vUv - vec2(uTexelSize.x * chromaticOffset, 0.0)).r;',
+                            '  base.b = texture2D(uSceneTexture, vUv + vec2(uTexelSize.x * chromaticOffset, 0.0)).b;',
+                            '  vec2 spread = uTexelSize * 3.25;',
+                            '  vec3 glow = texture2D(uSceneTexture, vUv + vec2(spread.x, 0.0)).rgb;',
+                            '  glow += texture2D(uSceneTexture, vUv - vec2(spread.x, 0.0)).rgb;',
+                            '  glow += texture2D(uSceneTexture, vUv + vec2(0.0, spread.y)).rgb;',
+                            '  glow += texture2D(uSceneTexture, vUv - vec2(0.0, spread.y)).rgb;',
+                            '  glow += texture2D(uSceneTexture, vUv + spread).rgb;',
+                            '  glow += texture2D(uSceneTexture, vUv - spread).rgb;',
+                            '  glow += texture2D(uSceneTexture, vUv + vec2(spread.x, -spread.y)).rgb;',
+                            '  glow += texture2D(uSceneTexture, vUv + vec2(-spread.x, spread.y)).rgb;',
+                            '  glow *= 0.125;',
+                            '  vec3 color = base + max(glow - center * 0.48, vec3(0.0)) * 0.38;',
+                            '  float vignette = smoothstep(0.66, 0.18, dot(vUv - 0.5, vUv - 0.5));',
+                            '  float grain = (hash21(gl_FragCoord.xy + uTime * 37.0) - 0.5) * 0.012;',
+                            '  color = color * (0.74 + vignette * 0.32) + grain;',
+                            '  color = 1.0 - exp(-max(color, vec3(0.0)) * 0.92);',
+                            '  color = pow(color, vec3(1.0 / 2.2));',
+                            '  gl_FragColor = vec4(color, 1.0);',
+                            '}'
+                        ].join('\n'),
+                        depthTest: false,
+                        depthWrite: false
+                    }));
+                    gpuPostProcessMaterial.toneMapped = false;
+                    runtime.postMaterial = gpuPostProcessMaterial;
+                    runtime.postScene.add(new THREE.Mesh(postGeometry, gpuPostProcessMaterial));
+                    runtime.profileLabel = profile.label;
+                    window.setGpuQuickTestViewMode(runtime.viewMode);
+                } catch (gpuError) {
+                    finishGpuQuickTest(true);
+                    return;
+                }
+
+                function calibrateGpuWorkload(now) {
+                    if (now - lastCalibrationAt < 350) return;
+                    lastCalibrationAt = now;
+                    var basis = percentile(runtime.calibrationGpuTimes.slice(-8), 0.5);
+                    if (basis <= 0) basis = percentile(runtime.frameTimes.slice(-20), 0.5);
+                    if (basis > 0 && basis < 6 && renderPassesPerFrame < profile.maxPasses) {
+                        renderPassesPerFrame = Math.min(profile.maxPasses, renderPassesPerFrame + 4);
+                    } else if (basis > 0 && basis < 12 && renderPassesPerFrame < profile.maxPasses) {
+                        renderPassesPerFrame = Math.min(profile.maxPasses, renderPassesPerFrame + 2);
+                    } else if (basis > 22 && renderPassesPerFrame > 1) {
+                        renderPassesPerFrame = Math.max(1, renderPassesPerFrame - 2);
+                    }
+                    runtime.renderPassesPerFrame = renderPassesPerFrame;
+                }
+
+                function renderGpuQuickTest(now) {
+                    if (runtime.finished) return;
+                    var elapsed = now - startedAt;
+                    var frameDelta = lastFrameAt ? Math.min(250, now - lastFrameAt) : gpuStressVisualContract.frameBudgetMs;
+                    lastFrameAt = now;
+
+                    if (elapsed < gpuStressVisualContract.warmupMs) {
+                        if (phase !== 'warmup') { phase = 'warmup'; setGpuQuickTestPhase('warmup'); }
+                    } else if (elapsed < gpuStressVisualContract.calibrationEndMs) {
+                        if (phase !== 'calibrate') { phase = 'calibrate'; runtime.frameTimes.length = 0; setGpuQuickTestPhase('calibrate'); }
+                        runtime.frameTimes.push(frameDelta);
+                        calibrateGpuWorkload(now);
+                    } else if (phase !== 'measure') {
+                        phase = 'measure';
+                        measurementStartedAt = now;
+                        runtime.frameTimes.length = 0;
+                        runtime.gpuTimeSamples.length = 0;
+                        runtime.measurementFrames = 0;
+                        runtime.totalTrianglesRendered = 0;
+                        setGpuQuickTestPhase('measure');
+                    } else {
+                        runtime.frameTimes.push(frameDelta);
+                    }
+
+                    var timeSeconds = elapsed / 1000;
+                    runtime.reactorGroup.rotation.x = Math.sin(timeSeconds * 0.42) * 0.18;
+                    runtime.reactorGroup.rotation.y = timeSeconds * 0.46;
+                    coreMesh.rotation.z = timeSeconds * -0.7;
+                    crystalField.rotation.y = timeSeconds * -0.24;
+                    crystalField.rotation.z = Math.sin(timeSeconds * 0.31) * 0.18;
+                    particleField.rotation.y = timeSeconds * 0.13;
+                    particleField.rotation.x = Math.sin(timeSeconds * 0.22) * 0.12;
+                    runtime.reactorGroup.children.forEach(function(child) {
+                        if (child.userData && child.userData.spin) child.rotation.z = timeSeconds * child.userData.spin;
+                    });
+                    hologramMaterial.uniforms.uTime.value = timeSeconds;
+                    gpuPostProcessMaterial.uniforms.uTime.value = timeSeconds;
+                    keyLight.position.x = Math.cos(timeSeconds * 0.6) * 4.2;
+                    keyLight.position.z = 4.6 + Math.sin(timeSeconds * 0.6) * 1.4;
+                    rimLight.position.x = Math.cos(timeSeconds * -0.9) * 3.4;
+                    rimLight.position.y = Math.sin(timeSeconds * -0.9) * 2.6;
+
+                    pollGpuTimers();
+                    beginGpuTimer();
+                    if (runtime.viewMode === 'baseline') {
+                        for (var baselinePass = 1; baselinePass < renderPassesPerFrame; baselinePass++) {
+                            runtime.renderer.setRenderTarget(runtime.stressRenderTarget);
+                            runtime.renderer.render(runtime.scene, runtime.camera);
+                        }
+                        runtime.renderer.setRenderTarget(null);
+                        runtime.renderer.render(runtime.scene, runtime.camera);
+                    } else {
+                        for (var renderPass = 0; renderPass < renderPassesPerFrame; renderPass++) {
+                            runtime.renderer.setRenderTarget(runtime.stressRenderTarget);
+                            runtime.renderer.render(runtime.scene, runtime.camera);
+                        }
+                        runtime.renderer.setRenderTarget(null);
+                        runtime.renderer.render(runtime.postScene, runtime.postCamera);
+                    }
+                    endGpuTimer();
+
+                    if (phase === 'measure') {
+                        runtime.measurementFrames++;
+                        runtime.totalTrianglesRendered += currentTriangleBudget() * renderPassesPerFrame + (runtime.viewMode === 'baseline' ? 0 : 2);
+                    }
+
+                    setGpuQuickTestPhase(phase, (elapsed / gpuQuickTestDurationMs) * 100);
+                    if (elapsed >= gpuQuickTestDurationMs) {
+                        finishGpuQuickTest(false);
+                    } else {
+                        runtime.animationFrame = window.requestAnimationFrame(renderGpuQuickTest);
+                    }
+                }
+
+                startedAt = (window.performance && performance.now) ? performance.now() : Date.now();
+                lastCalibrationAt = startedAt;
+                runtime.animationFrame = window.requestAnimationFrame(renderGpuQuickTest);
+            };
 
             // =============================================================
             // 🔴 2. SCANNER DE VULNÉRABILITÉS CVE (CVE CARDS RENDERER)
@@ -8933,27 +12273,9 @@ sfc /scannow</pre>
                 }
             }
 
-            // Synchroniser dynamiquement l'affichage du pilier Sécurité selon cveData
-            var cveCountLive = (window.cveData && Array.isArray(window.cveData)) ? window.cveData.length : 0;
-            var secPillarElem = document.querySelector('.health-pillar-item');
-            if (secPillarElem) {
-                var secPctElem = secPillarElem.querySelector('strong');
-                var secBarElem = secPillarElem.querySelector('div > div > div');
-                var secSubElem = secPillarElem.querySelector('div:last-child');
-                
-                if (cveCountLive === 0) {
-                    if (secPctElem) secPctElem.innerText = "100%";
-                    if (secBarElem) secBarElem.style.width = "100%";
-                    if (secSubElem) secSubElem.innerText = "BitLocker, TPM, UAC & eID Conformes • 0 vulnérabilité CVE";
-                    secPillarElem.title = "Sécurité & Intégrité : BitLocker, TPM 2.0, UAC, SecureBoot et Certificats eID conformes. Aucune vulnérabilité critique active (0 CVE).";
-                } else {
-                    var secScore = Math.max(40, 100 - (cveCountLive * 15));
-                    if (secPctElem) secPctElem.innerText = secScore + "%";
-                    if (secBarElem) secBarElem.style.width = secScore + "%";
-                    if (secSubElem) secSubElem.innerText = "BitLocker, TPM & UAC Conformes • " + cveCountLive + " CVE active(s) (-" + (cveCountLive * 15) + "%)";
-                    secPillarElem.title = "Sécurité & Intégrité : Pénalité de " + (cveCountLive * 15) + "% appliquée pour " + cveCountLive + " vulnérabilité(s) CVE active(s).";
-                }
-            }
+            // Pillar scores are computed server-side from all audit signals. Keep
+            // those authoritative values; CVE rendering must never overwrite the
+            // Security/TPM/eID score based only on cveData.length.
 
 
 
@@ -9954,11 +13276,1354 @@ sfc /scannow</pre>
             }
 
             // =============================================================
-                        // =============================================================
+            // =============================================================
             // 🌐 3. POPULATE NETWORK ADAPTERS SELECTOR & LATENCY MATRIX
             // =============================================================
+            // The report stays offline by default. This explicit, bounded probe
+            // only runs after the user clicks the speed-test button. Endpoint
+            // components are kept fixed in code; no URL is accepted from HTML.
+            var networkSpeedEndpointOrigin = 'https://' + 'speed.cloudflare.com';
+            var networkSpeedTotalDurationMs = 20000;
+            var networkSpeedPhaseDurationMs = 10000;
+            var networkSpeedParallelStreams = 4;
+            var networkSpeedMaximumBytesPerPhase = 1280 * 1024 * 1024;
+            var networkSpeedLastResult = null;
+            var networkSpeedSamples = { download: [], upload: [] };
+            var networkSpeedTraceTimerCache = [];
+            var networkSpeedTraceClockStartMs = 0;
+            var networkSpeedReplayDelayMs = 1000;
+            var networkSpeedTraceCacheSealed = false;
+            var networkSpeedReplayDisposeTimer = null;
+            var networkSpeedActiveControllers = [];
+            var networkSpeedVisualizer = null;
+            var networkSpeedVisualSeed = 0x51D17E57;
+            var networkSpeedVisualContract = {
+                timing: { durationSeconds: 20, phaseSeconds: 10 },
+                curve: { maxSamples: 240, traceSampleSpacing: .5, floorY: 86, ceilingY: 18 },
+                projectile: { pointSize: 44, pulseHz: 2.4, trailLength: 13, arcSegments: 6 },
+                particles: { eco: 96, auto: 180, ultra: 320, lifetimeSeconds: 1.15 },
+                palette: { download: 0x22d3ee, upload: 0xc084fc, grid: 0x17314d }
+            };
+            var networkSpeedDisplayFps = 60;
+
+            var networkSpeedVisualProfiles = {
+                eco: { particles: networkSpeedVisualContract.particles.eco, stars: 42, trailPoints: 22, pixelRatio: 1 },
+                auto: { particles: networkSpeedVisualContract.particles.auto, stars: 78, trailPoints: 36, pixelRatio: 1.5 },
+                ultra: { particles: networkSpeedVisualContract.particles.ultra, stars: 128, trailPoints: 52, pixelRatio: 2 }
+            };
+
+            function networkSpeedText(key, fallback) {
+                var langTable = (typeof translations !== 'undefined' && translations[currentLang]) ? translations[currentLang] : null;
+                return (langTable && langTable[key]) ? langTable[key] : fallback;
+            }
+
+            function setNetworkSpeedStatus(state) {
+                var status = document.getElementById('networkSpeedTestStatus');
+                window.networkSpeedTestState = state;
+                if (!status) return;
+                var labels = {
+                    idle: ['network_speed_idle', 'Test not started'],
+                    running: ['network_speed_running', 'Measuring…'],
+                    warmup: ['network_speed_phase_warmup', 'Warming up the connection…'],
+                    download: ['network_speed_phase_download', 'Measuring download speed…'],
+                    upload: ['network_speed_phase_upload', 'Measuring upload speed…'],
+                    done: ['network_speed_done', 'Measurement complete'],
+                    unavailable: ['network_speed_unavailable', 'Test unavailable in this browser'],
+                    error: ['network_speed_error', 'Speed test failed']
+                };
+                var label = labels[state] || labels.idle;
+                status.innerText = networkSpeedText(label[0], label[1]);
+                var activeMeasurement = state === 'running' || state === 'warmup' || state === 'download' || state === 'upload';
+                status.style.color = state === 'error' || state === 'unavailable' ? '#f59e0b' : (activeMeasurement ? '#38bdf8' : (state === 'done' ? '#34d399' : '#94a3b8'));
+            }
+
+            function formatNetworkSpeedMbps(bytes, elapsedMs) {
+                var seconds = Math.max(0.001, Number(elapsedMs || 0) / 1000);
+                var mbps = (Number(bytes || 0) * 8) / seconds / 1000000;
+                if (!isFinite(mbps) || mbps < 0) return '—';
+                return (mbps >= 100 ? mbps.toFixed(0) : mbps.toFixed(1)) + ' Mbps';
+            }
+
+            function formatNetworkSpeedValue(mbps) {
+                var value = Number(mbps || 0);
+                if (!isFinite(value) || value < 0) return '—';
+                return (value >= 100 ? value.toFixed(0) : value.toFixed(1)) + ' Mbps';
+            }
+
+            function formatNetworkSpeedMegabytes(bytes) {
+                var megabytes = Number(bytes || 0) / (1024 * 1024);
+                return (megabytes >= 100 ? megabytes.toFixed(0) : megabytes.toFixed(1)) + ' ' + networkSpeedText('network_speed_mb_unit', 'MB');
+            }
+
+            function niceNetworkSpeedCeiling(maximumMbps) {
+                var value = Math.max(1, Number(maximumMbps || 0));
+                var magnitude = Math.pow(10, Math.floor(Math.log(value) / Math.LN10));
+                var step = Math.max(50, magnitude / 2);
+                return Math.max(500, Math.ceil(value / step) * step);
+            }
+
+            function updateNetworkSpeedScale() {
+                var combined = networkSpeedSamples.download.concat(networkSpeedSamples.upload);
+                var maximum = combined.reduce(function(currentMax, item) { return Math.max(currentMax, Number(item.mbps || 0)); }, 0);
+                var ceiling = niceNetworkSpeedCeiling(maximum);
+                var axisY = document.getElementById('networkSpeedAxisY');
+                if (axisY) {
+                    axisY.innerHTML = [1, .75, .5, .25, 0].map(function(ratio) {
+                        var value = Math.round(ceiling * ratio);
+                        return '<span>' + value.toLocaleString() + ' Mbps</span>';
+                    }).join('');
+                }
+                var scale = document.getElementById('networkSpeedScale');
+                if (scale) scale.innerText = networkSpeedText('network_speed_axis_scale', 'Scale') + ': 0–' + ceiling.toLocaleString() + ' Mbps';
+                var axisX = document.getElementById('networkSpeedAxisX');
+                if (axisX) {
+                    var seconds = networkSpeedText('network_speed_axis_seconds', 's');
+                    axisX.innerHTML = ['0', '5', '10'].map(function(value) { return '<span>' + value + ' ' + seconds + '</span>'; }).join('');
+                }
+            }
+
+            function networkSpeedChartY(mbps, maximumMbps) {
+                var maximum = Math.max(1, Number(maximumMbps || 0));
+                var ratio = Math.max(0, Math.min(1, Number(mbps || 0) / maximum));
+                // OrthographicCamera(top=100,bottom=0) maps larger world Y to the visual top.
+                return networkSpeedVisualContract.curve.ceilingY + ratio * (networkSpeedVisualContract.curve.floorY - networkSpeedVisualContract.curve.ceilingY);
+            }
+
+            function renderNetworkSpeedResult() {
+                var result = document.getElementById('networkSpeedTestResult');
+                if (!result || !networkSpeedLastResult) return;
+                result.innerText = networkSpeedText('network_speed_download', 'Download') + ': ' + networkSpeedLastResult.download +
+                    '  •  ' + networkSpeedText('network_speed_upload', 'Upload') + ': ' + networkSpeedLastResult.upload +
+                    '  •  ' + networkSpeedText('network_speed_elapsed', 'Elapsed') + ': ' + networkSpeedLastResult.elapsed + ' s' +
+                    '  •  ' + networkSpeedText('network_speed_data', 'Data transferred') + ': ' + networkSpeedLastResult.data;
+                setNetworkSpeedLiveMetrics(networkSpeedLastResult.download, networkSpeedLastResult.upload);
+
+                var details = document.getElementById('networkSpeedTestDetails');
+                if (!details) return;
+                var down = networkSpeedLastResult.downloadStats;
+                var up = networkSpeedLastResult.uploadStats;
+                function detailCell(label, value) {
+                    return '<div class="speed-detail-cell"><span>' + label + '</span><strong>' + value + '</strong></div>';
+                }
+                details.innerHTML = [
+                    detailCell(networkSpeedText('network_speed_download', 'Download') + ' · ' + networkSpeedText('network_speed_median', 'Median'), formatNetworkSpeedValue(down.medianMbps)),
+                    detailCell(networkSpeedText('network_speed_download', 'Download') + ' · ' + networkSpeedText('network_speed_range', 'P10–P90 range'), formatNetworkSpeedValue(down.p10Mbps) + ' → ' + formatNetworkSpeedValue(down.p90Mbps)),
+                    detailCell(networkSpeedText('network_speed_upload', 'Upload') + ' · ' + networkSpeedText('network_speed_median', 'Median'), formatNetworkSpeedValue(up.medianMbps)),
+                    detailCell(networkSpeedText('network_speed_upload', 'Upload') + ' · ' + networkSpeedText('network_speed_range', 'P10–P90 range'), formatNetworkSpeedValue(up.p10Mbps) + ' → ' + formatNetworkSpeedValue(up.p90Mbps)),
+                    detailCell(networkSpeedText('network_speed_peak', 'Peak'), '↓ ' + formatNetworkSpeedValue(down.peakMbps) + ' · ↑ ' + formatNetworkSpeedValue(up.peakMbps)),
+                    detailCell(networkSpeedText('network_speed_stability', 'Stability'), '↓ ' + down.stabilityPct.toFixed(0) + '% · ↑ ' + up.stabilityPct.toFixed(0) + '%'),
+                    detailCell(networkSpeedText('network_speed_samples', 'Samples'), '↓ ' + down.sampleCount + ' · ↑ ' + up.sampleCount),
+                    detailCell(networkSpeedText('network_speed_streams', 'Parallel streams'), String(networkSpeedParallelStreams)),
+                    detailCell(networkSpeedText('network_speed_cleanup', 'Cleanup'), networkSpeedText('network_speed_cleanup_done', 'Memory buffers released · no disk file'))
+                ].join('');
+            }
+
+            function percentileNetworkSpeed(values, ratio) {
+                if (!values.length) return 0;
+                var position = (values.length - 1) * ratio;
+                var lower = Math.floor(position);
+                var upper = Math.ceil(position);
+                if (lower === upper) return values[lower];
+                return values[lower] + (values[upper] - values[lower]) * (position - lower);
+            }
+
+            function summarizeNetworkSpeedSamples(measurements) {
+                var values = (measurements || []).map(function(item) {
+                    return (Number(item.bytes || 0) * 8) / (Math.max(1, Number(item.elapsedMs || 0)) / 1000) / 1000000;
+                }).filter(function(value) { return isFinite(value) && value >= 0; }).sort(function(a, b) { return a - b; });
+                var median = percentileNetworkSpeed(values, .5);
+                var p10 = percentileNetworkSpeed(values, .1);
+                var p90 = percentileNetworkSpeed(values, .9);
+                var spreadRatio = median > 0 ? (p90 - p10) / median : 1;
+                return {
+                    medianMbps: median,
+                    p10Mbps: p10,
+                    p90Mbps: p90,
+                    peakMbps: values.length ? values[values.length - 1] : 0,
+                    stabilityPct: Math.max(0, Math.min(100, 100 - spreadRatio * 100)),
+                    sampleCount: values.length
+                };
+            }
+
+            function removeNetworkSpeedController(controller) {
+                var index = networkSpeedActiveControllers.indexOf(controller);
+                if (index >= 0) networkSpeedActiveControllers.splice(index, 1);
+            }
+
+            function fetchNetworkSpeedPayload(url, options, timeoutMs) {
+                if (typeof window.fetch !== 'function') {
+                    return Promise.reject(new Error('fetch-unavailable'));
+                }
+                var requestOptions = options || {};
+                var controller = (typeof window.AbortController === 'function') ? new AbortController() : null;
+                var timeoutId = null;
+                if (controller) {
+                    requestOptions.signal = controller.signal;
+                    networkSpeedActiveControllers.push(controller);
+                }
+                var request = window.fetch(url, requestOptions).then(function(response) {
+                    if (!response || !response.ok) {
+                        throw new Error('HTTP ' + (response ? response.status : '0'));
+                    }
+                    return response.arrayBuffer().then(function(buffer) {
+                        var byteLength = Number(buffer && buffer.byteLength ? buffer.byteLength : 0);
+                        buffer = null;
+                        response = null;
+                        return byteLength;
+                    });
+                });
+                var timeout = new Promise(function(resolve, reject) {
+                    timeoutId = window.setTimeout(function() {
+                        if (controller) controller.abort();
+                        reject(new Error('timeout'));
+                    }, timeoutMs);
+                });
+                return Promise.race([request, timeout]).then(function(byteLength) {
+                    if (timeoutId) window.clearTimeout(timeoutId);
+                    if (controller) removeNetworkSpeedController(controller);
+                    return byteLength;
+                }, function(error) {
+                    if (timeoutId) window.clearTimeout(timeoutId);
+                    if (controller) removeNetworkSpeedController(controller);
+                    throw error;
+                });
+            }
+
+            function measureNetworkDownload(bytes, timeoutMs) {
+                var url = networkSpeedEndpointOrigin + '/__down?bytes=' + bytes + '&cacheBust=' + Date.now() + Math.random().toString(16).slice(2);
+                var started = performance.now();
+                return fetchNetworkSpeedPayload(url, { method: 'GET', mode: 'cors', cache: 'no-store', credentials: 'omit' }, timeoutMs || 12000).then(function(byteLength) {
+                    return { bytes: byteLength || bytes, elapsedMs: Math.max(1, performance.now() - started) };
+                });
+            }
+
+            function measureNetworkUpload(bytes, timeoutMs) {
+                var url = networkSpeedEndpointOrigin + '/__up?bytes=' + bytes + '&cacheBust=' + Date.now() + Math.random().toString(16).slice(2);
+                var body = new Uint8Array(bytes);
+                var started = performance.now();
+                return fetchNetworkSpeedPayload(url, { method: 'POST', mode: 'cors', cache: 'no-store', credentials: 'omit', headers: { 'Content-Type': 'application/octet-stream' }, body: body }, timeoutMs || 12000).then(function() {
+                    var measurement = { bytes: bytes, elapsedMs: Math.max(1, performance.now() - started) };
+                    body = null;
+                    return measurement;
+                }, function(error) {
+                    body = null;
+                    throw error;
+                });
+            }
+
+            function measureNetworkSpeedBatch(bytesPerStream, runner, timeoutMs) {
+                var batchStarted = performance.now();
+                var streams = [];
+                for (var streamIndex = 0; streamIndex < networkSpeedParallelStreams; streamIndex++) {
+                    streams.push(runner(bytesPerStream, timeoutMs));
+                }
+                return Promise.all(streams).then(function(measurements) {
+                    return {
+                        bytes: measurements.reduce(function(total, item) { return total + item.bytes; }, 0),
+                        elapsedMs: Math.max(1, performance.now() - batchStarted)
+                    };
+                });
+            }
+
+            function runNetworkSpeedWindow(direction, initialBytes, minimumBytes, maximumBytes) {
+                var measurements = [];
+                var windowStarted = performance.now();
+                var transferredBytes = 0;
+                var chunkBytes = initialBytes;
+                var runner = direction === 'download' ? measureNetworkDownload : measureNetworkUpload;
+                function runNextBatch() {
+                    var elapsed = performance.now() - windowStarted;
+                    if (elapsed >= networkSpeedPhaseDurationMs) {
+                        return Promise.resolve(measurements);
+                    }
+                    if (transferredBytes >= networkSpeedMaximumBytesPerPhase) {
+                        return waitForNetworkSpeedPhase(networkSpeedPhaseDurationMs - elapsed).then(function() { return measurements; });
+                    }
+                    var remainingMs = Math.max(250, networkSpeedPhaseDurationMs - elapsed);
+                    return measureNetworkSpeedBatch(chunkBytes, runner, Math.min(12000, remainingMs + 250)).then(function(measurement) {
+                        transferredBytes += measurement.bytes;
+                        measurements.push(measurement);
+                        chunkBytes = selectNetworkSpeedChunk(measurement, minimumBytes, maximumBytes);
+                        updateNetworkSpeedVisualizer(direction, measurement, Math.min(1, (performance.now() - windowStarted) / networkSpeedPhaseDurationMs));
+                        return runNextBatch();
+                    }, function(error) {
+                        if (measurements.length && (error.message === 'timeout' || error.name === 'AbortError')) return measurements;
+                        throw error;
+                    });
+                }
+                return runNextBatch();
+            }
+
+            function waitForNetworkSpeedPhase(remainingMs) {
+                return new Promise(function(resolve) {
+                    window.setTimeout(resolve, Math.max(0, Number(remainingMs || 0)));
+                });
+            }
+
+            function selectNetworkSpeedChunk(measurement, minimumBytes, maximumBytes) {
+                var bytesPerMillisecond = Number(measurement.bytes || 0) / Math.max(1, Number(measurement.elapsedMs || 0));
+                var targetBatchMs = 650;
+                var estimatedPerStream = bytesPerMillisecond * targetBatchMs / networkSpeedParallelStreams;
+                var bounded = Math.max(minimumBytes, Math.min(maximumBytes, estimatedPerStream));
+                var alignment = 64 * 1024;
+                return Math.max(alignment, Math.round(bounded / alignment) * alignment);
+            }
+
+            function warmUpNetworkSpeedConnection() {
+                return measureNetworkDownload(1 * 1024 * 1024).then(function(downloadWarmup) {
+                    return measureNetworkUpload(1 * 1024 * 1024).then(function(uploadWarmup) {
+                        return { download: downloadWarmup, upload: uploadWarmup };
+                    });
+                });
+            }
+
+            function seededNetworkSpeedRandomFactory(seed) {
+                var state = seed >>> 0;
+                return function() {
+                    state ^= state << 13;
+                    state ^= state >>> 17;
+                    state ^= state << 5;
+                    return (state >>> 0) / 4294967296;
+                };
+            }
+
+                function createNetworkSpeedVisualizer() {
+                var canvas = document.getElementById('networkSpeedCanvas');
+                if (!canvas || typeof THREE === 'undefined' || !THREE.WebGLRenderer) return null;
+                var qualityControl = document.getElementById('networkSpeedQuality');
+                var qualityName = qualityControl ? String(qualityControl.value || 'auto') : 'auto';
+                if (!networkSpeedVisualProfiles[qualityName]) qualityName = 'auto';
+                var profile = networkSpeedVisualProfiles[qualityName];
+                var random = seededNetworkSpeedRandomFactory(networkSpeedVisualSeed);
+                var renderer;
+                try {
+                    renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: qualityName !== 'eco', powerPreference: 'high-performance', preserveDrawingBuffer: false });
+                } catch (error) {
+                    return null;
+                }
+
+                var width = Math.max(320, canvas.clientWidth || 960);
+                var height = Math.max(180, canvas.clientHeight || 238);
+                renderer.setPixelRatio(Math.min(profile.pixelRatio, window.devicePixelRatio || 1));
+                renderer.setSize(width, height, false);
+                renderer.setClearColor(0x020817, 0);
+                var scene = new THREE.Scene();
+                var camera = new THREE.OrthographicCamera(0, 100, 100, 0, -10, 10);
+                camera.position.z = 3;
+
+                var gridPositions = [];
+                for (var gridY = 20; gridY <= 85; gridY += 13) gridPositions.push(4, gridY, 0, 98, gridY, 0);
+                for (var gridX = 4; gridX <= 98; gridX += 15.67) gridPositions.push(gridX, 18, 0, gridX, 88, 0);
+                var gridGeometry = new THREE.BufferGeometry();
+                gridGeometry.setAttribute('position', new THREE.Float32BufferAttribute(gridPositions, 3));
+                var gridMaterial = new THREE.LineBasicMaterial({ color: networkSpeedVisualContract.palette.grid, transparent: true, opacity: .5 });
+                var grid = new THREE.LineSegments(gridGeometry, gridMaterial);
+                scene.add(grid);
+
+                function createTrace(color, opacity) {
+                    var positions = new Float32Array(networkSpeedVisualContract.curve.maxSamples * 3);
+                    var targetPositions = new Float32Array(networkSpeedVisualContract.curve.maxSamples * 3);
+                    var geometry = new THREE.BufferGeometry();
+                    var attribute = new THREE.BufferAttribute(positions, 3);
+                    attribute.setUsage(THREE.DynamicDrawUsage);
+                    geometry.setAttribute('position', attribute);
+                    geometry.setDrawRange(0, 0);
+                    var material = new THREE.ShaderMaterial({
+                        transparent: true,
+                        depthTest: false,
+                        blending: THREE.AdditiveBlending,
+                        uniforms: { uColor: { value: new THREE.Color(color) }, uOpacity: { value: opacity } },
+                        vertexShader: 'void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+                        fragmentShader: 'uniform vec3 uColor;uniform float uOpacity;void main(){gl_FragColor=vec4(uColor,uOpacity);}'
+                    });
+                    var line = new THREE.Line(geometry, material);
+                    scene.add(line);
+                    var haloMaterial = new THREE.ShaderMaterial({
+                        transparent: true,
+                        depthTest: false,
+                        blending: THREE.AdditiveBlending,
+                        uniforms: { uColor: { value: new THREE.Color(color) }, uOpacity: { value: opacity * .56 } },
+                        vertexShader: 'void main(){gl_PointSize=7.0;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+                        fragmentShader: 'uniform vec3 uColor;uniform float uOpacity;void main(){float d=length(gl_PointCoord-.5);float glow=smoothstep(.5,0.0,d);gl_FragColor=vec4(uColor,glow*uOpacity);}'
+                    });
+                    var halo = new THREE.Points(geometry, haloMaterial);
+                    scene.add(halo);
+                    return { line: line, halo: halo, geometry: geometry, material: material, haloMaterial: haloMaterial, positions: positions, targetPositions: targetPositions, count: 0 };
+                }
+
+                var downloadTrace = createTrace(networkSpeedVisualContract.palette.download, .98);
+                var uploadTrace = createTrace(networkSpeedVisualContract.palette.upload, .92);
+                var particlePositions = new Float32Array(profile.particles * 3);
+                var particleColors = new Float32Array(profile.particles * 3);
+                var particleSizes = new Float32Array(profile.particles);
+                var particleAges = new Float32Array(profile.particles);
+                var particleLife = new Float32Array(profile.particles);
+                var particleVelocities = new Float32Array(profile.particles * 2);
+                for (var particleIndex = 0; particleIndex < profile.particles; particleIndex++) particlePositions[particleIndex * 3 + 1] = -100;
+                var particleGeometry = new THREE.BufferGeometry();
+                particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3).setUsage(THREE.DynamicDrawUsage));
+                particleGeometry.setAttribute('aColor', new THREE.BufferAttribute(particleColors, 3).setUsage(THREE.DynamicDrawUsage));
+                particleGeometry.setAttribute('aSize', new THREE.BufferAttribute(particleSizes, 1).setUsage(THREE.DynamicDrawUsage));
+                particleGeometry.setAttribute('aAge', new THREE.BufferAttribute(particleAges, 1).setUsage(THREE.DynamicDrawUsage));
+                particleGeometry.setAttribute('aLife', new THREE.BufferAttribute(particleLife, 1).setUsage(THREE.DynamicDrawUsage));
+                var particleMaterial = new THREE.ShaderMaterial({
+                    transparent: true,
+                    depthTest: false,
+                    blending: THREE.AdditiveBlending,
+                    vertexColors: true,
+                    vertexShader: [
+                        'attribute vec3 aColor;attribute float aSize;attribute float aAge;attribute float aLife;',
+                        'varying vec3 vColor;varying float vAlpha;',
+                        'void main(){vColor=aColor;vAlpha=max(0.0,1.0-aAge/max(aLife,0.001));gl_PointSize=aSize*(0.45+vAlpha);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}'
+                    ].join(''),
+                    fragmentShader: [
+                        'varying vec3 vColor;varying float vAlpha;',
+                        'void main(){vec2 p=gl_PointCoord-0.5;float r=length(p);float glow=smoothstep(0.5,0.02,r);gl_FragColor=vec4(vColor,glow*vAlpha);}'
+                    ].join('')
+                });
+                var particles = new THREE.Points(particleGeometry, particleMaterial);
+                scene.add(particles);
+
+                var headGeometry = new THREE.BufferGeometry();
+                headGeometry.setAttribute('position', new THREE.Float32BufferAttribute([4, networkSpeedVisualContract.curve.ceilingY, 1], 3));
+                var headMaterial = new THREE.ShaderMaterial({
+                    transparent: true,
+                    depthTest: false,
+                    blending: THREE.AdditiveBlending,
+                    uniforms: { uColor: { value: new THREE.Color(networkSpeedVisualContract.palette.download) }, uPulse: { value: 0 } },
+                    vertexShader: 'uniform float uPulse;void main(){gl_PointSize=' + networkSpeedVisualContract.projectile.pointSize + '.0+sin(uPulse)*7.0;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+                    fragmentShader: 'uniform vec3 uColor;uniform float uPulse;void main(){vec2 p=gl_PointCoord-0.5;float r=length(p);float angle=atan(p.y,p.x);float core=smoothstep(.18,0.0,r);float halo=smoothstep(.5,.05,r)*.72;float ring=smoothstep(.32,.27,r)-smoothstep(.23,.18,r);float runes=pow(max(0.0,cos(angle*8.0+uPulse*.28)),18.0)*smoothstep(.46,.08,r);gl_FragColor=vec4(uColor,clamp(core+halo+ring*.65+runes*.85,0.0,1.0));}'
+                });
+                var head = new THREE.Points(headGeometry, headMaterial);
+                scene.add(head);
+
+                // The projectile owns a small, pooled VFX envelope: a soft blue wake
+                // plus two cyan electric filaments. Both are deterministic and stay
+                // in the same additive hierarchy as the existing particle trail.
+                var electricTrailPositions = new Float32Array(profile.trailPoints * 3);
+                var electricTrailProgress = new Float32Array(profile.trailPoints);
+                for (var trailIndex = 0; trailIndex < profile.trailPoints; trailIndex++) {
+                    electricTrailProgress[trailIndex] = trailIndex / Math.max(1, profile.trailPoints - 1);
+                    electricTrailPositions[trailIndex * 3] = 4 - electricTrailProgress[trailIndex] * networkSpeedVisualContract.projectile.trailLength;
+                    electricTrailPositions[trailIndex * 3 + 1] = networkSpeedVisualContract.curve.ceilingY;
+                    electricTrailPositions[trailIndex * 3 + 2] = .55;
+                }
+                var electricTrailGeometry = new THREE.BufferGeometry();
+                electricTrailGeometry.setAttribute('position', new THREE.BufferAttribute(electricTrailPositions, 3).setUsage(THREE.DynamicDrawUsage));
+                electricTrailGeometry.setAttribute('aProgress', new THREE.BufferAttribute(electricTrailProgress, 1));
+                var electricTrailMaterial = new THREE.ShaderMaterial({
+                    transparent: true,
+                    depthTest: false,
+                    depthWrite: false,
+                    blending: THREE.AdditiveBlending,
+                    uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color(0x38bdf8) } },
+                    vertexShader: 'attribute float aProgress;uniform float uTime;varying float vProgress;void main(){vProgress=aProgress;vec3 p=position;p.z+=cos(uTime*6.0+aProgress*13.0)*.12;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);}',
+                    fragmentShader: 'uniform vec3 uColor;varying float vProgress;void main(){float head=pow(max(0.0,1.0-vProgress),1.7);float shimmer=.76+.24*sin(vProgress*22.0);gl_FragColor=vec4(uColor,(.16+.5*head)*shimmer);}'
+                });
+                var networkSpeedElectricTrail = new THREE.Line(electricTrailGeometry, electricTrailMaterial);
+                scene.add(networkSpeedElectricTrail);
+
+                var arcSegments = networkSpeedVisualContract.projectile.arcSegments;
+                var arcBranches = 2;
+                var electricArcPositions = new Float32Array(arcBranches * arcSegments * 2 * 3);
+                var electricArcProgress = new Float32Array(arcBranches * arcSegments * 2);
+                var electricArcGeometry = new THREE.BufferGeometry();
+                electricArcGeometry.setAttribute('position', new THREE.BufferAttribute(electricArcPositions, 3).setUsage(THREE.DynamicDrawUsage));
+                electricArcGeometry.setAttribute('aProgress', new THREE.BufferAttribute(electricArcProgress, 1));
+                var electricArcMaterial = new THREE.ShaderMaterial({
+                    transparent: true,
+                    depthTest: false,
+                    depthWrite: false,
+                    blending: THREE.AdditiveBlending,
+                    uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color(0x67e8f9) } },
+                    vertexShader: 'attribute float aProgress;varying float vProgress;void main(){vProgress=aProgress;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+                    fragmentShader: 'uniform vec3 uColor;uniform float uTime;varying float vProgress;void main(){float edge=1.0-vProgress;float pulse=.62+.38*sin(uTime*19.0+vProgress*28.0);gl_FragColor=vec4(uColor,(.12+.55*edge)*pulse);}'
+                });
+                var networkSpeedElectricArc = new THREE.LineSegments(electricArcGeometry, electricArcMaterial);
+                scene.add(networkSpeedElectricArc);
+
+                var starPositions = new Float32Array(profile.stars * 3);
+                var starSizes = new Float32Array(profile.stars);
+                for (var starIndex = 0; starIndex < profile.stars; starIndex++) {
+                    starPositions[starIndex * 3] = random() * 100;
+                    starPositions[starIndex * 3 + 1] = 12 + random() * 80;
+                    starPositions[starIndex * 3 + 2] = -1;
+                    starSizes[starIndex] = .7 + random() * 1.8;
+                }
+                var starGeometry = new THREE.BufferGeometry();
+                starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+                starGeometry.setAttribute('aSize', new THREE.BufferAttribute(starSizes, 1));
+                var starMaterial = new THREE.ShaderMaterial({
+                    transparent: true,
+                    depthTest: false,
+                    blending: THREE.AdditiveBlending,
+                    vertexShader: 'attribute float aSize;void main(){gl_PointSize=aSize;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+                    fragmentShader: 'void main(){float d=length(gl_PointCoord-.5);gl_FragColor=vec4(.18,.52,.8,smoothstep(.5,0.0,d)*.38);}'
+                });
+                var stars = new THREE.Points(starGeometry, starMaterial);
+                scene.add(stars);
+
+                var disposed = false;
+                var rafId = 0;
+                var lastFrameMs = performance.now();
+                var particleCursor = 0;
+                var mode = 'final';
+                var currentDirection = 'download';
+                var currentPoint = { x: 4, y: networkSpeedVisualContract.curve.ceilingY };
+                var targetPoint = { x: 4, y: networkSpeedVisualContract.curve.ceilingY };
+                var networkSpeedPointVelocity = { x: 0, y: 0 };
+                var hasTargetPoint = false;
+                // Projectile VFX follows the actual tangent of the measured path.
+                // Keeping this state separate from the chart samples prevents the
+                // electric filaments from falling back to a fixed horizontal axis.
+                var projectileEffectDirection = { x: 1, y: 0 };
+                var projectileEffectLastPoint = { x: 4, y: networkSpeedVisualContract.curve.ceilingY };
+                var projectileEffectsInitialized = false;
+                var maxObservedMbps = 500;
+                var networkSpeedScaleTargetMbps = 500;
+                var particleSpawnAccumulator = 0;
+                var electricBurstAccumulator = 0;
+                var fpsFrameCount = 0;
+                var fpsWindowMs = 0;
+                var measuredFps = 0;
+                var replayActive = false;
+                var replayCache = [];
+                var replaySeries = { download: [], upload: [] };
+                var replayFrameSeries = { download: [], upload: [] };
+                var replayStartedMs = 0;
+                var replayCursor = 0;
+
+                function resetProjectileEffectPath() {
+                    projectileEffectDirection.x = 1;
+                    projectileEffectDirection.y = 0;
+                    projectileEffectLastPoint.x = currentPoint.x;
+                    projectileEffectLastPoint.y = currentPoint.y;
+                    projectileEffectsInitialized = false;
+                }
+
+                function seedProjectileTrailFromTrace(trace) {
+                    if (!trace || !trace.count) return;
+                    var trailLength = networkSpeedVisualContract.projectile.trailLength;
+                    var endpointOffset = (trace.count - 1) * 3;
+                    var previousIndex = Math.max(0, trace.count - 2) * 3;
+                    var directionX = trace.positions[endpointOffset] - trace.positions[previousIndex];
+                    var directionY = trace.positions[endpointOffset + 1] - trace.positions[previousIndex + 1];
+                    var directionLength = Math.sqrt(directionX * directionX + directionY * directionY);
+                    if (directionLength > .0001) {
+                        projectileEffectDirection.x = directionX / directionLength;
+                        projectileEffectDirection.y = directionY / directionLength;
+                    }
+                    projectileEffectLastPoint.x = currentPoint.x;
+                    projectileEffectLastPoint.y = currentPoint.y;
+                    // Seed the final/static view from the already rendered curve,
+                    // not from a horizontal synthetic line. This preserves bends
+                    // that happened before the visualizer was created.
+                    for (var trailIndex = 0; trailIndex < profile.trailPoints; trailIndex++) {
+                        var trailT = electricTrailProgress[trailIndex];
+                        var requestedX = currentPoint.x - projectileEffectDirection.x * trailT * trailLength;
+                        var requestedY = currentPoint.y - projectileEffectDirection.y * trailT * trailLength;
+                        var nearestIndex = trace.count - 1;
+                        var nearestDistance = Infinity;
+                        for (var traceIndex = 0; traceIndex < trace.count; traceIndex++) {
+                            var traceOffset = traceIndex * 3;
+                            var dx = trace.positions[traceOffset] - requestedX;
+                            var dy = trace.positions[traceOffset + 1] - requestedY;
+                            var distance = dx * dx + dy * dy;
+                            if (distance < nearestDistance) {
+                                nearestDistance = distance;
+                                nearestIndex = traceIndex;
+                            }
+                        }
+                        var nearestOffset = nearestIndex * 3;
+                        var trailOffset = trailIndex * 3;
+                        electricTrailPositions[trailOffset] = trace.positions[nearestOffset];
+                        electricTrailPositions[trailOffset + 1] = trace.positions[nearestOffset + 1];
+                        electricTrailPositions[trailOffset + 2] = .55;
+                    }
+                    projectileEffectsInitialized = true;
+                }
+
+                function setMode(nextMode) {
+                    mode = nextMode === 'curves' || nextMode === 'particles' ? nextMode : 'final';
+                    downloadTrace.line.visible = mode !== 'particles';
+                    uploadTrace.line.visible = mode !== 'particles';
+                    downloadTrace.halo.visible = mode !== 'particles';
+                    uploadTrace.halo.visible = mode !== 'particles';
+                    particles.visible = mode !== 'curves';
+                    head.visible = mode !== 'curves';
+                }
+
+                function spawnTrail(color, requestedBurstCount) {
+                    var colorObject = new THREE.Color(color);
+                    var burstCount = typeof requestedBurstCount === 'number' ? requestedBurstCount : (qualityName === 'eco' ? 4 : (qualityName === 'ultra' ? 12 : 8));
+                    for (var burstIndex = 0; burstIndex < burstCount; burstIndex++) {
+                        var index = particleCursor++ % profile.particles;
+                        var offset = index * 3;
+                        var particleAlong = .25 + random() * 3.5;
+                        var particleNormal = (random() - .5) * 5;
+                        particlePositions[offset] = currentPoint.x - projectileEffectDirection.x * particleAlong - projectileEffectDirection.y * particleNormal;
+                        particlePositions[offset + 1] = currentPoint.y - projectileEffectDirection.y * particleAlong + projectileEffectDirection.x * particleNormal;
+                        particlePositions[offset + 2] = .4;
+                        particleColors[offset] = colorObject.r;
+                        particleColors[offset + 1] = colorObject.g * (.72 + random() * .28);
+                        particleColors[offset + 2] = colorObject.b;
+                        particleSizes[index] = 3 + random() * 8;
+                        particleAges[index] = 0;
+                        particleLife[index] = networkSpeedVisualContract.particles.lifetimeSeconds * (.55 + random() * .75);
+                        var particleSpeed = 4 + random() * 9;
+                        particleVelocities[index * 2] = -projectileEffectDirection.x * particleSpeed - projectileEffectDirection.y * (random() - .5) * 8;
+                        particleVelocities[index * 2 + 1] = -projectileEffectDirection.y * particleSpeed + projectileEffectDirection.x * (random() - .5) * 8;
+                    }
+                    particleGeometry.attributes.aColor.needsUpdate = true;
+                    particleGeometry.attributes.aSize.needsUpdate = true;
+                    particleGeometry.attributes.aLife.needsUpdate = true;
+                }
+
+                function spawnElectricBurst() {
+                    if (!hasTargetPoint) return;
+                    var cyan = new THREE.Color(0x67e8f9);
+                    var burstCount = qualityName === 'ultra' ? 3 : (qualityName === 'eco' ? 1 : 2);
+                    for (var burstIndex = 0; burstIndex < burstCount; burstIndex++) {
+                        var index = particleCursor++ % profile.particles;
+                        var offset = index * 3;
+                        var angle = random() * Math.PI * 2;
+                        var radius = .45 + random() * 1.9;
+                        particlePositions[offset] = currentPoint.x + Math.cos(angle) * radius;
+                        particlePositions[offset + 1] = currentPoint.y + Math.sin(angle) * radius;
+                        particlePositions[offset + 2] = .65;
+                        particleColors[offset] = cyan.r;
+                        particleColors[offset + 1] = cyan.g;
+                        particleColors[offset + 2] = cyan.b;
+                        particleSizes[index] = 2.5 + random() * 5;
+                        particleAges[index] = 0;
+                        particleLife[index] = .22 + random() * .42;
+                        particleVelocities[index * 2] = -2 - random() * 5;
+                        particleVelocities[index * 2 + 1] = (random() - .5) * 14;
+                    }
+                    particleGeometry.attributes.aColor.needsUpdate = true;
+                    particleGeometry.attributes.aSize.needsUpdate = true;
+                    particleGeometry.attributes.aLife.needsUpdate = true;
+                }
+
+                function networkSpeedTraceSampleAtProgress(samples, progress) {
+                    if (!samples.length) return 0;
+                    var value = Math.max(0, Math.min(1, Number(progress) || 0));
+                    if (samples.length === 1 || value <= Number(samples[0].progress || 0)) return Number(samples[0].mbps || 0);
+                    var rightIndex = 1;
+                    while (rightIndex < samples.length && Number(samples[rightIndex].progress || 0) < value) rightIndex++;
+                    var leftIndex = Math.max(0, rightIndex - 1);
+                    var leftSample = samples[leftIndex];
+                    var rightSample = samples[Math.min(samples.length - 1, rightIndex)];
+                    var leftProgress = Number(leftSample.progress || 0);
+                    var rightProgress = Number(rightSample.progress || leftProgress);
+                    var span = rightProgress - leftProgress;
+                    var t = span > .0001 ? Math.max(0, Math.min(1, (value - leftProgress) / span)) : 1;
+                    var p1 = Number(leftSample.mbps || 0);
+                    var p2 = Number(rightSample.mbps || p1);
+                    if (samples.length < 3) return p1 + (p2 - p1) * t;
+                    var p0 = Number(samples[Math.max(0, leftIndex - 1)].mbps || p1);
+                    var p3 = Number(samples[Math.min(samples.length - 1, rightIndex + 1)].mbps || p2);
+                    var t2 = t * t;
+                    var t3 = t2 * t;
+                    var interpolated = .5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
+                    // A Catmull-Rom tangent can overshoot a sharp network spike.
+                    // Clamp to the bracket so the visual line never rings past the data.
+                    return Math.max(Math.min(p1, p2), Math.min(Math.max(p1, p2), interpolated));
+                }
+
+                function rebuildTraces(sampleSet) {
+                    var series = sampleSet || networkSpeedSamples;
+                    var combined = series.download.concat(series.upload);
+                    networkSpeedScaleTargetMbps = niceNetworkSpeedCeiling(combined.reduce(function(maximum, item) { return Math.max(maximum, Number(item.mbps || 0)); }, 0));
+                    function rebuild(trace, samples) {
+                        var previousCount = trace.count;
+                        var spacing = networkSpeedVisualContract.curve.traceSampleSpacing;
+                        var firstProgress = samples.length ? Math.max(0, Math.min(1, Number(samples[0].progress) || 0)) : 0;
+                        var latestProgress = samples.length ? Math.max(0, Math.min(1, Number(samples[samples.length - 1].progress) || 0)) : 0;
+                        var firstX = 4 + firstProgress * 94;
+                        var latestX = 4 + latestProgress * 94;
+                        var spanX = Math.max(0, latestX - firstX);
+                        var gridCount = samples.length ? Math.max(1, Math.floor(spanX / spacing) + 1) : 0;
+                        // Keep a dedicated moving endpoint when the playhead sits
+                        // between grid samples. This avoids quantising the visible
+                        // head to the 0.5-world-unit resampling grid.
+                        var needsEndpoint = samples.length && latestX > firstX + (gridCount - 1) * spacing + .0001;
+                        var count = samples.length ? Math.min(networkSpeedVisualContract.curve.maxSamples, gridCount + (needsEndpoint ? 1 : 0)) : 0;
+                        for (var index = 0; index < count; index++) {
+                            var offset = index * 3;
+                            var targetX = (needsEndpoint && index === count - 1) ? latestX : Math.min(latestX, firstX + index * spacing);
+                            var targetY = networkSpeedChartY(networkSpeedTraceSampleAtProgress(samples, (targetX - 4) / 94), maxObservedMbps);
+                            targetY = Math.max(networkSpeedVisualContract.curve.ceilingY, Math.min(networkSpeedVisualContract.curve.floorY, targetY));
+                            trace.targetPositions[offset] = targetX;
+                            trace.targetPositions[offset + 1] = targetY;
+                            trace.targetPositions[offset + 2] = .2;
+                            if (previousCount === 0) {
+                                trace.positions[offset] = targetX;
+                                trace.positions[offset + 1] = targetY;
+                                trace.positions[offset + 2] = .2;
+                            } else if (index >= previousCount) {
+                                var seedOffset = Math.max(0, previousCount - 1) * 3;
+                                trace.positions[offset] = trace.positions[seedOffset];
+                                trace.positions[offset + 1] = trace.positions[seedOffset + 1];
+                                trace.positions[offset + 2] = trace.positions[seedOffset + 2];
+                            }
+                        }
+                        trace.count = count;
+                        trace.geometry.setDrawRange(0, count);
+                        trace.geometry.attributes.position.needsUpdate = true;
+                    }
+                    rebuild(downloadTrace, series.download);
+                    rebuild(uploadTrace, series.upload);
+                    var activeSamples = series[currentDirection];
+                    if (activeSamples.length) {
+                        var latest = activeSamples[activeSamples.length - 1];
+                        targetPoint.x = 4 + latest.progress * 94;
+                        targetPoint.y = networkSpeedChartY(latest.mbps, maxObservedMbps);
+                        if (!hasTargetPoint) {
+                            currentPoint.x = targetPoint.x;
+                            currentPoint.y = targetPoint.y;
+                            hasTargetPoint = true;
+                        }
+                    }
+                }
+
+                function smoothNetworkSpeedScale(deltaSeconds) {
+                    if (Math.abs(networkSpeedScaleTargetMbps - maxObservedMbps) < .5) {
+                        maxObservedMbps = networkSpeedScaleTargetMbps;
+                        return false;
+                    }
+                    var follow = 1 - Math.exp(-5 * Math.min(.05, Math.max(0, deltaSeconds)));
+                    var previous = maxObservedMbps;
+                    maxObservedMbps += (networkSpeedScaleTargetMbps - maxObservedMbps) * follow;
+                    return Math.abs(maxObservedMbps - previous) > .01;
+                }
+
+                function smoothNetworkSpeedPoint(deltaSeconds) {
+                    if (!hasTargetPoint) return;
+                    // Critically damped spring: the projectile converges continuously
+                    // at any RAF cadence instead of teleporting the trace tail on updates.
+                    var dt = Math.min(.05, Math.max(0, deltaSeconds));
+                    var smoothTime = .22;
+                    var omega = 2 / smoothTime;
+                    var omegaDt = omega * dt;
+                    var omegaDt2 = omegaDt * omegaDt;
+                    var exp = 1 / (1 + omegaDt + .48 * omegaDt2 + .235 * omegaDt2 * omegaDt);
+                    var changeX = currentPoint.x - targetPoint.x;
+                    var tempX = (networkSpeedPointVelocity.x + omega * changeX) * dt;
+                    networkSpeedPointVelocity.x = (networkSpeedPointVelocity.x - omega * tempX) * exp;
+                    currentPoint.x = targetPoint.x + (changeX + tempX) * exp;
+                    var changeY = currentPoint.y - targetPoint.y;
+                    var tempY = (networkSpeedPointVelocity.y + omega * changeY) * dt;
+                    networkSpeedPointVelocity.y = (networkSpeedPointVelocity.y - omega * tempY) * exp;
+                    currentPoint.y = targetPoint.y + (changeY + tempY) * exp;
+                    headGeometry.attributes.position.setXYZ(0, currentPoint.x, currentPoint.y, 1);
+                    headGeometry.attributes.position.needsUpdate = true;
+                }
+
+                function smoothNetworkSpeedTraces(deltaSeconds) {
+                    var follow = 1 - Math.exp(-18 * deltaSeconds);
+                    [downloadTrace, uploadTrace].forEach(function(trace) {
+                        for (var index = 0; index < trace.count * 3; index++) {
+                            trace.positions[index] += (trace.targetPositions[index] - trace.positions[index]) * follow;
+                        }
+                        trace.geometry.attributes.position.needsUpdate = true;
+                    });
+                }
+
+                function addSample(direction, sample) {
+                    var directionChanged = currentDirection !== direction;
+                    currentDirection = direction;
+                    if (directionChanged) {
+                        currentPoint.x = 4;
+                        currentPoint.y = networkSpeedVisualContract.curve.ceilingY;
+                        targetPoint.x = currentPoint.x;
+                        targetPoint.y = currentPoint.y;
+                        networkSpeedPointVelocity.x = 0;
+                        networkSpeedPointVelocity.y = 0;
+                        hasTargetPoint = false;
+                        resetProjectileEffectPath();
+                    }
+                    var color = direction === 'download' ? networkSpeedVisualContract.palette.download : networkSpeedVisualContract.palette.upload;
+                    headMaterial.uniforms.uColor.value.setHex(color);
+                    rebuildTraces();
+                    spawnTrail(color);
+                    renderFrame(performance.now());
+                }
+
+                function updateParticles(deltaSeconds) {
+                    for (var index = 0; index < profile.particles; index++) {
+                        if (particleAges[index] >= particleLife[index]) continue;
+                        particleAges[index] += deltaSeconds;
+                        particlePositions[index * 3] += particleVelocities[index * 2] * deltaSeconds;
+                        particlePositions[index * 3 + 1] += particleVelocities[index * 2 + 1] * deltaSeconds;
+                    }
+                    particleGeometry.attributes.position.needsUpdate = true;
+                    particleGeometry.attributes.aAge.needsUpdate = true;
+                }
+
+                function projectileTrailPointFromSparkline(distanceBehind) {
+                    var trace = currentDirection === 'upload' ? uploadTrace : downloadTrace;
+                    var requestedDistance = Math.max(0, Number(distanceBehind) || 0);
+                    if (!trace || !trace.count) {
+                        return {
+                            x: currentPoint.x - projectileEffectDirection.x * requestedDistance,
+                            y: currentPoint.y - projectileEffectDirection.y * requestedDistance,
+                            z: .55
+                        };
+                    }
+                    var nearestIndex = trace.count - 1;
+                    var nearestDistance = Infinity;
+                    for (var traceIndex = 0; traceIndex < trace.count; traceIndex++) {
+                        var traceOffset = traceIndex * 3;
+                        var nearestDx = trace.positions[traceOffset] - currentPoint.x;
+                        var nearestDy = trace.positions[traceOffset + 1] - currentPoint.y;
+                        var nearestDistanceSquared = nearestDx * nearestDx + nearestDy * nearestDy;
+                        if (nearestDistanceSquared < nearestDistance) {
+                            nearestDistance = nearestDistanceSquared;
+                            nearestIndex = traceIndex;
+                        }
+                    }
+                    var fromX = currentPoint.x;
+                    var fromY = currentPoint.y;
+                    var cursor = nearestIndex;
+                    var remaining = requestedDistance;
+                    while (cursor >= 0) {
+                        var pointOffset = cursor * 3;
+                        var toX = trace.positions[pointOffset];
+                        var toY = trace.positions[pointOffset + 1];
+                        var segmentX = toX - fromX;
+                        var segmentY = toY - fromY;
+                        var segmentLength = Math.sqrt(segmentX * segmentX + segmentY * segmentY);
+                        if (segmentLength > .0001 && remaining <= segmentLength) {
+                            var segmentAmount = remaining / segmentLength;
+                            return { x: fromX + segmentX * segmentAmount, y: fromY + segmentY * segmentAmount, z: .55 };
+                        }
+                        if (segmentLength > .0001) remaining -= segmentLength;
+                        fromX = toX;
+                        fromY = toY;
+                        cursor--;
+                        if (remaining <= .0001) return { x: fromX, y: fromY, z: .55 };
+                    }
+                    return { x: fromX, y: fromY, z: .55 };
+                }
+
+                // Follow the visible sparkline itself with a damped point chain.
+                // The head stays on currentPoint while the tail samples the same
+                // polyline behind it, so turns and slopes are shared exactly.
+                function projectileTrailChainFollow(deltaSeconds, time) {
+                    var dt = Math.min(.05, Math.max(0, deltaSeconds));
+                    var trailLength = networkSpeedVisualContract.projectile.trailLength;
+                    var sampledTrail = [];
+                    for (var trailIndex = 0; trailIndex < profile.trailPoints; trailIndex++) {
+                        var trailT = electricTrailProgress[trailIndex];
+                        sampledTrail.push(trailIndex === 0 ? { x: currentPoint.x, y: currentPoint.y, z: .55 } : projectileTrailPointFromSparkline(trailT * trailLength));
+                    }
+                    var tangentX = sampledTrail[0].x - sampledTrail[Math.min(1, sampledTrail.length - 1)].x;
+                    var tangentY = sampledTrail[0].y - sampledTrail[Math.min(1, sampledTrail.length - 1)].y;
+                    var tangentLength = Math.sqrt(tangentX * tangentX + tangentY * tangentY);
+                    if (tangentLength > .0001) {
+                        projectileEffectDirection.x += (tangentX / tangentLength - projectileEffectDirection.x) * (1 - Math.exp(-16 * dt));
+                        projectileEffectDirection.y += (tangentY / tangentLength - projectileEffectDirection.y) * (1 - Math.exp(-16 * dt));
+                        var directionLength = Math.sqrt(projectileEffectDirection.x * projectileEffectDirection.x + projectileEffectDirection.y * projectileEffectDirection.y) || 1;
+                        projectileEffectDirection.x /= directionLength;
+                        projectileEffectDirection.y /= directionLength;
+                    }
+                    projectileEffectLastPoint.x = currentPoint.x;
+                    projectileEffectLastPoint.y = currentPoint.y;
+                    if (!projectileEffectsInitialized) {
+                        for (var initialIndex = 0; initialIndex < sampledTrail.length; initialIndex++) {
+                            var initialOffset = initialIndex * 3;
+                            electricTrailPositions[initialOffset] = sampledTrail[initialIndex].x;
+                            electricTrailPositions[initialOffset + 1] = sampledTrail[initialIndex].y;
+                            electricTrailPositions[initialOffset + 2] = sampledTrail[initialIndex].z;
+                        }
+                        projectileEffectsInitialized = true;
+                    } else {
+                        for (var followIndex = 0; followIndex < sampledTrail.length; followIndex++) {
+                            var followOffset = followIndex * 3;
+                            var followRate = followIndex === 0 ? 1 : 1 - Math.exp(-(22 - followIndex * .24) * dt);
+                            electricTrailPositions[followOffset] += (sampledTrail[followIndex].x - electricTrailPositions[followOffset]) * followRate;
+                            electricTrailPositions[followOffset + 1] += (sampledTrail[followIndex].y - electricTrailPositions[followOffset + 1]) * followRate;
+                            electricTrailPositions[followOffset + 2] = .55 + Math.cos(time * 5.0 + followIndex) * .08;
+                        }
+                    }
+                    electricTrailGeometry.attributes.position.needsUpdate = true;
+                }
+
+                function projectileTrailPointAt(pathProgress, lateralOffset) {
+                    var pointCount = profile.trailPoints;
+                    var scaled = Math.max(0, Math.min(1, pathProgress)) * Math.max(0, pointCount - 1);
+                    var leftIndex = Math.floor(scaled);
+                    var rightIndex = Math.min(pointCount - 1, leftIndex + 1);
+                    var blend = scaled - leftIndex;
+                    var leftOffset = leftIndex * 3;
+                    var rightOffset = rightIndex * 3;
+                    var baseX = electricTrailPositions[leftOffset] + (electricTrailPositions[rightOffset] - electricTrailPositions[leftOffset]) * blend;
+                    var baseY = electricTrailPositions[leftOffset + 1] + (electricTrailPositions[rightOffset + 1] - electricTrailPositions[leftOffset + 1]) * blend;
+                    var tangentX = electricTrailPositions[leftOffset] - electricTrailPositions[rightOffset];
+                    var tangentY = electricTrailPositions[leftOffset + 1] - electricTrailPositions[rightOffset + 1];
+                    var tangentLength = Math.sqrt(tangentX * tangentX + tangentY * tangentY) || 1;
+                    tangentX /= tangentLength;
+                    tangentY /= tangentLength;
+                    var localNormalX = -tangentY;
+                    var localNormalY = tangentX;
+                    return {
+                        x: baseX + localNormalX * lateralOffset,
+                        y: baseY + localNormalY * lateralOffset,
+                        z: .72
+                    };
+                }
+
+                function updateProjectileEffects(nowMs, deltaSeconds) {
+                    var effectsVisible = hasTargetPoint && mode !== 'curves';
+                    networkSpeedElectricTrail.visible = effectsVisible;
+                    networkSpeedElectricArc.visible = effectsVisible;
+                    electricTrailMaterial.uniforms.uTime.value = nowMs * .001;
+                    electricArcMaterial.uniforms.uTime.value = nowMs * .001;
+                    if (!effectsVisible) {
+                        projectileEffectsInitialized = false;
+                        return;
+                    }
+                    var time = nowMs * .001;
+                    projectileTrailChainFollow(deltaSeconds, time);
+                    var arcOffset = 0;
+                    var pathSpan = Math.min(1, 5.2 / Math.max(.001, networkSpeedVisualContract.projectile.trailLength));
+                    for (var branchIndex = 0; branchIndex < arcBranches; branchIndex++) {
+                        var branchSign = branchIndex === 0 ? 1 : -1;
+                        for (var segmentIndex = 0; segmentIndex < arcSegments; segmentIndex++) {
+                            var segmentT0 = segmentIndex / arcSegments;
+                            var segmentT1 = (segmentIndex + 1) / arcSegments;
+                            var lateral0 = branchSign * (.62 + .24 * Math.sin(time * 7.0 + segmentIndex));
+                            var lateral1 = branchSign * (.62 + .24 * Math.sin(time * 7.0 + segmentIndex + 1));
+                            lateral0 += Math.sin(time * 17.0 + segmentIndex * 2.6 + branchIndex * 1.7) * (1 - segmentT0) * 1.05;
+                            lateral1 += Math.sin(time * 17.0 + (segmentIndex + 1) * 2.6 + branchIndex * 1.7) * (1 - segmentT1) * 1.05;
+                            var arcPoint0 = projectileTrailPointAt(segmentT0 * pathSpan, lateral0);
+                            var arcPoint1 = projectileTrailPointAt(segmentT1 * pathSpan, lateral1);
+                            electricArcPositions[arcOffset] = arcPoint0.x;
+                            electricArcPositions[arcOffset + 1] = arcPoint0.y;
+                            electricArcPositions[arcOffset + 2] = arcPoint0.z;
+                            electricArcProgress[arcOffset / 3] = segmentT0;
+                            arcOffset += 3;
+                            electricArcPositions[arcOffset] = arcPoint1.x;
+                            electricArcPositions[arcOffset + 1] = arcPoint1.y;
+                            electricArcPositions[arcOffset + 2] = arcPoint1.z;
+                            electricArcProgress[arcOffset / 3] = segmentT1;
+                            arcOffset += 3;
+                        }
+                    }
+                    electricArcGeometry.attributes.position.needsUpdate = true;
+                    electricArcGeometry.attributes.aProgress.needsUpdate = true;
+                    electricBurstAccumulator += deltaSeconds * (qualityName === 'ultra' ? 18 : (qualityName === 'eco' ? 8 : 12));
+                    while (electricBurstAccumulator >= 1) {
+                        spawnElectricBurst();
+                        electricBurstAccumulator -= 1;
+                    }
+                }
+
+                function renderFrame(nowMs) {
+                    if (disposed) return;
+                    var deltaSeconds = Math.min(.05, Math.max(0, (nowMs - lastFrameMs) / 1000));
+                    lastFrameMs = nowMs;
+                    updateReplayTimeline(nowMs);
+                    if (smoothNetworkSpeedScale(deltaSeconds) && replayActive) rebuildTraces(replayFrameSeries);
+                    smoothNetworkSpeedTraces(deltaSeconds);
+                    smoothNetworkSpeedPoint(deltaSeconds);
+                    updateProjectileEffects(nowMs, deltaSeconds);
+                    particleSpawnAccumulator += deltaSeconds * (qualityName === 'ultra' ? 24 : (qualityName === 'eco' ? 10 : 16));
+                    while (particleSpawnAccumulator >= 1) {
+                        spawnTrail(currentDirection === 'download' ? networkSpeedVisualContract.palette.download : networkSpeedVisualContract.palette.upload, 1);
+                        particleSpawnAccumulator -= 1;
+                    }
+                    updateParticles(deltaSeconds);
+                    headMaterial.uniforms.uPulse.value = nowMs * .001 * Math.PI * 2 * networkSpeedVisualContract.projectile.pulseHz;
+                    renderer.render(scene, camera);
+                    fpsFrameCount++;
+                    fpsWindowMs += deltaSeconds * 1000;
+                    if (fpsWindowMs >= 1000) {
+                        measuredFps = fpsFrameCount * 1000 / fpsWindowMs;
+                        fpsFrameCount = 0;
+                        fpsWindowMs = 0;
+                    }
+                }
+
+                function animate(nowMs) {
+                    if (disposed) return;
+                    renderFrame(nowMs || performance.now());
+                    if (typeof window.requestAnimationFrame === 'function') rafId = window.requestAnimationFrame(animate);
+                }
+
+                // Return a virtual sample at the replay playhead. Acquisition stays
+                // discrete, but the visual line advances continuously between the
+                // points collected one second earlier.
+                function interpolateReplaySample(direction, timelineMs) {
+                    var samples = replaySeries[direction] || [];
+                    if (!samples.length) return null;
+                    var previous = samples[samples.length - 1];
+                    var next = null;
+                    for (var cacheIndex = replayCursor; cacheIndex < replayCache.length; cacheIndex++) {
+                        var candidate = replayCache[cacheIndex];
+                        if (candidate.direction === direction) {
+                            next = candidate;
+                            break;
+                        }
+                    }
+                    if (!next || Number(next.atMs) <= Number(previous.atMs)) {
+                        return { mbps: Number(previous.mbps || 0), progress: Number(previous.progress || 0), atMs: Number(previous.atMs || timelineMs) };
+                    }
+                    var span = Number(next.atMs) - Number(previous.atMs);
+                    var amount = Math.max(0, Math.min(1, (timelineMs - Number(previous.atMs)) / Math.max(.001, span)));
+                    return {
+                        mbps: Number(previous.mbps || 0) + (Number(next.sample.mbps || 0) - Number(previous.mbps || 0)) * amount,
+                        progress: Number(previous.progress || 0) + (Number(next.sample.progress || 0) - Number(previous.progress || 0)) * amount,
+                        atMs: timelineMs
+                    };
+                }
+
+                function rebuildReplayFrameSeries(timelineMs) {
+                    replayFrameSeries.download = replaySeries.download.slice();
+                    replayFrameSeries.upload = replaySeries.upload.slice();
+                    var interpolated = interpolateReplaySample(currentDirection, timelineMs);
+                    if (!interpolated) return;
+                    var frame = replayFrameSeries[currentDirection];
+                    var last = frame.length ? frame[frame.length - 1] : null;
+                    if (!last || Number(interpolated.atMs) > Number(last.atMs || 0) + .0001) frame.push(interpolated);
+                    else frame[frame.length - 1] = interpolated;
+                }
+
+                function updateReplayTimeline(nowMs) {
+                    if (!replayActive) return;
+                    if (nowMs < replayStartedMs) return;
+                    var cacheChanged = false;
+                    var directionChanged = false;
+                    var timelineMs = nowMs - replayStartedMs;
+                    while (replayCursor < replayCache.length && replayCache[replayCursor].atMs <= timelineMs) {
+                        var cachedSample = replayCache[replayCursor++];
+                        if (cachedSample.direction !== currentDirection) {
+                            currentDirection = cachedSample.direction;
+                            headMaterial.uniforms.uColor.value.setHex(cachedSample.direction === 'download' ? networkSpeedVisualContract.palette.download : networkSpeedVisualContract.palette.upload);
+                            currentPoint.x = 4;
+                            currentPoint.y = networkSpeedVisualContract.curve.ceilingY;
+                            targetPoint.x = currentPoint.x;
+                            targetPoint.y = currentPoint.y;
+                            networkSpeedPointVelocity.x = 0;
+                            networkSpeedPointVelocity.y = 0;
+                            hasTargetPoint = false;
+                            resetProjectileEffectPath();
+                            directionChanged = true;
+                        }
+                        replaySeries[cachedSample.direction].push({
+                            mbps: Number(cachedSample.sample.mbps || 0),
+                            progress: Number(cachedSample.sample.progress || 0),
+                            atMs: Number(cachedSample.atMs || timelineMs)
+                        });
+                        cacheChanged = true;
+                    }
+                    if (replayActive) {
+                        // Rebuild from a stable progress-space frame series every RAF;
+                        // old vertices keep their x positions while the virtual tail
+                        // glides to the next delayed measurement.
+                        rebuildReplayFrameSeries(timelineMs);
+                        rebuildTraces(replayFrameSeries);
+                    } else if (cacheChanged || directionChanged) {
+                        rebuildTraces(replaySeries);
+                    }
+                    if (networkSpeedTraceCacheSealed && replayCursor >= replayCache.length) {
+                        replayActive = false;
+                        rebuildTraces(replaySeries);
+                        seedProjectileTrailFromTrace(currentDirection === 'upload' ? uploadTrace : downloadTrace);
+                    }
+                }
+
+                function beginReplay(cache, delayMs) {
+                    replayCache = cache || [];
+                    replaySeries = { download: [], upload: [] };
+                    replayFrameSeries = { download: [], upload: [] };
+                    replayCursor = 0;
+                    replayStartedMs = (networkSpeedTraceClockStartMs || performance.now()) + Math.max(0, Number(delayMs || networkSpeedReplayDelayMs));
+                    replayActive = true;
+                    currentDirection = 'download';
+                    currentPoint.x = 4;
+                    currentPoint.y = networkSpeedVisualContract.curve.ceilingY;
+                    targetPoint.x = currentPoint.x;
+                    targetPoint.y = currentPoint.y;
+                    networkSpeedPointVelocity.x = 0;
+                    networkSpeedPointVelocity.y = 0;
+                    hasTargetPoint = false;
+                    resetProjectileEffectPath();
+                    rebuildTraces(replaySeries);
+                }
+
+                function dispose() {
+                    if (disposed) return;
+                    replayActive = false;
+                    if (hasTargetPoint) {
+                        currentPoint.x = targetPoint.x;
+                        currentPoint.y = targetPoint.y;
+                        headGeometry.attributes.position.setXYZ(0, currentPoint.x, currentPoint.y, 1);
+                        var activeTrace = currentDirection === 'download' ? downloadTrace : uploadTrace;
+                        if (activeTrace.count > 0) {
+                            activeTrace.positions[(activeTrace.count - 1) * 3] = currentPoint.x;
+                            activeTrace.positions[(activeTrace.count - 1) * 3 + 1] = currentPoint.y;
+                        }
+                    }
+                    [downloadTrace, uploadTrace].forEach(function(trace) {
+                        for (var index = 0; index < trace.count * 3; index++) trace.positions[index] = trace.targetPositions[index];
+                        trace.geometry.attributes.position.needsUpdate = true;
+                    });
+                    seedProjectileTrailFromTrace(currentDirection === 'upload' ? uploadTrace : downloadTrace);
+                    renderFrame(performance.now());
+                    disposed = true;
+                    if (rafId && typeof window.cancelAnimationFrame === 'function') window.cancelAnimationFrame(rafId);
+                    [gridGeometry, downloadTrace.geometry, uploadTrace.geometry, particleGeometry, headGeometry, electricTrailGeometry, electricArcGeometry, starGeometry].forEach(function(resource) { resource.dispose(); });
+                    [gridMaterial, downloadTrace.material, downloadTrace.haloMaterial, uploadTrace.material, uploadTrace.haloMaterial, particleMaterial, headMaterial, electricTrailMaterial, electricArcMaterial, starMaterial].forEach(function(resource) { resource.dispose(); });
+                    renderer.dispose();
+                }
+
+                setMode((document.getElementById('networkSpeedVisualMode') || {}).value || 'final');
+                renderFrame(performance.now());
+                if (typeof window.requestAnimationFrame === 'function') rafId = window.requestAnimationFrame(animate);
+                return { addSample: addSample, beginReplay: beginReplay, setMode: setMode, dispose: dispose, isDisposed: function() { return disposed; }, isReplayActive: function() { return replayActive; }, measuredFps: function() { return measuredFps; }, render: function() { currentDirection = networkSpeedSamples.upload.length ? 'upload' : 'download'; rebuildTraces(); seedProjectileTrailFromTrace(currentDirection === 'upload' ? uploadTrace : downloadTrace); renderFrame(performance.now()); } };
+            }
+
+            function disposeNetworkSpeedVisualizer() {
+                if (networkSpeedReplayDisposeTimer) {
+                    window.clearTimeout(networkSpeedReplayDisposeTimer);
+                    networkSpeedReplayDisposeTimer = null;
+                }
+                if (networkSpeedVisualizer) networkSpeedVisualizer.dispose();
+            }
+
+            function setNetworkSpeedLiveMetrics(downloadValue, uploadValue) {
+                var downloadNode = document.getElementById('networkSpeedLiveDownloadValue');
+                var uploadNode = document.getElementById('networkSpeedLiveUploadValue');
+                if (downloadNode && typeof downloadValue !== 'undefined') downloadNode.innerText = downloadValue;
+                if (uploadNode && typeof uploadValue !== 'undefined') uploadNode.innerText = uploadValue;
+            }
+
+            function updateNetworkSpeedVisualizer(direction, measurement, progress) {
+                var mbps = (Number(measurement.bytes || 0) * 8) / (Math.max(1, Number(measurement.elapsedMs || 0)) / 1000) / 1000000;
+                var sample = { mbps: mbps, progress: progress };
+                networkSpeedSamples[direction].push(sample);
+                // Store acquisition time, not phase-relative time. The visualizer consumes this
+                // live cache one second later, so each point appears while the measurement is
+                // still running without jumping ahead of the network request.
+                networkSpeedTraceTimerCache.push({ direction: direction, sample: sample, atMs: Math.max(0, performance.now() - networkSpeedTraceClockStartMs) });
+                updateNetworkSpeedScale();
+                var liveCaption = document.getElementById('networkSpeedLiveCaption');
+                if (direction === 'download') setNetworkSpeedLiveMetrics(formatNetworkSpeedValue(mbps));
+                else setNetworkSpeedLiveMetrics(undefined, formatNetworkSpeedValue(mbps));
+                if (liveCaption) liveCaption.innerText = networkSpeedText(direction === 'download' ? 'network_speed_phase_download' : 'network_speed_phase_upload', direction) + ' ' + (progress * 10).toFixed(1) + ' / 10 s';
+            }
+
+            window.setNetworkSpeedVisualMode = function(mode) {
+                if (networkSpeedVisualizer && !networkSpeedVisualizer.isDisposed()) {
+                    networkSpeedVisualizer.setMode(mode);
+                    return;
+                }
+                if (networkSpeedSamples.download.length || networkSpeedSamples.upload.length) {
+                    networkSpeedVisualizer = createNetworkSpeedVisualizer();
+                    if (networkSpeedVisualizer) {
+                        networkSpeedVisualizer.setMode(mode);
+                        networkSpeedVisualizer.render();
+                        window.setTimeout(disposeNetworkSpeedVisualizer, 120);
+                    }
+                }
+            };
+
+            window.getNetworkSpeedDebugState = function() {
+                return {
+                    activeRequests: networkSpeedActiveControllers.length,
+                    visualizerDisposed: !networkSpeedVisualizer || networkSpeedVisualizer.isDisposed(),
+                    downloadSamples: networkSpeedSamples.download.length,
+                    uploadSamples: networkSpeedSamples.upload.length,
+                    seed: networkSpeedVisualSeed,
+                    maximumBytesPerPhase: networkSpeedMaximumBytesPerPhase,
+                    traceCacheSamples: networkSpeedTraceTimerCache.length,
+                    replayDelayMs: networkSpeedReplayDelayMs,
+                    replayActive: networkSpeedVisualizer && !networkSpeedVisualizer.isDisposed() ? networkSpeedVisualizer.isReplayActive() : false,
+                    targetFps: networkSpeedDisplayFps,
+                    measuredFps: networkSpeedVisualizer && !networkSpeedVisualizer.isDisposed() ? networkSpeedVisualizer.measuredFps() : 0
+                };
+            };
+
+            window.runNetworkSpeedTest = function(button) {
+                var trigger = button || document.getElementById('networkSpeedTestBtn');
+                if (!trigger || trigger.disabled) return;
+                var result = document.getElementById('networkSpeedTestResult');
+                if (typeof window.fetch !== 'function' || typeof window.performance === 'undefined' || typeof window.performance.now !== 'function') {
+                    setNetworkSpeedStatus('unavailable');
+                    if (result) result.innerText = '';
+                    return;
+                }
+
+                trigger.disabled = true;
+                trigger.style.opacity = '0.65';
+                var replaying = false;
+                setNetworkSpeedStatus('warmup');
+                if (result) result.innerText = '';
+                var details = document.getElementById('networkSpeedTestDetails');
+                if (details) details.innerHTML = '';
+                setNetworkSpeedLiveMetrics('—', '—');
+                networkSpeedLastResult = null;
+                window.networkSpeedLastResult = null;
+                networkSpeedSamples = { download: [], upload: [] };
+                networkSpeedTraceTimerCache = [];
+                networkSpeedTraceClockStartMs = performance.now();
+                networkSpeedTraceCacheSealed = false;
+                disposeNetworkSpeedVisualizer();
+                networkSpeedVisualizer = createNetworkSpeedVisualizer();
+                if (networkSpeedVisualizer) {
+                    networkSpeedVisualizer.beginReplay(networkSpeedTraceTimerCache, networkSpeedReplayDelayMs);
+                    replaying = true;
+                }
+
+                var downloadChunkBytes = 8 * 1024 * 1024;
+                var uploadChunkBytes = 4 * 1024 * 1024;
+                warmUpNetworkSpeedConnection()
+                    .then(function(warmup) {
+                        var adaptiveDownloadBytes = selectNetworkSpeedChunk(warmup.download, 512 * 1024, downloadChunkBytes);
+                        var adaptiveUploadBytes = selectNetworkSpeedChunk(warmup.upload, 256 * 1024, uploadChunkBytes);
+                        setNetworkSpeedStatus('download');
+                        return runNetworkSpeedWindow('download', adaptiveDownloadBytes, 512 * 1024, downloadChunkBytes).then(function(downloads) {
+                            setNetworkSpeedStatus('upload');
+                            return runNetworkSpeedWindow('upload', adaptiveUploadBytes, 256 * 1024, uploadChunkBytes).then(function(uploads) {
+                            var totalDownloadBytes = downloads.reduce(function(total, item) { return total + item.bytes; }, 0);
+                            var totalUploadBytes = uploads.reduce(function(total, item) { return total + item.bytes; }, 0);
+                            var downloadStats = summarizeNetworkSpeedSamples(downloads);
+                            var uploadStats = summarizeNetworkSpeedSamples(uploads);
+                            networkSpeedLastResult = {
+                                download: formatNetworkSpeedValue(downloadStats.medianMbps),
+                                upload: formatNetworkSpeedValue(uploadStats.medianMbps),
+                                elapsed: (networkSpeedTotalDurationMs / 1000).toFixed(1),
+                                data: formatNetworkSpeedMegabytes(totalDownloadBytes + totalUploadBytes + warmup.download.bytes + warmup.upload.bytes),
+                                downloadStats: downloadStats,
+                                uploadStats: uploadStats
+                            };
+                            window.networkSpeedLastResult = networkSpeedLastResult;
+                            renderNetworkSpeedResult();
+                            setNetworkSpeedStatus('done');
+                            var liveCaption = document.getElementById('networkSpeedLiveCaption');
+                            if (liveCaption) liveCaption.innerText = networkSpeedText('network_speed_done', 'Measurement complete');
+                            networkSpeedTraceCacheSealed = true;
+                            if (networkSpeedVisualizer && replaying) {
+                                networkSpeedReplayDisposeTimer = window.setTimeout(function() {
+                                    networkSpeedReplayDisposeTimer = null;
+                                    disposeNetworkSpeedVisualizer();
+                                }, networkSpeedReplayDelayMs + 450);
+                            }
+                            });
+                        });
+                    })
+                    .catch(function(error) {
+                        networkSpeedLastResult = null;
+                        window.networkSpeedLastResult = null;
+                        setNetworkSpeedLiveMetrics('—', '—');
+                        networkSpeedTraceCacheSealed = true;
+                        replaying = false;
+                        setNetworkSpeedStatus(error && error.message === 'fetch-unavailable' ? 'unavailable' : 'error');
+                        if (result) result.innerText = '';
+                    })
+                    .then(function() {
+                        while (networkSpeedActiveControllers.length) {
+                            var activeController = networkSpeedActiveControllers.pop();
+                            try { activeController.abort(); } catch (ignored) {}
+                        }
+                        if (!replaying) disposeNetworkSpeedVisualizer();
+                        trigger.disabled = false;
+                        trigger.style.opacity = '1';
+                    });
+            };
+
+            window.setNetworkSpeedStatus = setNetworkSpeedStatus;
+            window.renderNetworkSpeedResult = renderNetworkSpeedResult;
+            setNetworkSpeedStatus('idle');
+
             window.allNetworkAdapters = netData.Adapters || [];
-            
+            window.currentNetworkLatencyProfiles = [];
+
+            function escapeNetworkHtml(value) {
+                return String(value === null || typeof value === 'undefined' ? '' : value)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            }
+
+            function normalizeNetworkLatencyProfiles(adapter) {
+                if (adapter.LatencyProfiles && adapter.LatencyProfiles.length) return adapter.LatencyProfiles.slice();
+                function legacyProfile(key, label, category, target, value) {
+                    var numeric = Number(value);
+                    var reachable = isFinite(numeric) && numeric >= 0;
+                    return {
+                        Key: key, Label: label, Category: category, Target: target,
+                        LatencySamples: reachable ? [numeric] : [], Sent: 1, Received: reachable ? 1 : 0,
+                        PacketLossPct: reachable ? 0 : 100, MinimumMs: reachable ? numeric : -1,
+                        AverageMs: reachable ? numeric : -1, MaximumMs: reachable ? numeric : -1, JitterMs: 0
+                    };
+                }
+                return [
+                    legacyProfile('gateway', 'Local gateway', 'local', adapter.Gateway, adapter.PingGateway),
+                    legacyProfile('cloudflare', 'Cloudflare DNS', 'dns', '1.1.1.1', adapter.PingDNS1),
+                    legacyProfile('google', 'Google DNS', 'dns', '8.8.8.8', adapter.PingDNS2),
+                    legacyProfile('m365', 'Microsoft 365', 'cloud', 'login.microsoftonline.com', adapter.PingM365)
+                ];
+            }
+
+            function getNetworkLatencyGrade(endpoint) {
+                var average = Number(endpoint.AverageMs);
+                var loss = Number(endpoint.PacketLossPct || 0);
+                if (!isFinite(average) || average < 0 || Number(endpoint.Received || 0) < 1) return { key: 'network_latency_unreachable', label: 'Unreachable', color: '#f43f5e', order: 4 };
+                if (loss > 0 || average > 100) return { key: 'network_latency_high', label: 'High', color: '#fb7185', order: 3 };
+                if (average <= 20) return { key: 'network_latency_excellent', label: 'Excellent', color: '#34d399', order: 0 };
+                if (average <= 50) return { key: 'network_latency_good', label: 'Good', color: '#38bdf8', order: 1 };
+                return { key: 'network_latency_fair', label: 'Fair', color: '#fbbf24', order: 2 };
+            }
+
+            window.renderNetworkLatencyMatrix = function() {
+                var grid = document.getElementById('networkLatencyGrid');
+                if (!grid) return;
+                var filterControl = document.getElementById('networkLatencyFilter');
+                var sortControl = document.getElementById('networkLatencySort');
+                var filter = filterControl ? String(filterControl.value || 'all') : 'all';
+                var sort = sortControl ? String(sortControl.value || 'default') : 'default';
+                var profiles = window.currentNetworkLatencyProfiles.filter(function(endpoint) {
+                    return filter === 'all' || endpoint.Category === filter;
+                });
+                if (sort === 'fastest') {
+                    profiles.sort(function(a, b) {
+                        var av = Number(a.AverageMs) >= 0 ? Number(a.AverageMs) : Number.MAX_VALUE;
+                        var bv = Number(b.AverageMs) >= 0 ? Number(b.AverageMs) : Number.MAX_VALUE;
+                        return av - bv;
+                    });
+                } else if (sort === 'loss') {
+                    profiles.sort(function(a, b) { return Number(b.PacketLossPct || 0) - Number(a.PacketLossPct || 0); });
+                }
+
+                grid.innerHTML = profiles.map(function(endpoint) {
+                    var grade = getNetworkLatencyGrade(endpoint);
+                    var average = Number(endpoint.AverageMs);
+                    var reachable = isFinite(average) && average >= 0;
+                    var samples = Array.isArray(endpoint.LatencySamples) ? endpoint.LatencySamples : [];
+                    var label = endpoint.Key === 'gateway' ? networkSpeedText('network_latency_gateway', 'Local gateway') : endpoint.Label;
+                    function metric(key, fallback, value) {
+                        return '<div class="latency-detail"><span>' + networkSpeedText(key, fallback) + '</span><strong>' + (value >= 0 ? value + ' ms' : '—') + '</strong></div>';
+                    }
+                    return [
+                        '<article class="latency-card" style="--latency-accent:' + grade.color + '">',
+                        '<div class="latency-card-head"><div><div class="latency-name">' + escapeNetworkHtml(label) + '</div><div class="latency-target">' + escapeNetworkHtml(endpoint.Target) + '</div></div>',
+                        '<div class="latency-grade">' + networkSpeedText(grade.key, grade.label) + '</div></div>',
+                        '<div class="latency-reading">' + (reachable ? average : '—') + ' <small>ms</small></div>',
+                        '<div class="latency-details">',
+                        metric('network_latency_min', 'Min', Number(endpoint.MinimumMs)),
+                        metric('network_latency_avg', 'Avg', average),
+                        metric('network_latency_max', 'Max', Number(endpoint.MaximumMs)),
+                        metric('network_latency_jitter', 'Jitter', Number(endpoint.JitterMs)),
+                        '</div>',
+                        '<div class="latency-footer"><span>' + networkSpeedText('network_latency_loss', 'Loss') + ' ' + Number(endpoint.PacketLossPct || 0) + '%</span>',
+                        '<span>' + networkSpeedText('network_latency_replies', 'Replies') + ' ' + Number(endpoint.Received || 0) + '/' + Number(endpoint.Sent || 0) + (samples.length ? ' · ' + samples.join('/') + ' ms' : '') + '</span></div>',
+                        '</article>'
+                    ].join('');
+                }).join('');
+            };
+
             window.renderNetworkAdapterDetails = function(adapter) {
                 if (!adapter) return;
                 
@@ -9975,37 +14640,8 @@ sfc /scannow</pre>
                     ].join('');
                 }
 
-                var netGrid = document.getElementById('networkLatencyGrid');
-                if (netGrid) {
-                    var pGat = (adapter.PingGateway >= 0) ? (adapter.PingGateway + ' ms') : ((adapter.Gateway === 'Aucune passerelle') ? 'N/A' : 'Injoignable');
-                    var pCloud = (adapter.PingDNS1 >= 0) ? (adapter.PingDNS1 + ' ms') : 'Injoignable';
-                    var pGoog = (adapter.PingDNS2 >= 0) ? (adapter.PingDNS2 + ' ms') : 'Injoignable';
-                    var pM365 = (adapter.PingM365 >= 0) ? (adapter.PingM365 + ' ms') : 'Injoignable';
-
-                    var colGat = (adapter.PingGateway >= 0 && adapter.PingGateway <= 20) ? '#10b981' : (adapter.PingGateway > 20 ? '#f59e0b' : '#94a3b8');
-                    var colCloud = (adapter.PingDNS1 >= 0 && adapter.PingDNS1 <= 40) ? '#10b981' : (adapter.PingDNS1 > 40 ? '#f59e0b' : '#ef4444');
-                    var colGoog = (adapter.PingDNS2 >= 0 && adapter.PingDNS2 <= 40) ? '#10b981' : (adapter.PingDNS2 > 40 ? '#f59e0b' : '#ef4444');
-                    var colM365 = (adapter.PingM365 >= 0 && adapter.PingM365 <= 60) ? '#10b981' : (adapter.PingM365 > 60 ? '#f59e0b' : '#ef4444');
-
-                    netGrid.innerHTML = [
-                        '<div style="background:rgba(15,23,42,0.85); border:1px solid ' + colGat + '; border-radius:6px; padding:14px; text-align:center;">',
-                        '  <div style="font-size:11px; color:#94a3b8;">Passerelle Locale (' + adapter.Gateway + ')</div>',
-                        '  <div style="font-size:1.8rem; font-weight:800; font-family:\'Rajdhani\'; color:' + colGat + ';">' + pGat + '</div>',
-                        '</div>',
-                        '<div style="background:rgba(15,23,42,0.85); border:1px solid ' + colCloud + '; border-radius:6px; padding:14px; text-align:center;">',
-                        '  <div style="font-size:11px; color:#94a3b8;">DNS Cloudflare (1.1.1.1)</div>',
-                        '  <div style="font-size:1.8rem; font-weight:800; font-family:\'Rajdhani\'; color:' + colCloud + ';">' + pCloud + '</div>',
-                        '</div>',
-                        '<div style="background:rgba(15,23,42,0.85); border:1px solid ' + colGoog + '; border-radius:6px; padding:14px; text-align:center;">',
-                        '  <div style="font-size:11px; color:#94a3b8;">DNS Google (8.8.8.8)</div>',
-                        '  <div style="font-size:1.8rem; font-weight:800; font-family:\'Rajdhani\'; color:' + colGoog + ';">' + pGoog + '</div>',
-                        '</div>',
-                        '<div style="background:rgba(15,23,42,0.85); border:1px solid ' + colM365 + '; border-radius:6px; padding:14px; text-align:center;">',
-                        '  <div style="font-size:11px; color:#94a3b8;">Microsoft 365 Cloud (login.microsoftonline.com)</div>',
-                        '  <div style="font-size:1.8rem; font-weight:800; font-family:\'Rajdhani\'; color:' + colM365 + ';">' + pM365 + '</div>',
-                        '</div>'
-                    ].join('');
-                }
+                window.currentNetworkLatencyProfiles = normalizeNetworkLatencyProfiles(adapter);
+                window.renderNetworkLatencyMatrix();
             };
 
             window.changeNetworkAdapter = function(index) {
@@ -10067,6 +14703,23 @@ sfc /scannow</pre>
                 if (twLbl) twLbl.innerText = (diskData.TempWinMB || 0) + ' MB';
                 var sdLbl = document.getElementById('diskSoftDist');
                 if (sdLbl) sdLbl.innerText = (diskData.SoftDistMB || 0) + ' MB';
+
+                var volumesCont = document.getElementById('diskVolumesContainer');
+                var volumes = Array.isArray(diskData.Volumes) ? diskData.Volumes : [];
+                if (volumesCont) {
+                    if (volumes.length === 0) {
+                        volumesCont.innerHTML = '<div style="color:#94a3b8; font-size:12.5px;">Aucun volume local fixe détecté.</div>';
+                    } else {
+                        var volumeTable = '<table class="data-table"><thead><tr><th>Lecteur</th><th>Nom</th><th>Système</th><th>Taille</th><th>Utilisé</th><th>Libre</th><th>Libre (%)</th></tr></thead><tbody>';
+                        volumes.forEach(function(v) {
+                            var freePct = Number(v.FreePct) || 0;
+                            var freeCol = freePct < 10 ? '#f43f5e' : (freePct < 20 ? '#f59e0b' : '#34d399');
+                            volumeTable += '<tr><td><strong style="color:#38bdf8;">' + (v.Drive || '—') + '</strong></td><td>' + (v.Label || '—') + '</td><td>' + (v.FileSystem || '—') + '</td><td>' + (v.TotalGB || 0) + ' GB</td><td>' + (v.UsedGB || 0) + ' GB</td><td>' + (v.FreeGB || 0) + ' GB</td><td style="color:' + freeCol + ';font-weight:700;">' + freePct + ' %</td></tr>';
+                        });
+                        volumeTable += '</tbody></table>';
+                        volumesCont.innerHTML = volumeTable;
+                    }
+                }
             }
 
             // =============================================================
@@ -10205,11 +14858,11 @@ sfc /scannow</pre>
                 Desc: {
                     fr: "Outil d'établissement et de validation des comptes annuels selon les schémas officiels de la Banque Nationale de Belgique (BNB).",
                     nl: "Tool voor het opstellen en valideren van jaarrekeningen volgens de officiële schema's van de Nationale Bank van België (NBB).",
-                    en: "Official tool for preparing and validating annual accounts according to the National Bank of Belgium (NBB) schemas.",
-                    de: "Offizielles Tool zur Erstellung und Validierung von Jahresabschlüssen der Belgischen Nationalbank (NBB).",
-                    es: "Herramienta oficial para la elaboración de cuentas anuales según el Banco Nacional.",
-                    it: "Strumento ufficiale per la redazione dei bilanci annuali secondo la Banca Nazionale.",
-                    pt: "Ferramenta oficial para preparação de contas anuais de acordo com o Banco Nacional."
+                    en: "Editor solution for preparing annual accounts against the National Bank of Belgium (NBB) schemas.",
+                    de: "Editorlösung zur Erstellung von Jahresabschlüssen anhand der Schemata der Belgischen Nationalbank (NBB).",
+                    es: "Solución de editor para preparar cuentas anuales conforme a los esquemas del Banco Nacional.",
+                    it: "Soluzione dell'editore per predisporre i bilanci secondo gli schemi della Banca Nazionale.",
+                    pt: "Solução do editor para preparar contas anuais de acordo com os esquemas do Banco Nacional."
                 }
             },
             {
@@ -10242,10 +14895,122 @@ sfc /scannow</pre>
             }
         ];
 
-        window.renderBelgianTab = function(lang) {
+        function businessLocalizedText(frText, enText) {
+            return { fr: frText, nl: enText, en: enText, de: enText, es: enText, it: enText, pt: enText };
+        }
+
+        function businessCatalogItem(name, categoryFr, categoryEn, vendor, descFr, descEn, source, sourceKind, official) {
+            return {
+                Name: name,
+                Category: businessLocalizedText(categoryFr, categoryEn),
+                Vendor: vendor,
+                Desc: businessLocalizedText(descFr, descEn),
+                Source: source,
+                SourceKind: sourceKind || 'Référence éditeur',
+                Official: !!official
+            };
+        }
+
+        var belgianOfficialCatalog = [
+            businessCatalogItem('CSAM', 'Identité & mandats e-Gouvernement', 'e-Government identity & mandates', 'SPF BOSA / partenaires publics', 'Passerelle officielle belge pour l’identification, l’authentification, les mandats et la gestion des accès aux services publics.', 'Official Belgian gateway for identification, authentication, mandates and access management for public services.', 'https://www.csam.be/en/index.html', 'Portail officiel', true),
+            businessCatalogItem('MyMinfin', 'Fiscalité fédérale', 'Federal tax portal', 'SPF Finances', 'Portail officiel pour consulter les données fiscales, les documents et les démarches personnelles ou professionnelles.', 'Official federal tax portal for tax data, documents and personal or business filings.', 'https://finances.belgium.be/fr/e-services/myminfin', 'Portail officiel', true),
+            businessCatalogItem('Intervat', 'TVA & déclarations', 'VAT returns & listings', 'SPF Finances', 'Service officiel de dépôt des déclarations TVA, listings clients et opérations intracommunautaires.', 'Official service for VAT returns, customer listings and intra-community operations.', 'https://finances.belgium.be/fr/e-services/intervat', 'Portail officiel', true),
+            businessCatalogItem('Biztax', 'Impôt des sociétés', 'Corporate tax', 'SPF Finances', 'Service officiel pour les déclarations à l’impôt des sociétés et des personnes morales.', 'Official service for corporate and legal-entity tax returns.', 'https://finances.belgium.be/fr/e-services/biztax', 'Portail officiel', true),
+            businessCatalogItem('e-Deposit / Centrale des bilans', 'Dépôt des comptes annuels', 'Annual accounts filing', 'Banque nationale de Belgique', 'Canal officiel de préparation et de dépôt électronique des comptes annuels auprès de la BNB.', 'Official electronic preparation and filing channel for annual accounts at the NBB.', 'https://www.nbb.be/fr/centrale-des-bilans', 'Portail officiel', true)
+        ];
+
+        var businessEditorSources = {
+            'Winbooks Classic / on Web': 'https://www.winbooks.be/',
+            'Sage BOB 50 / BOB 100': 'https://www.sage.com/fr-be/',
+            'Isabel 6 Multi-Banking': 'https://www.isabelgroup.com/',
+            'Silverfin Connector': 'https://silverfin.com/',
+            'Accon Bilans BNB': 'https://www.wolterskluwer.com/',
+            'SuperFisc': 'https://www.wolterskluwer.com/',
+            'Octopus Accountancy': 'https://www.octopus.be/'
+        };
+        belgianCatalogMaster.forEach(function(item) {
+            item.Source = businessEditorSources[item.Name] || 'https://eid.belgium.be/en';
+            item.SourceKind = item.Name === 'Belgium e-ID Middleware' ? 'Écosystème eID officiel' : 'Référence éditeur';
+            item.Official = item.Name === 'Belgium e-ID Middleware';
+        });
+        belgianCatalogMaster[0].Source = 'https://eid.belgium.be/en';
+
+        var businessCountryCatalogs = {
+            be: belgianOfficialCatalog.concat(belgianCatalogMaster),
+            fr: [
+                businessCatalogItem('impots.gouv.fr', 'Fiscalité & déclarations', 'Tax portal & filings', 'Direction générale des Finances publiques', 'Portail officiel français pour les déclarations et démarches fiscales.', 'Official French tax portal for returns and tax services.', 'https://www.impots.gouv.fr/', 'Portail officiel', true),
+                businessCatalogItem('Net-entreprises', 'Déclarations sociales', 'Social declarations', 'GIP-MDS', 'Guichet officiel des déclarations sociales des entreprises.', 'Official gateway for French company social declarations.', 'https://www.net-entreprises.fr/', 'Portail officiel', true),
+                businessCatalogItem('Sage 50 France', 'Comptabilité & gestion', 'Accounting & management', 'Sage France', 'Solution métier de comptabilité et de gestion pour PME.', 'Business accounting and management solution for SMEs.', 'https://www.sage.com/fr-fr/', 'Référence éditeur', false),
+                businessCatalogItem('Cegid', 'Finance & paie', 'Finance & payroll', 'Cegid', 'Suite professionnelle française pour la finance, la paie et la fiscalité.', 'French professional suite for finance, payroll and tax.', 'https://www.cegid.com/fr/', 'Référence éditeur', false)
+            ],
+            uk: [
+                businessCatalogItem('HMRC Online Services', 'Fiscalité & TVA', 'Tax & VAT services', 'HM Revenue & Customs', 'Portail officiel britannique pour fiscalité, TVA et obligations déclaratives.', 'Official UK portal for tax, VAT and statutory filings.', 'https://www.gov.uk/browse/tax', 'Portail officiel', true),
+                businessCatalogItem('Companies House', 'Registre des sociétés', 'Company registry', 'UK Government', 'Registre officiel des entreprises du Royaume-Uni.', 'Official UK company register and filing service.', 'https://www.gov.uk/government/organisations/companies-house', 'Portail officiel', true),
+                businessCatalogItem('Xero UK', 'Comptabilité cloud', 'Cloud accounting', 'Xero', 'Solution cloud de comptabilité et de rapprochement bancaire pour entreprises.', 'Cloud accounting and bank-reconciliation platform for businesses.', 'https://www.xero.com/uk/', 'Référence éditeur', false),
+                businessCatalogItem('Sage Accounting UK', 'Comptabilité & paie', 'Accounting & payroll', 'Sage UK', 'Suite métier de comptabilité et de paie pour PME britanniques.', 'Accounting and payroll suite for UK SMEs.', 'https://www.sage.com/en-gb/', 'Référence éditeur', false)
+            ],
+            de: [
+                businessCatalogItem('ELSTER', 'Déclarations fiscales', 'Tax declarations', 'Finanzverwaltung Deutschland', 'Portail officiel allemand pour les déclarations fiscales électroniques.', 'Official German portal for electronic tax declarations.', 'https://www.elster.de/', 'Portail officiel', true),
+                businessCatalogItem('DATEV', 'Comptabilité & fiscalité', 'Accounting & tax', 'DATEV eG', 'Écosystème métier allemand largement utilisé par les cabinets comptables et fiscaux.', 'German professional ecosystem widely used by accounting and tax firms.', 'https://www.datev.de/', 'Référence éditeur', false),
+                businessCatalogItem('Lexware', 'Gestion PME', 'SME management', 'Haufe-Lexware', 'Logiciels de gestion, facturation et paie pour les PME allemandes.', 'Business, invoicing and payroll software for German SMEs.', 'https://www.lexware.de/', 'Référence éditeur', false)
+            ],
+            es: [
+                businessCatalogItem('Agencia Tributaria', 'Fiscalité & e-déclarations', 'Tax portal & filings', 'Gobierno de España', 'Portail officiel espagnol pour les obligations fiscales et déclarations électroniques.', 'Official Spanish portal for tax obligations and electronic filings.', 'https://sede.agenciatributaria.gob.es/', 'Portail officiel', true),
+                businessCatalogItem('SII / IVA online', 'TVA & facturation', 'VAT & invoicing', 'Agencia Tributaria', 'Service officiel espagnol de tenue et transmission des livres TVA.', 'Official Spanish VAT ledger and reporting service.', 'https://sede.agenciatributaria.gob.es/', 'Portail officiel', true),
+                businessCatalogItem('Sage 50 España', 'Comptabilité & gestion', 'Accounting & management', 'Sage España', 'Solution métier de gestion et comptabilité pour PME espagnoles.', 'Accounting and management solution for Spanish SMEs.', 'https://www.sage.com/es-es/', 'Référence éditeur', false),
+                businessCatalogItem('Holded', 'ERP cloud', 'Cloud ERP', 'Holded', 'ERP cloud espagnol pour facturation, finance et gestion commerciale.', 'Spanish cloud ERP for invoicing, finance and operations.', 'https://www.holded.com/', 'Référence éditeur', false)
+            ],
+            it: [
+                businessCatalogItem('Agenzia delle Entrate', 'Fiscalité & déclarations', 'Tax portal & filings', 'Agenzia delle Entrate', 'Portail officiel italien pour les déclarations et services fiscaux.', 'Official Italian tax portal and filing services.', 'https://www.agenziaentrate.gov.it/', 'Portail officiel', true),
+                businessCatalogItem('Fatture e Corrispettivi', 'Facturation électronique', 'Electronic invoicing', 'Agenzia delle Entrate', 'Service officiel italien de facturation électronique et transmissions fiscales.', 'Official Italian electronic invoicing and tax transmission service.', 'https://ivaservizi.agenziaentrate.gov.it/', 'Portail officiel', true),
+                businessCatalogItem('TeamSystem', 'Comptabilité & paie', 'Accounting & payroll', 'TeamSystem', 'Suite métier italienne pour comptabilité, paie et gestion.', 'Italian business suite for accounting, payroll and management.', 'https://www.teamsystem.com/', 'Référence éditeur', false),
+                businessCatalogItem('Zucchetti', 'ERP & fiscalité', 'ERP & tax', 'Zucchetti', 'Écosystème logiciel italien pour ERP, ressources humaines et fiscalité.', 'Italian software ecosystem for ERP, HR and tax.', 'https://www.zucchetti.it/', 'Référence éditeur', false)
+            ],
+            pt: [
+                businessCatalogItem('Portal das Finanças', 'Fiscalité & déclarations', 'Tax portal & filings', 'Autoridade Tributária e Aduaneira', 'Portail officiel portugais pour les déclarations et obligations fiscales.', 'Official Portuguese tax portal and filings.', 'https://www.portaldasfinancas.gov.pt/', 'Portail officiel', true),
+                businessCatalogItem('e-Fatura', 'Facturation & TVA', 'Invoicing & VAT', 'Autoridade Tributária e Aduaneira', 'Service officiel portugais pour les factures et la TVA.', 'Official Portuguese invoicing and VAT service.', 'https://faturas.portaldasfinancas.gov.pt/', 'Portail officiel', true),
+                businessCatalogItem('PRIMAVERA', 'ERP & comptabilité', 'ERP & accounting', 'PRIMAVERA BSS', 'Solution métier portugaise de gestion, comptabilité et facturation.', 'Portuguese business solution for ERP, accounting and invoicing.', 'https://pt.primaverabss.com/', 'Référence éditeur', false),
+                businessCatalogItem('PHC CS', 'ERP & gestion PME', 'SME ERP', 'PHC Software', 'ERP portugais pour la gestion commerciale et financière des PME.', 'Portuguese ERP for SME commercial and financial management.', 'https://www.phcsoftware.com/', 'Référence éditeur', false)
+            ]
+        };
+        var countryCatalogs = businessCountryCatalogs;
+        var selectedBusinessCountry = 'be';
+        var businessUiText = {
+            fr: { sheets: 'fiches', official: 'portails officiels', editor: 'références éditeur', independent: 'Détection locale indépendante du statut catalogue.', officialLink: 'Source officielle ↗', editorLink: 'Fiche éditeur ↗' },
+            nl: { sheets: 'fiches', official: 'officiële portalen', editor: 'uitgeversreferenties', independent: 'Lokale detectie staat los van de catalogusstatus.', officialLink: 'Officiële bron ↗', editorLink: 'Uitgeversfiche ↗' },
+            en: { sheets: 'sheets', official: 'official portals', editor: 'editor references', independent: 'Local detection is independent from catalogue status.', officialLink: 'Official source ↗', editorLink: 'Editor page ↗' },
+            de: { sheets: 'Einträge', official: 'offizielle Portale', editor: 'Herstellerreferenzen', independent: 'Die lokale Erkennung ist unabhängig vom Katalogstatus.', officialLink: 'Offizielle Quelle ↗', editorLink: 'Herstellerseite ↗' }
+        };
+
+        function normalizeBusinessCountry(value) {
+            var allowed = { be: true, fr: true, uk: true, de: true, es: true, it: true, pt: true };
+            var normalized = String(value || '').toLowerCase();
+            return allowed[normalized] ? normalized : 'be';
+        }
+
+        function changeBusinessCountry(value) {
+            selectedBusinessCountry = normalizeBusinessCountry(value);
+            window.renderBelgianTab(currentLang || 'fr', selectedBusinessCountry);
+        }
+        window.changeBusinessCountry = changeBusinessCountry;
+
+        window.renderBelgianTab = function(lang, country) {
             var belgCont = document.getElementById('belgianAppsGrid');
             var certsCont = document.getElementById('belgianCertsGrid');
             var currentL = lang || currentLang || 'fr';
+            if (country !== undefined) selectedBusinessCountry = normalizeBusinessCountry(country);
+            var catalogKey = normalizeBusinessCountry(selectedBusinessCountry);
+            var currentCatalog = businessCountryCatalogs[catalogKey] || businessCountryCatalogs.be;
+            var countrySelect = document.getElementById('businessCountrySelect');
+            var catalogMeta = document.getElementById('businessCatalogMeta');
+            var ui = businessUiText[currentL] || businessUiText.fr;
+            if (countrySelect) countrySelect.value = catalogKey;
+            if (catalogMeta) {
+                var officialCount = currentCatalog.filter(function(item) { return item.Official; }).length;
+                var editorCount = currentCatalog.length - officialCount;
+                var countryLabel = ({ be: 'Belgique', fr: 'France', uk: 'Royaume-Uni / États-Unis', de: 'Allemagne', es: 'Espagne', it: 'Italie', pt: 'Portugal' })[catalogKey];
+                catalogMeta.innerHTML = '<strong>' + countryLabel + '</strong><span class="catalog-meta-chip">' + currentCatalog.length + ' ' + ui.sheets + '</span><span class="catalog-meta-chip">' + officialCount + ' ' + ui.official + '</span><span class="catalog-meta-chip">' + editorCount + ' ' + ui.editor + '</span><span>' + ui.independent + '</span>';
+            }
 
             var detectedAppsMap = {};
             var rawApps = (window.belgianData && window.belgianData.Apps) ? window.belgianData.Apps : (Array.isArray(window.belgianData) ? window.belgianData : []);
@@ -10255,7 +15020,7 @@ sfc /scannow</pre>
 
             if (belgCont) {
                 var bHtml = '';
-                belgianCatalogMaster.forEach(function(item) {
+                currentCatalog.forEach(function(item) {
                     var detected = detectedAppsMap[item.Name.toLowerCase()] || {};
                     // Also check partial match for Belgium e-ID
                     if (!detected.Installed && item.Name.indexOf("e-ID") !== -1) {
@@ -10278,8 +15043,9 @@ sfc /scannow</pre>
 
                     var catText = (item.Category && item.Category[currentL]) ? item.Category[currentL] : (item.Category ? item.Category.fr : 'Logiciel Métier');
                     var descText = (item.Desc && item.Desc[currentL]) ? item.Desc[currentL] : (item.Desc ? item.Desc.fr : '');
+                    var sourceKindText = item.Official ? ui.official : (currentL === 'nl' ? 'Uitgeversreferentie' : (currentL === 'en' ? 'Editor reference' : (currentL === 'de' ? 'Herstellerreferenz' : 'Référence éditeur')));
 
-                    bHtml += '<div style="background:' + bBg + '; border:1px solid ' + bBorder + '; border-left:4px solid ' + bColor + '; border-radius:8px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:' + (isInstalled ? '0 0 16px rgba(16,185,129,0.12)' : 'none') + ';">';
+                    bHtml += '<div class="business-catalog-card" style="background:' + bBg + '; border:1px solid ' + bBorder + '; border-left:4px solid ' + bColor + '; border-radius:8px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:' + (isInstalled ? '0 0 16px rgba(16,185,129,0.12)' : 'none') + ';">';
                     bHtml += '  <div>';
                     bHtml += '    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">';
                     bHtml += '      <strong style="color:#f1f5f9; font-size:14px; font-weight:800;">' + item.Name + '</strong>';
@@ -10287,6 +15053,7 @@ sfc /scannow</pre>
                     bHtml += '    </div>';
                     bHtml += '    <div style="font-size:11.5px; color:#38bdf8; font-weight:700; margin-bottom:8px;">' + catText + '</div>';
                     bHtml += '    <p style="font-size:12px; color:#cbd5e1; line-height:1.5; margin:6px 0 12px 0;">' + descText + '</p>';
+                    bHtml += '    <div class="business-source-line"><span class="business-source-kind ' + (item.Official ? 'official' : '') + '">' + sourceKindText + '</span><a href="' + (item.Source || '#') + '" target="_blank" rel="noopener noreferrer">' + (item.Official ? ui.officialLink : ui.editorLink) + '</a></div>';
                     bHtml += '  </div>';
                     bHtml += '  <div style="font-size:11px; color:#94a3b8; border-top:1px solid rgba(255,255,255,0.08); padding-top:10px; display:flex; justify-content:space-between; align-items:center;">';
                     bHtml += '    <span>Éditeur : <strong style="color:#f1f5f9;">' + item.Vendor + '</strong></span>';
@@ -10325,14 +15092,16 @@ sfc /scannow</pre>
 
             // 6. Populate SMART Disks
             var smartCont = document.getElementById('smartDisksContainer');
-            if (smartCont && benchData.length > 0) {
+            if (smartCont && smartData.length > 0) {
                 var smTable = '<table class="data-table"><thead><tr><th>Disque Physique</th><th>Type Média</th><th>Taille</th><th>Santé SMART</th><th>Usure (%)</th><th>Heures Activité</th><th>Température</th><th>Erreurs Lecture</th></tr></thead><tbody>';
-                benchData.forEach(function(d) {
+                smartData.forEach(function(d) {
                     var hCol = (d.Health === 'Healthy' || d.Health === 'OK') ? '#34d399' : '#ef4444';
                     smTable += '<tr><td><strong>' + d.Model + '</strong></td><td>' + d.MediaType + '</td><td>' + d.SizeGB + ' GB</td><td style="color:' + hCol + '; font-weight:bold;">' + d.Health + '</td><td>' + d.WearPct + ' %</td><td>' + d.PowerOnHours + ' h</td><td>' + d.Temperature + '</td><td>' + d.ReadErrors + '</td></tr>';
                 });
                 smTable += '</tbody></table>';
                 smartCont.innerHTML = smTable;
+            } else if (smartCont) {
+                smartCont.innerHTML = '<div style="color:#94a3b8; font-size:12.5px;">Télémétrie SMART indisponible pour les disques détectés.</div>';
             }
 
             // =============================================================
@@ -10376,7 +15145,8 @@ sfc /scannow</pre>
                     networkAudit: netData,
                     securityAudit: secData,
                     belgianApps: belgianData,
-                    smartDisks: benchData
+                    performanceBenchmark: benchData,
+                    smartDisks: smartData
                 };
                 var blob = new Blob([JSON.stringify(fullExport, null, 2)], { type: 'application/json' });
                 var url = URL.createObjectURL(blob);
@@ -10472,8 +15242,13 @@ $htmlOutput = $htmlOutput.Replace('__OS_NAME__', $osName)
 $htmlOutput = $htmlOutput.Replace('__OS_VER__', $osVer)
 $htmlOutput = $htmlOutput.Replace('__CPU__', $cpuName)
 $htmlOutput = $htmlOutput.Replace('__RAM__', $ramGB)
+$htmlOutput = $htmlOutput.Replace('__RAM_UNIT__', $ramUnit)
 $htmlOutput = $htmlOutput.Replace('__UPTIME__', $upStr)
+$htmlOutput = $htmlOutput.Replace('__UPTIME_DAYS__', [string]$uptime.Days)
+$htmlOutput = $htmlOutput.Replace('__UPTIME_HOURS__', [string]$uptime.Hours)
+$htmlOutput = $htmlOutput.Replace('__UPTIME_MINUTES__', [string]$uptime.Minutes)
 $htmlOutput = $htmlOutput.Replace('__BOOTMODE__', $bMode)
+$htmlOutput = $htmlOutput.Replace('__BOOTMODE_KEY__', $bModeKey)
 $htmlOutput = $htmlOutput.Replace('__TOTAL_COUNT__', [string]$totalCount)
 $htmlOutput = $htmlOutput.Replace('__OK_COUNT__', [string]$okCount)
 $htmlOutput = $htmlOutput.Replace('__WARN_COUNT__', [string]$warnCount)
@@ -10521,6 +15296,7 @@ $htmlOutput = $htmlOutput.Replace('__HISTORY_JSON__', (ConvertTo-Utf8Base64 $his
 $htmlOutput = $htmlOutput.Replace('__PREDICTIVE_TEXT__', [string]$healthPrediction)
 $htmlOutput = $htmlOutput.Replace('__CVE_JSON__', (ConvertTo-Utf8Base64 $cveMatchesJson))
 $htmlOutput = $htmlOutput.Replace('__BENCH_JSON__', (ConvertTo-Utf8Base64 $benchDataJson))
+$htmlOutput = $htmlOutput.Replace('__SMART_JSON__', (ConvertTo-Utf8Base64 $smartDataJson))
 $htmlOutput = $htmlOutput.Replace('__CPU_BENCH_SCORE__', [string]$cpuScore)
 $htmlOutput = $htmlOutput.Replace('__CPU_BENCH_MS__', [string]$cpuBenchMs)
 $cpuOpsPerSecText = if ($null -ne $cpuOpsPerSec) { $cpuOpsPerSec.ToString("N0") } else { '0' }
@@ -10529,13 +15305,27 @@ $htmlOutput = $htmlOutput.Replace('__CPU_TIER_NAME__', [string]$cpuTierName)
 $htmlOutput = $htmlOutput.Replace('__CPU_TIER_BADGE__', [string]$cpuTierBadge)
 $htmlOutput = $htmlOutput.Replace('__CPU_TIER_COL__', [string]$cpuTierCol)
 $htmlOutput = $htmlOutput.Replace('__CPU_TIER_DESC__', [string]$cpuTierDesc)
-$cpuBarPct = [math]::Min(95, [math]::Max(5, [math]::Round(($cpuBenchMs / 200.0) * 100)))
 $htmlOutput = $htmlOutput.Replace('__CPU_BAR_PCT__', [string]$cpuBarPct)
-$cpuNameFull = if ($cpuInfo -and $cpuInfo.Name) { $cpuInfo.Name } else { "$env:PROCESSOR_IDENTIFIER" }
 $htmlOutput = $htmlOutput.Replace('__CPU_NAME_FULL__', [string]$cpuNameFull)
 $htmlOutput = $htmlOutput.Replace('__CPU_HIGHLIGHT_ROW_PRO__', "")
 $htmlOutput = $htmlOutput.Replace('__CPU_HIGHLIGHT_CURRENT__', "")
 $htmlOutput = $htmlOutput.Replace('__DISK_AUDIT_JSON__', (ConvertTo-Utf8Base64 $diskAuditJson))
+$htmlOutput = $htmlOutput.Replace('__GPU_NAME__', [string](Escape-Html $gpuName))
+$htmlOutput = $htmlOutput.Replace('__GPU_VRAM__', [string]$gpuVramGB)
+$htmlOutput = $htmlOutput.Replace('__GPU_SCORE__', [string]$gpuScore)
+$htmlOutput = $htmlOutput.Replace('__GPU_TIER__', [string](Escape-Html $gpuTierName))
+$htmlOutput = $htmlOutput.Replace('__GPU_TIER_COL__', [string]$gpuTierCol)
+$htmlOutput = $htmlOutput.Replace('__GPU_DESC__', [string](Escape-Html $gpuDesc))
+$htmlOutput = $htmlOutput.Replace('__RAM_TOTAL__', [string]$ramTotalGBBench)
+$htmlOutput = $htmlOutput.Replace('__RAM_SPEED__', [string]$ramSpeedMHz)
+$htmlOutput = $htmlOutput.Replace('__RAM_SCORE__', [string]$ramScore)
+$htmlOutput = $htmlOutput.Replace('__RAM_TIER__', [string](Escape-Html $ramTierName))
+$htmlOutput = $htmlOutput.Replace('__RAM_TIER_COL__', [string]$ramTierCol)
+$htmlOutput = $htmlOutput.Replace('__RAM_XMP__', [string](Escape-Html $xmpStatus))
+$htmlOutput = $htmlOutput.Replace('__RAM_DESC__', [string](Escape-Html $ramDesc))
+$htmlOutput = $htmlOutput.Replace('__GLOBAL_PERF_SCORE__', [string]$globalPerfScore)
+$htmlOutput = $htmlOutput.Replace('__GLOBAL_PERF_COLOR__', [string]$globalPerfColor)
+$htmlOutput = $htmlOutput.Replace('__GLOBAL_PERF_LABEL__', [string](Escape-Html $globalPerfLabel))
 $htmlOutput = $htmlOutput.Replace('__NETWORK_AUDIT_JSON__', (ConvertTo-Utf8Base64 $networkAuditJson))
 $htmlOutput = $htmlOutput.Replace('__ADAPTER_OPTIONS_HTML__', [string]$adapterOptionsHtml)
 $htmlOutput = $htmlOutput.Replace('__SECURITY_AUDIT_JSON__', (ConvertTo-Utf8Base64 $securityAuditJson))
@@ -10566,11 +15356,13 @@ $Duration = [math]::Round(((Get-Date) - $StartTime).TotalSeconds, 1)
 
 Write-Host ""
 Write-Host "==========================================================================" -ForegroundColor Green
-Write-Host "  ✅ DIAGNOSTIC IT & SCANNER DE PACKAGES TERMINÉ en $Duration s !         " -ForegroundColor Green
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'FinalComplete' -Values @{ Duration = $Duration }) -ForegroundColor Green
 Write-Host "==========================================================================" -ForegroundColor Green
-Write-Host "  📊 Bilan : $totalCount tests ($okCount OK, $warnCount avertissements, $errorCount pannes)" -ForegroundColor White
-Write-Host "  📦 Profils & Runtimes : 12 Profils Métiers + Détecteur Runtimes & FOSS" -ForegroundColor White
-Write-Host "  📁 Rapport Bureau : $ReportPath" -ForegroundColor Cyan
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'FinalSummary' -Values @{
+    Total = $totalCount; Ok = $okCount; Warn = $warnCount; Error = $errorCount
+}) -ForegroundColor White
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'FinalProfiles') -ForegroundColor White
+Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'FinalReport' -Values @{ Path = $ReportPath }) -ForegroundColor Cyan
 Write-Host "==========================================================================" -ForegroundColor Green
 Write-Host ""
 
@@ -10578,5 +15370,35 @@ if (-not $NoOpen) {
     Start-Process $ReportPath
 }
 if (-not $NonInteractive) {
-    Read-Host -Prompt "Appuyez sur [Entrée] pour fermer la console"
+    Write-Host (Get-DiagConsoleMessage -Language $Lang -Key 'PressEnterOrRerun') -ForegroundColor DarkGray
+    $shouldRerun = $false
+    try {
+        if ([Console]::IsInputRedirected) {
+            Read-Host -Prompt (Get-DiagConsoleMessage -Language $Lang -Key 'PressEnter') | Out-Null
+        } else {
+            $keyInfo = [Console]::ReadKey($true)
+            $shouldRerun = $keyInfo.Key -eq [ConsoleKey]::Enter -and
+                (($keyInfo.Modifiers -band [ConsoleModifiers]::Shift) -ne 0)
+        }
+    } catch {
+        # Hosts without a readable console still get the original Enter-to-close fallback.
+        Read-Host -Prompt (Get-DiagConsoleMessage -Language $Lang -Key 'PressEnter') | Out-Null
+    }
+
+    if ($shouldRerun -and $PSCommandPath) {
+        $rerunArguments = @(
+            '-NoProfile'
+            '-ExecutionPolicy'
+            'Bypass'
+            '-File'
+            $PSCommandPath
+            '-Lang'
+            $Lang
+        )
+        if ($NoElevate) { $rerunArguments += '-NoElevate' }
+        if ($OutputPath) { $rerunArguments += @('-OutputPath', $OutputPath) }
+        if ($NoOpen) { $rerunArguments += '-NoOpen' }
+
+        & powershell.exe @rerunArguments
+    }
 }
