@@ -15,7 +15,7 @@
 [📋 Les 18 Menus & Modules](#-les-18-menus--modules-détaillés) •
 [🌐 Moteur Multilingue (4 Langues)](#-moteur-multilingue-4-langues) •
 [⚡ Protocole 1-Clic `diagit://`](#-protocole-windows-1-clic-diagit) •
-[🏛️ Logiciels Métiers & eID](#-logiciels-métiers-étatiques--certificats-eid) •
+[🏛️ Services nationaux & eID](#-services-nationaux-eid--logiciels-métiers) •
 [📊 Score de Santé Prédictif](#-score-de-santé-prédictif) •
 [📦 Exports locaux](#-exports-locaux--remise-client) •
 [⚙️ CLI & Automatisation](#-options-en-ligne-de-commande-cli)
@@ -36,8 +36,8 @@ Développé selon le **Référentiel Méthodologique IT Niveau 3 (Observer ➔ T
 * **⚡ Protocole URL Windows 1-Clic (`diagit://run?lang=XX`)** : Relancez l'analyse dans la langue choisie depuis le navigateur (Opera, Chrome, Edge, Firefox) avec élévation automatique Administrateur.
 * **🛡️ Scanner de Vulnérabilités CVE (CVSS $\ge$ 7.0)** : Détection proactive des failles critiques sur les logiciels installés avec commandes de patch Winget en 1 clic.
 * **📈 Score de Santé Prédictif & Historique Glissant** : Calcul mathématique pondéré sur 5 piliers sectoriels et rétention FIFO des 120 derniers diagnostics en base JSON locale.
-* **🏛️ Écosystème Métier & Certificats eID Adaptatifs** : Détection des suites logicielles par pays (Belgique, France, UK/US, Allemagne, Espagne, Italie, Portugal) et audit complet des certificats d'authentification/signature eID.
-* **🌌 Univers 3D FOSS Interactif (Three.js WebGL)** : Cartographie 3D de 90+ alternatives libres avec shaders cosmiques (Trou Noir gravitationnel & Soleil à plasma) et générateur de scripts Winget.
+* **🏛️ Services nationaux, eID & logiciels métiers** : Catalogue par pays (Belgique, France, UK/US, Allemagne, Espagne, Italie, Portugal), services publics vérifiés et inventaire local de certificats séparé.
+* **🌌 Applications libres 3D (Three.js WebGL)** : Cartographie 3D de 90+ alternatives libres avec shaders cosmiques (Trou Noir gravitationnel & Soleil à plasma) et générateur de scripts Winget.
 * **📦 Exports locaux, sans télémétrie sortante** : Génération dans le navigateur de fichiers JSON compatibles RMM, d'un inventaire CSV et d'une impression PDF A4, sans webhook ni envoi automatique.
 
 ### 🔒 Confidentialité et réseau fermé
@@ -82,10 +82,10 @@ Le tableau de bord est organisé en une grille cybernétique stricte de **18 men
 | **4** | **🌐 Audit Réseau & RDP** | Audite carte, passerelle, DNS, RDP, SMB, MTU et Winsock.<br>La matrice conserve min/moyenne/max, gigue et pertes par cible.<br>Le test de débit volontaire mesure réception et envoi sans écrire de fichier. |
 | **5** | **💾 Analyses Disques** | Recense les volumes, l'espace libre et les dossiers volumineux.<br>Présente santé SMART, usure, température, heures et erreurs disponibles.<br>Calcule les caches temporaires et fournit une purge explicitement déclenchée. |
 | **6** | **🚀 Démarrage & Startup** | Évalue Fast Startup, hibernation, alimentation et throttling CPU.<br>Liste les programmes au démarrage avec emplacement et heuristique de risque.<br>Les actions restent explicites, relisibles et copiables. |
-| **7** | **Logiciels Métiers, E-Banking & eID** | Catalogue adaptatif piloté par une liste blanche (BE, FR, UK/US, DE, ES, IT, PT).<br>Les portails officiels sont distingués des références éditeur ; chaque fiche expose catégorie, éditeur, source et statut local.<br>Le magasin eID ajoute émetteur, portée, expiration et jours restants, sans conférer d'agrément. |
+| **7** | **Services nationaux, eID & logiciels métiers** | Catalogue adaptatif piloté par une liste blanche (BE, FR, UK/US, DE, ES, IT, PT).<br>Chaque pays propose 20 services publics HTTPS, contrôlés contre des domaines institutionnels, plus un guide d'identité numérique/certificats officiel.<br>Les références éditeur et l'inventaire local Windows restent séparés : aucun certificat détecté ne vaut agrément. |
 | **8** | **⚡ Benchmarks CPU, GPU & RAM** | Mesure le CPU après échauffement, sur cinq passes et via une médiane stable.<br>Estime GPU et RAM, avec contrôle indirect XMP/EXPO.<br>Le stress-test GPU optionnel Three.js dure 10 s et restitue FPS, 1 % low, timer GPU et débit géométrique. |
 | **9** | **👤 Sécurité & Anomalies** | Inventorie administrateurs locaux, comptes Windows et âge des mots de passe.<br>Repère les processus depuis `%TEMP%` ou `Public` et les ports TCP à l'écoute.<br>Les résultats guident une vérification humaine sans bloquer ni supprimer automatiquement. |
-| **10** | **🌐 Arbre 3D FOSS** | Visualise plus de 90 outils libres dans 18 thématiques professionnelles.<br>Chaque tiroir relie alternative propriétaire, description, site officiel et commande Winget.<br>Le rendu Three.js est fourni localement, sans dépendance CDN. |
+| **10** | **🌐 Applications libres 3D** | Visualise plus de 90 outils libres dans 18 thématiques professionnelles.<br>Chaque tiroir relie alternative propriétaire, description, site officiel et commande Winget.<br>Le rendu Three.js est fourni localement, sans dépendance CDN. |
 | **11** | **📋 Tous les Tests (26)** | Présente chaque sonde Niveau 3 avec son statut et ses métriques brutes.<br>Conserve le contexte et l'horodatage de l'exécution.<br>Les filtres permettent une revue ciblée sans masquer les alertes actives. |
 | **12** | **📦 Profils Winget** | Regroupe les outils par profil métier : développement, administration, création, sécurité ou études.<br>Chaque profil compose des commandes Winget à relire puis copier.<br>Aucune installation n'est déclenchée automatiquement. |
 | **13** | **⌨️ Raccourcis Pro** | Rassemble MMC, services, disques, registre et autres consoles Windows.<br>Les cartes compactes proposent une ouverture ou une copie contrôlée.<br>PowerToys est documenté avec liens officiels et commande Winget. |
@@ -125,9 +125,11 @@ Ce script enregistre deux protocoles locaux dans le profil Windows courant :
 
 ---
 
-## 🏛️ Logiciels Métiers, Étatiques & Certificats eID
+## 🏛️ Services nationaux, eID & logiciels métiers
 
-L'onglet **Logiciels Métiers, E-Banking & Fiscalité** possède un sélecteur national strictement limité à `BE`, `FR`, `UK/US`, `DE`, `ES`, `IT` et `PT`. Le catalogue sépare explicitement les services publics vérifiables des solutions commerciales : une référence éditeur n'est jamais présentée comme un agrément gouvernemental.
+L'onglet **Services nationaux, eID & logiciels métiers** possède un sélecteur national strictement limité à `BE`, `FR`, `UK/US`, `DE`, `ES`, `IT` et `PT`. Il sépare explicitement les solutions commerciales des services publics : une référence éditeur n'est jamais présentée comme un agrément gouvernemental.
+
+Pour chaque pays, la première zone fournit exactement **20 liens HTTPS** vers des services institutionnels, organisés par usage. Les URL sont filtrées au rendu par une liste blanche de domaines gouvernementaux ou publics propre au pays sélectionné ; un lien hors liste n’est pas affiché. La fiche adjacente explique le mécanisme d’identité/certificats national (eID/CSAM, FranceConnect, GOV.UK One Login, BundID, Cl@ve, SPID/CIE ou Autenticação.gov) sans prétendre vérifier sa validité sur le poste.
 
 * **🇧🇪 Belgique — portails officiels** : Belgium e-ID Middleware, CSAM (identité, mandats et accès), MyMinfin, Intervat, Biztax et e-Deposit/Centrale des bilans (BNB).
 * **🇧🇪 Belgique — références métier** : Winbooks, Sage BOB 50/100, Isabel 6 Multi-Banking, Silverfin, Accon, SuperFisc et Octopus ; la fiche affiche le lien de l'éditeur et le statut détecté sur le poste.
@@ -138,12 +140,12 @@ L'onglet **Logiciels Métiers, E-Banking & Fiscalité** possède un sélecteur n
 * **🇮🇹 Italie** : Agenzia delle Entrate et Fatture e Corrispettivi (portails officiels), complétés par TeamSystem et Zucchetti.
 * **🇵🇹 Portugal** : Portal das Finanças et e-Fatura (portails officiels), complétés par PRIMAVERA et PHC CS.
 
-Les liens officiels présentés dans le catalogue pointent vers les domaines institutionnels (`eid.belgium.be`, `csam.be`, `finances.belgium.be`, `nbb.be`). La détection locale (installé/non installé, version) reste indépendante de la fiche catalogue.
+Les services officiels couvrent notamment MyMinfin et CSAM en Belgique, Service-Public/FranceConnect en France, GOV.UK/USA.gov, BundID/ELSTER, Cl@ve/Agencia Tributaria, SPID/Agenzia delle Entrate et Autenticação.gov/Portal das Finanças. La détection locale (installé/non installé, version) reste indépendante de ces fiches publiques.
 
 ### 🔐 Surveillance des Certificats Numériques :
 * Détection automatique des certificats stockés dans `Cert:\CurrentUser\My` et `Cert:\LocalMachine\My`.
-* Surveillance des autorités officielles (*Citizen CA, BOSA, Fedict, eID National*).
 * Calcul automatique du compte à rebours d'expiration et alertes proactives pour les certificats arrivant à échéance à $\le 30\text{ jours}$ ou $\le 7\text{ jours}$.
+* Cette télémétrie est un inventaire local : elle ne valide ni une eID, ni un certificat de signature, ni l'accès à un portail national.
 
 ---
 

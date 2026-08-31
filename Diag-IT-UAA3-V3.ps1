@@ -1538,7 +1538,7 @@ foreach ($prof in $profilesData) {
     $profilesHtml += '    <div style="display:flex; align-items:center; gap:10px;">'
     $profilesHtml += '      <span class="drawer-chevron">▶</span>'
     $profilesHtml += '      <div>'
-    $profilesHtml += '        <h3 style="margin:0; font-size:15px; color:var(--neon-cyan);">' + (Escape-Html $prof.Title) + '</h3>'
+    $profilesHtml += '        <h3 class="profile-drawer-title">' + (Escape-Html $prof.Title) + '</h3>'
     $profilesHtml += '        <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">' + (Escape-Html $prof.Desc) + '</div>'
     $profilesHtml += '      </div>'
     $profilesHtml += '    </div>'
@@ -2942,8 +2942,10 @@ __THREE_JS__
             --neon-rose: #f43f5e;
             --ui-cyan: #73b9c5;
             --ui-emerald: #78b99a;
-            --ui-amber: #c8a565;
-            --ui-rose: #c98a9a;
+            /* Semantic alerts stay calmer than the raw neon tokens, but must
+               remain immediately legible in dense diagnostic views. */
+            --ui-amber: #e3ad4e;
+            --ui-rose: #df7184;
             --ui-purple: #aa91bb;
             --ui-frame: rgba(110, 143, 169, 0.22);
             --glow-cyan: 0 0 15px rgba(0, 240, 255, 0.25);
@@ -3031,6 +3033,103 @@ __THREE_JS__
             border-color: rgba(133, 167, 190, 0.38);
         }
 
+        /* Shared frame language: a vertical neon rail, softened like the dashboard buttons.
+           Status cards retain their semantic colour; structural surfaces use cyan. */
+        .neon-surface,
+        .table-section.glass-panel,
+        .runtime-card,
+        .guide-card,
+        .profile-drawer,
+        .sci-drawer,
+        .foss-card,
+        .business-public-services,
+        .business-certificate-guidance,
+        .business-catalog-toolbar,
+        .public-service-group,
+        .business-catalog-card,
+        .drawer-header,
+        .exam-tip-box,
+        .res-card,
+        .code-block,
+        .custom-winget-box,
+        .benchmark-gpu-card,
+        .benchmark-cpu-card,
+        .benchmark-ram-card,
+        .benchmark-global-card {
+            --surface-accent: var(--neon-cyan);
+            position: relative;
+            isolation: isolate;
+            border-left-width: 1px !important;
+            border-left-color: var(--ui-frame) !important;
+        }
+
+        .neon-surface.neon-emerald { --surface-accent: var(--neon-emerald); }
+        .neon-surface.neon-purple { --surface-accent: var(--neon-purple); }
+        .neon-surface.neon-amber { --surface-accent: var(--neon-amber); }
+
+        .neon-surface::after,
+        .table-section.glass-panel::after,
+        .runtime-card::after,
+        .guide-card::after,
+        .profile-drawer::after,
+        .sci-drawer::after,
+        .foss-card::after,
+        .business-public-services::after,
+        .business-certificate-guidance::after,
+        .business-catalog-toolbar::after,
+        .public-service-group::after,
+        .business-catalog-card::after,
+        .drawer-header::after,
+        .exam-tip-box::after,
+        .res-card::after,
+        .code-block::after,
+        .custom-winget-box::after,
+        .benchmark-gpu-card::after,
+        .benchmark-cpu-card::after,
+        .benchmark-ram-card::after,
+        .benchmark-global-card::after {
+            content: '';
+            position: absolute;
+            top: 17%;
+            bottom: 17%;
+            left: 0;
+            width: 2px;
+            pointer-events: none;
+            z-index: 2;
+            background: linear-gradient(180deg, transparent, var(--surface-accent) 22%, var(--surface-accent) 78%, transparent);
+            box-shadow: 0 0 8px var(--surface-accent), 0 0 20px var(--surface-accent);
+            filter: blur(0.45px);
+            opacity: 0.28;
+            transition: opacity 0.2s ease, top 0.2s ease, bottom 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .neon-surface:hover::after,
+        .table-section.glass-panel:hover::after,
+        .runtime-card:hover::after,
+        .guide-card:hover::after,
+        .profile-drawer:hover::after,
+        .sci-drawer:hover::after,
+        .foss-card:hover::after,
+        .business-public-services:hover::after,
+        .business-certificate-guidance:hover::after,
+        .business-catalog-toolbar:hover::after,
+        .public-service-group:hover::after,
+        .business-catalog-card:hover::after,
+        .drawer-header:hover::after,
+        .exam-tip-box:hover::after,
+        .res-card:hover::after,
+        .code-block:hover::after,
+        .custom-winget-box:hover::after,
+        .benchmark-gpu-card:hover::after,
+        .benchmark-cpu-card:hover::after,
+        .benchmark-ram-card:hover::after,
+        .benchmark-global-card:hover::after {
+            top: 10%;
+            bottom: 10%;
+            opacity: 0.54;
+            box-shadow: 0 0 10px var(--surface-accent), 0 0 26px var(--surface-accent);
+        }
+
         /* 🚀 COCKPIT FLIGHT DECK HEADER */
         .cockpit-header {
             padding: 16px 22px;
@@ -3042,6 +3141,14 @@ __THREE_JS__
             background: linear-gradient(135deg, rgba(8, 14, 28, 0.95) 0%, rgba(13, 23, 44, 0.88) 100%);
             position: relative;
             overflow: hidden;
+        }
+
+        .cockpit-header {
+            --surface-accent: var(--neon-cyan);
+            border-left-width: 1px !important;
+            border-right-width: 1px !important;
+            border-left-color: var(--ui-frame) !important;
+            border-right-color: var(--ui-frame) !important;
         }
 
         [data-theme="light"] .cockpit-header {
@@ -3195,13 +3302,31 @@ __THREE_JS__
             flex-direction: column;
             gap: 2px;
             padding: 4px 8px;
-            border-left: 2px solid rgba(56, 189, 248, 0.3);
+            border-left: 1px solid var(--ui-frame);
             background: rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .telemetry-item::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            bottom: 20%;
+            left: -1px;
+            width: 1px;
+            background: linear-gradient(180deg, transparent, var(--neon-cyan), transparent);
+            box-shadow: 0 0 7px var(--neon-cyan);
+            opacity: 0.34;
         }
 
         [data-theme="light"] .telemetry-item {
-            border-left-color: rgba(245, 158, 11, 0.4);
+            border-left-color: rgba(245, 158, 11, 0.28);
             background: rgba(20, 8, 2, 0.4);
+        }
+
+        [data-theme="light"] .telemetry-item::before {
+            background: linear-gradient(180deg, transparent, #f59e0b, transparent);
+            box-shadow: 0 0 7px #f59e0b;
         }
 
         .telemetry-item strong {
@@ -3713,8 +3838,8 @@ __THREE_JS__
 
         .tab-btn {
             --button-accent: var(--neon-cyan);
-            background: rgba(8, 14, 28, 0.75);
-            border: 1px solid var(--border);
+            background: var(--card-bg);
+            border: 1px solid var(--ui-frame);
             color: var(--text-muted);
             padding: 10px 4px;
             font-size: 11px;
@@ -3732,61 +3857,50 @@ __THREE_JS__
             box-sizing: border-box;
             overflow: hidden;
             text-overflow: ellipsis;
-        }
-
-        /* Dashboard controls share the same quiet neon grammar as KPI cards:
-           a diffused edge at rest, then a stronger but contained glow on hover. */
-        .dashboard-neon-button,
-        .tab-btn,
-        .btn-primary,
-        .btn-cyber,
-        .btn-gui,
-        .btn-copy,
-        .btn-mini-copy,
-        .filter-btn {
-            --button-accent: var(--neon-cyan);
             position: relative;
             isolation: isolate;
-            overflow: hidden;
         }
 
-        .btn-gui { --button-accent: var(--neon-emerald); }
-
-        .dashboard-neon-button::before,
-        .tab-btn::before,
-        .btn-primary::before,
-        .btn-cyber::before,
-        .btn-gui::before,
-        .btn-copy::before,
-        .btn-mini-copy::before,
-        .filter-btn::before {
+        /* Same restrained top neon as the five KPI cards: accents identify a
+           tab but never tint its full background. */
+        .tab-btn::before {
             content: '';
             position: absolute;
             z-index: 0;
             pointer-events: none;
-            left: 18%;
-            right: 18%;
-            bottom: 0;
-            height: 1px;
+            top: 0;
+            left: 16%;
+            right: 16%;
+            height: 2px;
             background: linear-gradient(90deg, transparent, var(--button-accent) 22%, var(--button-accent) 78%, transparent);
-            box-shadow: 0 0 7px var(--button-accent), 0 0 16px var(--button-accent);
-            filter: blur(0.35px);
-            opacity: 0.28;
-            transition: opacity 0.18s ease, left 0.18s ease, right 0.18s ease, box-shadow 0.18s ease;
+            box-shadow: 0 0 8px var(--button-accent), 0 0 20px var(--button-accent);
+            filter: blur(0.45px);
+            opacity: 0.34;
+            transition: opacity 0.2s ease, left 0.2s ease, right 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .dashboard-neon-button:hover::before,
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            z-index: 0;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse 54% 38% at 50% 0%, var(--button-accent), transparent 78%);
+            opacity: 0.035;
+            transition: opacity 0.2s ease;
+        }
+
         .tab-btn:hover::before,
-        .btn-primary:hover::before,
-        .btn-cyber:hover::before,
-        .btn-gui:hover::before,
-        .btn-copy:hover::before,
-        .btn-mini-copy:hover::before,
-        .filter-btn:hover::before {
+        .tab-btn.active::before {
             left: 10%;
             right: 10%;
-            opacity: 0.64;
-            box-shadow: 0 0 10px var(--button-accent), 0 0 24px var(--button-accent);
+            opacity: 0.62;
+            box-shadow: 0 0 10px var(--button-accent), 0 0 28px var(--button-accent);
+        }
+
+        .tab-btn:hover::after,
+        .tab-btn.active::after {
+            opacity: 0.075;
         }
 
         .tab-btn[data-icon="overview"] { --button-accent: var(--neon-cyan); }
@@ -3810,22 +3924,23 @@ __THREE_JS__
 
         .tab-btn:hover {
             color: var(--text);
-            border-color: var(--button-accent);
-            background: rgba(15, 23, 42, 0.88);
-            box-shadow: 0 0 12px var(--button-accent);
+            border-color: rgba(133, 167, 190, 0.38);
+            background: var(--card-hover);
+            box-shadow: 0 12px 28px rgba(2, 8, 23, 0.32), 0 0 18px rgba(56, 189, 248, 0.08);
+            transform: translateY(-2px);
         }
 
         .tab-btn.active {
             color: var(--text);
-            border-color: var(--button-accent);
-            background: linear-gradient(180deg, rgba(30, 41, 59, 0.88) 0%, rgba(8, 14, 28, 0.95) 100%);
-            box-shadow: inset 0 2px 0 var(--button-accent), 0 0 14px var(--button-accent);
+            border-color: rgba(133, 167, 190, 0.38);
+            background: var(--card-hover);
+            box-shadow: 0 10px 24px rgba(2, 8, 23, 0.28);
         }
 
         [data-theme="light"] .tab-btn.active {
-            border-color: var(--button-accent);
-            background: linear-gradient(180deg, rgba(67, 30, 8, 0.82) 0%, rgba(26, 12, 4, 0.95) 100%);
-            box-shadow: inset 0 2px 0 var(--button-accent), 0 0 14px var(--button-accent);
+            border-color: rgba(204, 157, 94, 0.44);
+            background: var(--card-hover);
+            box-shadow: 0 10px 24px rgba(2, 6, 23, 0.32);
             color: var(--text);
         }
 
@@ -3837,13 +3952,13 @@ __THREE_JS__
         }
 
         .tab-btn.active .tab-led-dot {
-            background: var(--neon-cyan);
-            box-shadow: 0 0 8px var(--neon-cyan);
+            background: var(--button-accent);
+            box-shadow: 0 0 8px var(--button-accent);
         }
 
         [data-theme="light"] .tab-btn.active .tab-led-dot {
-            background: #f59e0b;
-            box-shadow: 0 0 8px #f59e0b;
+            background: var(--button-accent);
+            box-shadow: 0 0 8px var(--button-accent);
         }
 
         .tab-content {
@@ -4144,8 +4259,8 @@ __THREE_JS__
         }
 
         .badge-ok { background: rgba(120, 185, 154, 0.12); color: var(--ui-emerald); border: 1px solid rgba(120, 185, 154, 0.30); }
-        .badge-warn { background: rgba(200, 165, 101, 0.12); color: var(--ui-amber); border: 1px solid rgba(200, 165, 101, 0.30); }
-        .badge-err { background: rgba(201, 138, 154, 0.12); color: var(--ui-rose); border: 1px solid rgba(201, 138, 154, 0.30); }
+        .badge-warn { background: rgba(227, 173, 78, 0.16); color: var(--ui-amber); border: 1px solid rgba(227, 173, 78, 0.44); box-shadow: 0 0 12px rgba(227, 173, 78, 0.08); }
+        .badge-err { background: rgba(223, 113, 132, 0.16); color: var(--ui-rose); border: 1px solid rgba(223, 113, 132, 0.44); box-shadow: 0 0 12px rgba(223, 113, 132, 0.08); }
         [data-theme="light"] .badge-ok { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
         [data-theme="light"] .badge-warn { background: #78350f; color: #fde047; border: 1px solid #f59e0b; }
         [data-theme="light"] .badge-err { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
@@ -4321,9 +4436,92 @@ __THREE_JS__
 
         .business-source-line a:hover { text-decoration: underline; }
 
+        .business-public-services {
+            margin: 0 0 28px;
+            padding: 16px;
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            background: linear-gradient(120deg, rgba(8, 47, 73, 0.24), rgba(15, 23, 42, 0.68));
+        }
+
+        .business-public-services-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            align-items: baseline;
+            margin-bottom: 12px;
+        }
+
+        .business-public-services-header h3 {
+            margin: 0;
+            color: #cbd5e1;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+        }
+
+        .business-public-services-header span {
+            color: #7dd3fc;
+            font: 800 10px/1 Consolas, 'Courier New', monospace;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .business-certificate-guidance {
+            --surface-accent: var(--neon-purple);
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 12px 14px;
+            border: 1px solid rgba(167, 139, 250, 0.30);
+            border-left: 3px solid #a78bfa;
+            background: rgba(76, 29, 149, 0.08);
+        }
+
+        .business-certificate-guidance strong { color: #ddd6fe; font-size: 12px; }
+        .business-certificate-guidance p { margin: 4px 0 0; color: #94a3b8; font-size: 11.5px; line-height: 1.45; }
+        .business-certificate-guidance a { color: #c4b5fd; font-size: 11px; font-weight: 800; text-decoration: none; white-space: nowrap; }
+        .business-certificate-guidance a:hover { text-decoration: underline; }
+
+        .business-public-services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+        }
+
+        .public-service-group {
+            border: 1px solid rgba(56, 189, 248, 0.18);
+            background: rgba(2, 6, 23, 0.38);
+        }
+
+        .public-service-group summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+            padding: 10px 11px;
+            color: #cbd5e1;
+            font-size: 11px;
+            font-weight: 800;
+            list-style: none;
+        }
+
+        .public-service-group summary::-webkit-details-marker { display: none; }
+        .public-service-group summary::after { content: '+'; color: #67e8f9; font: 800 16px/1 Consolas, monospace; }
+        .public-service-group[open] summary::after { content: '−'; }
+
+        .public-service-links { margin: 0; padding: 0 10px 10px; list-style: none; }
+        .public-service-links li { border-top: 1px solid rgba(148, 163, 184, 0.10); }
+        .public-service-links a { display: block; padding: 8px 2px; color: #a5f3fc; font-size: 11px; font-weight: 700; text-decoration: none; }
+        .public-service-links a:hover { color: #e0f2fe; text-decoration: underline; }
+        .public-service-links small { display: block; margin-top: 2px; color: #64748b; font-size: 10px; font-weight: 400; line-height: 1.35; }
+
         @media (max-width: 720px) {
             .business-catalog-toolbar { align-items: stretch; flex-direction: column; }
             .business-country-field { min-width: 0; }
+            .business-certificate-guidance { grid-template-columns: 1fr; }
         }
 
         .code-block {
@@ -4905,6 +5103,14 @@ __THREE_JS__
         .profile-drawer.open .drawer-body {
             display: block;
             animation: fadeIn 0.2s ease;
+        }
+
+        .profile-drawer-title {
+            margin: 0;
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.01em;
         }
 
         /* ============================================================= */
@@ -5539,7 +5745,7 @@ __THREE_JS__
 
     <div class="container">
         <!-- 🚀 SPATIAL COCKPIT FLIGHT DECK HEADER -->
-        <div class="cockpit-header glass-panel">
+        <div class="cockpit-header glass-panel neon-surface">
             <div class="cockpit-top-row">
                 <div class="cockpit-left">
                     <div id="three-core-container" title="Noyau Système 3D • Vue Interactive (Glissez pour orienter)">
@@ -5574,7 +5780,7 @@ __THREE_JS__
         </div>
 
         <!-- 📡 COCKPIT TELEMETRY INSTRUMENT STRIP -->
-        <div class="telemetry-bar glass-panel">
+        <div class="telemetry-bar glass-panel neon-surface">
             <div class="telemetry-item"><strong id="telemetryHostLabel">// NOM MACHINE</strong><span>__HOSTNAME__</span></div>
             <div class="telemetry-item"><strong id="telemetryOsLabel">// SYSTÈME D'EXPLOITATION</strong><span>__OS_NAME__</span></div>
             <div class="telemetry-item"><strong id="telemetryVersionLabel">// VERSION / ARCHITECTURE</strong><span>__OS_VER__</span></div>
@@ -5601,18 +5807,18 @@ __THREE_JS__
             <button class="tab-btn" data-icon="network" onclick="switchTab('tab-network-audit')">■ AUDIT RÉSEAU & RDP</button>
             <button class="tab-btn" data-icon="disks" onclick="switchTab('tab-disk-audit')">■ ANALYSES DISQUES</button>
             <button class="tab-btn" data-icon="startup" onclick="switchTab('tab-performance')">■ DÉMARRAGE & STARTUP</button>
-            <button class="tab-btn" data-icon="belgian" onclick="switchTab('tab-belgian-apps')">■ LOGICIELS BELGIQUE</button>
+            <button class="tab-btn" data-icon="belgian" onclick="switchTab('tab-belgian-apps')">■ SERVICES NATIONAUX</button>
             <button class="tab-btn" data-icon="benchmarks" onclick="switchTab('tab-benchmarks')">■ BENCHMARKS GPU & RAM</button>
             <button class="tab-btn" data-icon="security" onclick="switchTab('tab-sec-users')">■ SÉCURITÉ & ANOMALIES</button>
-            <button class="tab-btn" data-icon="foss" onclick="switchTab('tab-foss')">■ ARBRE 3D FOSS</button>
+            <button class="tab-btn" data-icon="foss" onclick="switchTab('tab-foss')">■ APPLICATIONS LIBRES 3D</button>
             <button class="tab-btn" data-icon="journal" onclick="switchTab('tab-journal')">■ TOUS LES TESTS (26)</button>
             <button class="tab-btn" data-icon="profiles" onclick="switchTab('tab-packages')">■ PROFILS WINGET</button>
             <button class="tab-btn" data-icon="shortcuts" onclick="switchTab('tab-shortcuts')">■ RACCOURCIS PRO</button>
             <button class="tab-btn" data-icon="export" onclick="switchTab('tab-rmm-export')">■ EXPORT LOCAL & CLIENT</button>
-            <button class="tab-btn" data-icon="docs" style="background:rgba(56,189,248,0.15); border-color:#38bdf8; color:#38bdf8; font-weight:800;" onclick="switchTab('tab-readme')">■ DOCUMENTATION & GUIDE</button>
-            <button class="tab-btn" data-icon="archive" onclick="switchTab('tab-archive')" style="background:rgba(168,85,247,0.15); border-color:#c084fc; color:#d8b4fe; font-weight:800;" id="btnArchiveTab" title="Consulter les diagnostics archivés">■ LOGS / ARCHIVE</button>
-            <button class="tab-btn" data-icon="relaunch" onclick="launchBatchDiagnostic(this)" style="background:linear-gradient(135deg, rgba(16,185,129,0.25) 0%, rgba(15,23,42,0.95) 100%); border-color:#10b981; color:#34d399; font-weight:800;" id="btnRunDiagTab" title="Relancer l'analyse complète via le lanceur .bat">■ RELANCER DIAG (.BAT)</button>
-            <button class="tab-btn" data-icon="print" onclick="window.print()" style="background:rgba(168,85,247,0.18); border-color:#c084fc; color:#c084fc; font-weight:700;" id="btnPrintTab" title="Imprimer ou exporter en PDF">■ IMPRIMER</button>
+            <button class="tab-btn" data-icon="docs" onclick="switchTab('tab-readme')">■ DOCUMENTATION & GUIDE</button>
+            <button class="tab-btn" data-icon="archive" onclick="switchTab('tab-archive')" id="btnArchiveTab" title="Consulter les diagnostics archivés">■ LOGS / ARCHIVE</button>
+            <button class="tab-btn" data-icon="relaunch" onclick="launchBatchDiagnostic(this)" id="btnRunDiagTab" title="Relancer l'analyse complète via le lanceur .bat">■ RELANCER DIAG (.BAT)</button>
+            <button class="tab-btn" data-icon="print" onclick="window.print()" id="btnPrintTab" title="Imprimer ou exporter en PDF">■ IMPRIMER</button>
         </div>
 
         <!-- TAB 1: RESOLUTION CENTER -->
@@ -6033,7 +6239,7 @@ __ADAPTER_OPTIONS_HTML__
         <!-- ============================================================= -->
         <div id="tab-belgian-apps" class="tab-content">
             <div class="table-section glass-panel">
-                <div class="section-title">Détection des Logiciels Métiers, E-Banking & Fiscalité</div>
+                <div class="section-title">Écosystèmes nationaux, eID & logiciels métiers</div>
                 <div class="business-catalog-toolbar">
                     <div>
                         <div class="business-catalog-kicker">Catalogue national & preuves de source</div>
@@ -6053,13 +6259,21 @@ __ADAPTER_OPTIONS_HTML__
                     </div>
                 </div>
                 <div id="businessCatalogMeta" class="business-catalog-meta" role="status" aria-live="polite"></div>
+                <section class="business-public-services" aria-labelledby="businessPublicServicesTitle">
+                    <div class="business-public-services-header">
+                        <h3 id="businessPublicServicesTitle">Services publics officiels & identité numérique</h3>
+                        <span id="businessPublicServicesMeta">20 liens vérifiés</span>
+                    </div>
+                    <div id="businessCertificateGuidance" class="business-certificate-guidance"></div>
+                    <div id="businessPublicServicesGrid" class="business-public-services-grid"></div>
+                </section>
                 <div id="belgianAppsGrid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:14px; margin-bottom:28px;">
                     <!-- Business Apps Cards -->
                 </div>
 
-                <div class="section-title" style="font-size:15px; border-top:1px solid rgba(56,189,248,0.2); padding-top:18px;">🔐 Magasin de Certificats & Cartes d'Identité eID (Authentification & Signature)</div>
+                <div class="section-title" style="font-size:15px; border-top:1px solid rgba(56,189,248,0.2); padding-top:18px;">🔐 Certificats locaux Windows détectés</div>
                 <p style="color:#94a3b8; font-size:12px; margin-bottom:16px;">
-                    Surveillance des certificats personnels et machines (Citizen CA, BOSA, Fedict, eID) avec calcul des jours restants et alertes proactives d'expiration.
+                    Inventaire local des certificats personnels et machines avec calcul des jours restants et alertes d'expiration. Les prérequis nationaux sont indiqués dans la fiche d'identité ci-dessus ; ils ne valident pas les certificats présents sur ce PC.
                 </p>
                 <div id="belgianCertsGrid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:14px;">
                     <!-- Belgian Certs Cards -->
@@ -6076,7 +6290,7 @@ __ADAPTER_OPTIONS_HTML__
                 
                 <div class="benchmark-composition">
                 <!-- GPU PERFORMANCE CARD (left rail) -->
-                <div id="gpuBenchCard" class="benchmark-gpu-card" style="background:rgba(15,23,42,0.90); padding:20px; border:1px solid __GPU_TIER_COL__; border-left:4px solid __GPU_TIER_COL__; border-radius:8px;">
+                <div id="gpuBenchCard" class="benchmark-gpu-card" style="--surface-accent:__GPU_TIER_COL__; background:rgba(15,23,42,0.90); padding:20px; border:1px solid __GPU_TIER_COL__; border-left:4px solid __GPU_TIER_COL__; border-radius:8px;">
                     <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8;">🎮 Indice GPU (télémétrie)</div>
                     <div style="font-size:1.35rem; font-weight:800; color:#f1f5f9; margin:8px 0 3px;">__GPU_NAME__</div>
                     <div style="font-size:2.2rem; font-weight:900; font-family:'Rajdhani', monospace; color:__GPU_TIER_COL__;"><span>__GPU_SCORE__</span> <span style="font-size:1rem; color:#cbd5e1;">/ 100</span></div>
@@ -6118,7 +6332,7 @@ __ADAPTER_OPTIONS_HTML__
                 <!-- TOP BENCHMARK SUMMARY -->
                 <div class="benchmark-top-grid">
                     <!-- Score & Speed Card -->
-                    <div class="benchmark-cpu-card" style="background:rgba(15,23,42,0.90); padding:20px; border:1px solid rgba(56,189,248,0.35); border-left:4px solid __CPU_TIER_COL__; border-radius:8px;">
+                    <div class="benchmark-cpu-card" style="--surface-accent:__CPU_TIER_COL__; background:rgba(15,23,42,0.90); padding:20px; border:1px solid rgba(56,189,248,0.35); border-left:4px solid __CPU_TIER_COL__; border-radius:8px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8;">Calcul de Primalité (12 000 Itérations, médiane 5 passes)</div>
                             <span class="badge" style="background:rgba(15,23,42,0.9); border:1px solid __CPU_TIER_COL__; color:__CPU_TIER_COL__; font-weight:bold;">__CPU_TIER_BADGE__</span>
@@ -6158,14 +6372,14 @@ __ADAPTER_OPTIONS_HTML__
 
                 <!-- RAM / GLOBAL PERFORMANCE CARDS -->
                 <div class="benchmark-performance-grid">
-                    <div id="ramBenchCard" class="benchmark-ram-card" style="background:rgba(15,23,42,0.90); padding:20px; border:1px solid __RAM_TIER_COL__; border-left:4px solid __RAM_TIER_COL__; border-radius:8px;">
+                    <div id="ramBenchCard" class="benchmark-ram-card" style="--surface-accent:__RAM_TIER_COL__; background:rgba(15,23,42,0.90); padding:20px; border:1px solid __RAM_TIER_COL__; border-left:4px solid __RAM_TIER_COL__; border-radius:8px;">
                         <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8;">🧠 Indice RAM & profil XMP/EXPO</div>
                         <div style="font-size:2.2rem; font-weight:900; font-family:'Rajdhani', monospace; color:__RAM_TIER_COL__; margin:8px 0 3px;">__RAM_SCORE__ <span style="font-size:1rem; color:#cbd5e1;">/ 100</span></div>
                         <div style="font-size:12px; color:#cbd5e1;"><strong>__RAM_TOTAL__ Go</strong> • <strong>__RAM_SPEED__ MHz</strong> • __RAM_TIER__</div>
                         <div style="font-size:12px; color:__RAM_TIER_COL__; margin-top:7px; font-weight:700;">__RAM_XMP__</div>
                         <div style="font-size:11.5px; color:#94a3b8; margin-top:5px; line-height:1.4;">__RAM_DESC__</div>
                     </div>
-                    <div id="globalPerfCard" class="benchmark-global-card" style="background:linear-gradient(135deg, rgba(15,23,42,0.96), rgba(30,41,59,0.92)); padding:20px; border:1px solid __GLOBAL_PERF_COLOR__; border-left:4px solid __GLOBAL_PERF_COLOR__; border-radius:8px;">
+                    <div id="globalPerfCard" class="benchmark-global-card" style="--surface-accent:__GLOBAL_PERF_COLOR__; background:linear-gradient(135deg, rgba(15,23,42,0.96), rgba(30,41,59,0.92)); padding:20px; border:1px solid __GLOBAL_PERF_COLOR__; border-left:4px solid __GLOBAL_PERF_COLOR__; border-radius:8px;">
                         <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8;">📊 Bilan global des 3 piliers</div>
                         <div style="font-size:3rem; font-weight:900; font-family:'Rajdhani', monospace; color:__GLOBAL_PERF_COLOR__; margin:7px 0 0;">__GLOBAL_PERF_SCORE__ <span style="font-size:1rem; color:#cbd5e1;">/ 100</span></div>
                         <div style="font-size:13px; color:__GLOBAL_PERF_COLOR__; font-weight:800;">__GLOBAL_PERF_LABEL__</div>
@@ -6282,7 +6496,7 @@ __ADAPTER_OPTIONS_HTML__
                                 <option value="tab-cve">Audit Vulnérabilités Logicielles CVE</option>
                                 <option value="tab-network-audit">Audit Réseau, Partages SMB & RDP</option>
                                 <option value="tab-disk-audit">Analyses Disques & Caches Temporaires</option>
-                                <option value="tab-belgian-apps">Logiciels Métiers Belges & eID</option>
+                                <option value="tab-belgian-apps">Services nationaux, eID & logiciels métiers</option>
                                 <option value="tab-benchmarks">Benchmarks CPU, GPU & RAM</option>
                                 <option value="tab-sec-users">Audit Sécurité Utilisateurs & Anomalies</option>
                                 <option value="tab-journal">Journal Exhaustif des 26 Tests</option>
@@ -6378,8 +6592,8 @@ __ADAPTER_OPTIONS_HTML__
                             </tr>
                             <tr>
                                 <td><strong>7</strong></td>
-                                <td><span style="color:#38bdf8; font-weight:700;">🇧🇪 Logiciels Métiers & eID</span></td>
-                                <td class="module-doc-detail"><span class="module-doc-line">Catalogue national adaptatif (BE, FR, UK/US, DE, ES, IT, PT) limité par liste blanche.</span><span class="module-doc-line">Sépare les portails administratifs officiels des références éditeur métier.</span><span class="module-doc-line">Chaque fiche expose source, catégorie et statut local sans revendiquer d'agrément.</span><span class="module-doc-line">L'audit eID ajoute émetteur, portée, expiration et jours restants des certificats.</span></td>
+                                <td><span style="color:#a8b5c7; font-weight:700;">🏛️ Services nationaux, eID & logiciels métiers</span></td>
+                                <td class="module-doc-detail"><span class="module-doc-line">Catalogue national adaptatif (BE, FR, UK/US, DE, ES, IT, PT) limité par liste blanche.</span><span class="module-doc-line">Présente 20 services publics HTTPS et le guide d'identité correspondant au pays choisi.</span><span class="module-doc-line">Sépare les portails officiels des références éditeur et de la détection locale.</span><span class="module-doc-line">L'inventaire Windows de certificats affiche expiration et portée sans revendiquer d'agrément.</span></td>
                             </tr>
                             <tr>
                                 <td><strong>8</strong></td>
@@ -6393,7 +6607,7 @@ __ADAPTER_OPTIONS_HTML__
                             </tr>
                             <tr>
                                 <td><strong>10</strong></td>
-                                <td><span style="color:#38bdf8; font-weight:700;">🌐 Arbre 3D FOSS</span></td>
+                                <td><span style="color:#a8b5c7; font-weight:700;">🌐 Applications libres 3D</span></td>
                                 <td class="module-doc-detail"><span class="module-doc-line">Visualise plus de 90 outils libres dans 18 thématiques professionnelles.</span><span class="module-doc-line">Les tiroirs relient alternatives propriétaires, description, site officiel et commande Winget.</span><span class="module-doc-line">Le rendu Three.js reste intégré localement et ne dépend pas d'un CDN.</span></td>
                             </tr>
                             <tr>
@@ -6442,32 +6656,100 @@ __ADAPTER_OPTIONS_HTML__
 
                 <!-- POWERSHELL COMMANDS CHEAT SHEET -->
                 <div class="section-title" style="font-size:15px; margin-top:20px;">⚡ Boîte à Outils PowerShell SysAdmin (Commandes Utiles)</div>
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:14px; margin-bottom:24px;">
-                    <div style="background:rgba(15,23,42,0.85); padding:16px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
+                <div id="sysadminToolGrid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:14px; margin-bottom:24px;">
+                    <div class="neon-surface" data-sysadmin-tool="network-reset" style="--surface-accent:var(--neon-cyan); background:rgba(15,23,42,0.85); padding:16px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
                         <strong style="color:#38bdf8; font-size:13px;">🌐 Réinitialisation Réseau & Winsock :</strong>
                         <pre style="background:#090d16; padding:10px; border-radius:4px; font-size:11px; color:#a5f3fc; overflow-x:auto; margin:8px 0 0 0;">ipconfig /flushdns
 netsh winsock reset
 netsh int ip reset</pre>
+                        <button class="btn-mini-copy" onclick="copyDirect(this)" data-cmd="ipconfig /flushdns; netsh winsock reset; netsh int ip reset">📋 Copier la séquence</button>
                     </div>
 
-                    <div style="background:rgba(15,23,42,0.85); padding:16px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
+                    <div class="neon-surface" data-sysadmin-tool="print-spooler" style="--surface-accent:var(--neon-emerald); background:rgba(15,23,42,0.85); padding:16px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
                         <strong style="color:#34d399; font-size:13px;">🖨️ Redémarrage Spouleur d'Impression :</strong>
                         <pre style="background:#090d16; padding:10px; border-radius:4px; font-size:11px; color:#a5f3fc; overflow-x:auto; margin:8px 0 0 0;">Stop-Service Spooler -Force
 Remove-Item "$env:SystemRoot\System32\spool\PRINTERS\*" -Force
 Start-Service Spooler</pre>
+                        <button class="btn-mini-copy" onclick="copyDirect(this)" data-cmd="Stop-Service Spooler -Force; Remove-Item &quot;$env:SystemRoot\System32\spool\PRINTERS\*&quot; -Force; Start-Service Spooler">📋 Copier la séquence</button>
                     </div>
 
-                    <div style="background:rgba(15,23,42,0.85); padding:16px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
+                    <div class="neon-surface" data-sysadmin-tool="windows-update-cleanup" style="--surface-accent:var(--neon-amber); background:rgba(15,23,42,0.85); padding:16px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
                         <strong style="color:#f59e0b; font-size:13px;">🧹 Nettoyage Caches & Mises à Jour :</strong>
                         <pre style="background:#090d16; padding:10px; border-radius:4px; font-size:11px; color:#a5f3fc; overflow-x:auto; margin:8px 0 0 0;">Stop-Service wuauserv -Force
 Remove-Item "$env:SystemRoot\SoftwareDistribution\Download\*" -Recurse -Force
 Start-Service wuauserv</pre>
+                        <button class="btn-mini-copy" onclick="copyDirect(this)" data-cmd="Stop-Service wuauserv -Force; Remove-Item &quot;$env:SystemRoot\SoftwareDistribution\Download\*&quot; -Recurse -Force; Start-Service wuauserv">📋 Copier la séquence</button>
                     </div>
 
-                    <div style="background:rgba(15,23,42,0.85); padding:16px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
+                    <div class="neon-surface" data-sysadmin-tool="windows-repair" style="--surface-accent:var(--neon-rose); background:rgba(15,23,42,0.85); padding:16px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
                         <strong style="color:#f43f5e; font-size:13px;">🛡️ Réparation Fichiers Système & Image Windows :</strong>
                         <pre style="background:#090d16; padding:10px; border-radius:4px; font-size:11px; color:#a5f3fc; overflow-x:auto; margin:8px 0 0 0;">DISM.exe /Online /Cleanup-image /Restorehealth
 sfc /scannow</pre>
+                        <button class="btn-mini-copy" onclick="copyDirect(this)" data-cmd="DISM.exe /Online /Cleanup-image /Restorehealth; sfc /scannow">📋 Copier la séquence</button>
+                    </div>
+
+                    <div class="neon-surface" data-sysadmin-tool="driver-errors" style="--surface-accent:var(--neon-purple); background:rgba(15,23,42,0.85); padding:16px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
+                        <strong style="color:#c4b5fd; font-size:13px;">🧩 Pilotes en erreur :</strong>
+                        <p style="font-size:11.5px; color:var(--text-muted); margin:7px 0 0;">Liste les périphériques dont Windows ne signale pas un état normal.</p>
+                        <pre style="background:#090d16; padding:10px; border-radius:4px; font-size:11px; color:#a5f3fc; overflow-x:auto; margin:8px 0 0 0;">Get-PnpDevice | Where-Object Status -ne 'OK' |
+Format-Table Class, FriendlyName, Status -AutoSize</pre>
+                        <button class="btn-mini-copy" onclick="copyDirect(this)" data-cmd="Get-PnpDevice | Where-Object Status -ne 'OK' | Format-Table Class, FriendlyName, Status -AutoSize">📋 Copier le diagnostic</button>
+                    </div>
+
+                    <div class="neon-surface" data-sysadmin-tool="disk-controller-errors" style="--surface-accent:var(--neon-rose); background:rgba(15,23,42,0.85); padding:16px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
+                        <strong style="color:#fda4af; font-size:13px;">💽 Erreurs disque / contrôleur :</strong>
+                        <p style="font-size:11.5px; color:var(--text-muted); margin:7px 0 0;">Recherche les erreurs I/O, NTFS et réinitialisations de contrôleur sur les sept derniers jours.</p>
+                        <pre style="background:#090d16; padding:10px; border-radius:4px; font-size:11px; color:#a5f3fc; overflow-x:auto; margin:8px 0 0 0;">Get-WinEvent -FilterHashtable @{LogName='System'; Id=7,51,55,129,153; StartTime=(Get-Date).AddDays(-7)} -MaxEvents 50 |
+Format-Table TimeCreated, Id, Message -Wrap</pre>
+                        <button class="btn-mini-copy" onclick="copyDirect(this)" data-cmd="Get-WinEvent -FilterHashtable @{LogName='System'; Id=7,51,55,129,153; StartTime=(Get-Date).AddDays(-7)} -MaxEvents 50 | Format-Table TimeCreated, Id, Message -Wrap">📋 Copier le diagnostic</button>
+                    </div>
+
+                    <div class="neon-surface" data-sysadmin-tool="critical-events" style="--surface-accent:var(--neon-amber); background:rgba(15,23,42,0.85); padding:16px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
+                        <strong style="color:#fcd34d; font-size:13px;">🚨 Événements système critiques :</strong>
+                        <p style="font-size:11.5px; color:var(--text-muted); margin:7px 0 0;">Extrait les erreurs et événements critiques récents du journal Système.</p>
+                        <pre style="background:#090d16; padding:10px; border-radius:4px; font-size:11px; color:#a5f3fc; overflow-x:auto; margin:8px 0 0 0;">Get-WinEvent -FilterHashtable @{LogName='System'; Level=1,2; StartTime=(Get-Date).AddDays(-2)} -MaxEvents 30 |
+Format-Table TimeCreated, Id, ProviderName, Message -Wrap</pre>
+                        <button class="btn-mini-copy" onclick="copyDirect(this)" data-cmd="Get-WinEvent -FilterHashtable @{LogName='System'; Level=1,2; StartTime=(Get-Date).AddDays(-2)} -MaxEvents 30 | Format-Table TimeCreated, Id, ProviderName, Message -Wrap">📋 Copier le diagnostic</button>
+                    </div>
+
+                    <div class="neon-surface" data-sysadmin-tool="windows-update-events" style="--surface-accent:var(--neon-cyan); background:rgba(15,23,42,0.85); padding:16px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
+                        <strong style="color:#7dd3fc; font-size:13px;">🪟 Journaux Windows Update :</strong>
+                        <p style="font-size:11.5px; color:var(--text-muted); margin:7px 0 0;">Affiche les derniers événements Windows Update afin d’identifier un échec récurrent.</p>
+                        <pre style="background:#090d16; padding:10px; border-radius:4px; font-size:11px; color:#a5f3fc; overflow-x:auto; margin:8px 0 0 0;">Get-WinEvent -FilterHashtable @{LogName='System'; ProviderName='Microsoft-Windows-WindowsUpdateClient'} -MaxEvents 40 |
+Format-Table TimeCreated, Id, LevelDisplayName, Message -Wrap</pre>
+                        <button class="btn-mini-copy" onclick="copyDirect(this)" data-cmd="Get-WinEvent -FilterHashtable @{LogName='System'; ProviderName='Microsoft-Windows-WindowsUpdateClient'} -MaxEvents 40 | Format-Table TimeCreated, Id, LevelDisplayName, Message -Wrap">📋 Copier le diagnostic</button>
+                    </div>
+
+                    <div class="neon-surface" data-sysadmin-tool="automatic-services" style="--surface-accent:var(--neon-amber); background:rgba(15,23,42,0.85); padding:16px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
+                        <strong style="color:#fcd34d; font-size:13px;">⚙️ Services automatiques arrêtés :</strong>
+                        <p style="font-size:11.5px; color:var(--text-muted); margin:7px 0 0;">Repère les services configurés en démarrage automatique mais actuellement non démarrés.</p>
+                        <pre style="background:#090d16; padding:10px; border-radius:4px; font-size:11px; color:#a5f3fc; overflow-x:auto; margin:8px 0 0 0;">Get-CimInstance Win32_Service | Where-Object {$_.StartMode -eq 'Auto' -and $_.State -ne 'Running'} |
+Select-Object Name, DisplayName, State, StartMode</pre>
+                        <button class="btn-mini-copy" onclick="copyDirect(this)" data-cmd="Get-CimInstance Win32_Service | Where-Object {$_.StartMode -eq 'Auto' -and $_.State -ne 'Running'} | Select-Object Name, DisplayName, State, StartMode">📋 Copier le diagnostic</button>
+                    </div>
+
+                    <div class="neon-surface" data-sysadmin-tool="bitlocker-status" style="--surface-accent:var(--neon-emerald); background:rgba(15,23,42,0.85); padding:16px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
+                        <strong style="color:#6ee7b7; font-size:13px;">🔐 Chiffrement BitLocker :</strong>
+                        <p style="font-size:11.5px; color:var(--text-muted); margin:7px 0 0;">Vérifie le statut de protection et le pourcentage de chiffrement des volumes.</p>
+                        <pre style="background:#090d16; padding:10px; border-radius:4px; font-size:11px; color:#a5f3fc; overflow-x:auto; margin:8px 0 0 0;">Get-BitLockerVolume |
+Select-Object MountPoint, VolumeStatus, ProtectionStatus, EncryptionPercentage</pre>
+                        <button class="btn-mini-copy" onclick="copyDirect(this)" data-cmd="Get-BitLockerVolume | Select-Object MountPoint, VolumeStatus, ProtectionStatus, EncryptionPercentage">📋 Copier le diagnostic</button>
+                    </div>
+
+                    <div class="neon-surface" data-sysadmin-tool="tcp-listeners" style="--surface-accent:var(--neon-purple); background:rgba(15,23,42,0.85); padding:16px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
+                        <strong style="color:#c4b5fd; font-size:13px;">📡 Écoute TCP locale :</strong>
+                        <p style="font-size:11.5px; color:var(--text-muted); margin:7px 0 0;">Liste les ports à l’écoute avec leur processus associé, utile avant un audit pare-feu ou RDP.</p>
+                        <pre style="background:#090d16; padding:10px; border-radius:4px; font-size:11px; color:#a5f3fc; overflow-x:auto; margin:8px 0 0 0;">Get-NetTCPConnection -State Listen |
+Sort-Object LocalPort | Select-Object LocalAddress, LocalPort, OwningProcess</pre>
+                        <button class="btn-mini-copy" onclick="copyDirect(this)" data-cmd="Get-NetTCPConnection -State Listen | Sort-Object LocalPort | Select-Object LocalAddress, LocalPort, OwningProcess">📋 Copier le diagnostic</button>
+                    </div>
+
+                    <div class="neon-surface" data-sysadmin-tool="dns-internet" style="--surface-accent:var(--neon-cyan); background:rgba(15,23,42,0.85); padding:16px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
+                        <strong style="color:#7dd3fc; font-size:13px;">🌐 Résolution DNS & Internet :</strong>
+                        <p style="font-size:11.5px; color:var(--text-muted); margin:7px 0 0;">Distingue une panne DNS d’une absence de connectivité IP, sans réinitialiser la carte réseau.</p>
+                        <pre style="background:#090d16; padding:10px; border-radius:4px; font-size:11px; color:#a5f3fc; overflow-x:auto; margin:8px 0 0 0;">Resolve-DnsName www.microsoft.com
+Test-NetConnection 1.1.1.1 -InformationLevel Detailed</pre>
+                        <button class="btn-mini-copy" onclick="copyDirect(this)" data-cmd="Resolve-DnsName www.microsoft.com; Test-NetConnection 1.1.1.1 -InformationLevel Detailed">📋 Copier le diagnostic</button>
                     </div>
                 </div>
 
@@ -6478,7 +6760,7 @@ sfc /scannow</pre>
             <div class="table-section glass-panel">
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
                     <div>
-                        <h2 style="margin:0; font-size:18px; color:var(--neon-cyan); text-transform:uppercase;">🔄 Matrice Open-Source Alternatives (FOSS Tree 3D)</h2>
+                        <h2 style="margin:0; font-size:18px; color:var(--text); text-transform:uppercase;">🔄 Applications libres & alternatives (vue 3D)</h2>
                         <div style="color:var(--text-muted); font-size:13px; margin-top:2px;">Issu de <code>opensourcealternative.to</code> & <code>diegoleme/awesome-open-source-alternatives</code> • Arbre Nodal 3D Interactif & Tiroirs Thématiques</div>
                     </div>
                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
@@ -6521,7 +6803,7 @@ sfc /scannow</pre>
                             </div>
 
                             <div style="position:absolute; bottom:8px; left:12px; font-family:Consolas; font-size:10.5px; color:var(--neon-cyan); pointer-events:none; background:rgba(0,0,0,0.75); padding:4px 10px; border-left:3px solid var(--neon-cyan);">
-                                ● MATRICE FOSS 3D // 18 DOMAINES THÉMATIQUES // 190+ APPLICATIONS LIBRES
+                                ● APPLICATIONS LIBRES 3D // 18 DOMAINES THÉMATIQUES // 190+ ALTERNATIVES
                             </div>
                         </div>
 
@@ -6532,7 +6814,7 @@ sfc /scannow</pre>
                             <div id="inspectorPlaceholder" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; text-align:center; color:var(--text-muted); padding:20px;">
                                 <div style="font-size:36px; margin-bottom:12px;">📊</div>
                                 <div style="font-size:13px; font-weight:800; color:var(--neon-cyan); text-transform:uppercase; margin-bottom:8px; letter-spacing:0.5px;">
-                                    Explorateur d'Applications FOSS
+                                    Explorateur d'applications libres
                                 </div>
                                 <div style="font-size:12px; line-height:1.5; color:var(--text-muted); margin-bottom:14px;">
                                     Sélectionnez un domaine thématique ou une application pour afficher son inventaire et sa fiche technique.
@@ -7875,10 +8157,10 @@ sfc /scannow</pre>
                 tab_network: "■ 🌐 AUDIT RÉSEAU & RDP",
                 tab_disk: "■ 💾 ANALYSES DISQUES",
                 tab_performance: "■ 🚀 DÉMARRAGE & STARTUP",
-                tab_belgian: "■ 🇧🇪 LOGICIELS BELGIQUE",
+                tab_belgian: "■ SERVICES NATIONAUX",
                 tab_benchmarks: "■ ⚡ BENCHMARKS GPU & RAM",
                 tab_security: "■ 👤 SÉCURITÉ & ANOMALIES",
-                tab_foss: "■ 🌐 ARBRE 3D FOSS",
+                tab_foss: "■ APPLICATIONS LIBRES 3D",
                 tab_all: "■ 📋 TOUS LES TESTS (26)",
                 tab_profiles: "■ 📦 PROFILS WINGET",
                 tab_shortcuts: "■ ⌨️ RACCOURCIS PRO",
@@ -8072,10 +8354,10 @@ sfc /scannow</pre>
                 tab_network: "■ 🌐 NETWERK & RDP AUDIT",
                 tab_disk: "■ 💾 SCHIJFANALYSES",
                 tab_performance: "■ 🚀 OPSTARTEN & STARTUP",
-                tab_belgian: "■ 🇧🇪 BELGISCHE SOFTWARE & eID",
+                tab_belgian: "■ NATIONALE DIENSTEN",
                 tab_benchmarks: "■ ⚡ BENCHMARKS GPU & RAM",
                 tab_security: "■ 👤 BEVEILIGING & GEBRUIKERS",
-                tab_foss: "■ 🌐 3D FOSS BOOM",
+                tab_foss: "■ VRIJE APPS 3D",
                 tab_all: "■ 📋 ALLE TESTS (26)",
                 tab_profiles: "■ 📦 WINGET PROFIELEN",
                 tab_shortcuts: "■ ⌨️ PRO SNELKOPPELINGEN",
@@ -8269,10 +8551,10 @@ sfc /scannow</pre>
                 tab_network: "■ 🌐 NETWORK & RDP AUDIT",
                 tab_disk: "■ 💾 DISK ANALYSES",
                 tab_performance: "■ 🚀 STARTUP & PERF",
-                tab_belgian: "■ 🇧🇪 BELGIAN SOFTWARE",
+                tab_belgian: "■ NATIONAL SERVICES",
                 tab_benchmarks: "■ ⚡ GPU & RAM BENCHMARKS",
                 tab_security: "■ 👤 SECURITY & USERS",
-                tab_foss: "■ 🌐 3D FOSS TREE",
+                tab_foss: "■ OPEN-SOURCE APPS 3D",
                 tab_all: "■ 📋 ALL TESTS (26)",
                 tab_profiles: "■ 📦 WINGET PROFILES",
                 tab_shortcuts: "■ ⌨️ PRO SHORTCUTS",
@@ -8466,10 +8748,10 @@ sfc /scannow</pre>
                 tab_network: "■ 🌐 NETZWERK & RDP AUDIT",
                 tab_disk: "■ 💾 FESTPLATTENANALYSEN",
                 tab_performance: "■ 🚀 AUTOSTART & LEISTUNG",
-                tab_belgian: "■ 🇧🇪 BELGISCHE SOFTWARE & eID",
+                tab_belgian: "■ NATIONALE DIENSTE",
                 tab_benchmarks: "■ ⚡ GPU- & RAM-BENCHMARKS",
                 tab_security: "■ 👤 SICHERHEIT & BENUTZER",
-                tab_foss: "■ 🌐 3D FOSS BAUM",
+                tab_foss: "■ FREIE APPS 3D",
                 tab_all: "■ 📋 ALLE TESTS (26)",
                 tab_profiles: "■ 📦 WINGET PROFILE",
                 tab_shortcuts: "■ ⌨️ PRO TASTENKÜRZEL",
@@ -8775,15 +9057,10 @@ sfc /scannow</pre>
                 nl: "Ontwikkelaars Runtimes & Afhankelijkheden Scanner",
                 de: "Entwickler-Runtimes & Abhängigkeiten-Scanner"
             },
-            "Écosystème Logiciel Belge & Certificats eID": {
-                en: "Belgian Software Ecosystem & eID Certificates",
-                nl: "Belgisch Software Ecosysteem & eID Certificaten",
-                de: "Belgisches Software-Ökosystem & eID-Zertifikate"
-            },
-            "Détection des Logiciels Métiers, E-Banking & Fiscalité": {
-                en: "Business Software, E-Banking & Tax Detection",
-                nl: "Detectie van bedrijfssoftware, e-banking en fiscaliteit",
-                de: "Erkennung von Branchensoftware, E-Banking & Steuern"
+            "Écosystèmes nationaux, eID & logiciels métiers": {
+                en: "National Services, eID & Business Software",
+                nl: "Nationale Diensten, eID & Bedrijfssoftware",
+                de: "Nationale Dienste, eID & Branchensoftware"
             },
             "Catalogue national & preuves de source": {
                 en: "National catalogue & source evidence",
@@ -8800,10 +9077,10 @@ sfc /scannow</pre>
                 nl: "Referentieland",
                 de: "Referenzland"
             },
-            "Matrice Open-Source Alternatives (FOSS Tree 3D)": {
-                en: "Open-Source Alternative Matrix (3D FOSS Tree)",
-                nl: "Open-Source Alternatievenmatrix (3D FOSS Boom)",
-                de: "Open-Source-Alternativenmatrix (3D FOSS Baum)"
+            "Applications libres & alternatives (vue 3D)": {
+                en: "Open-Source Apps & Alternatives (3D View)",
+                nl: "Vrije Apps & Alternatieven (3D-weergave)",
+                de: "Freie Apps & Alternativen (3D-Ansicht)"
             }
         };
 
@@ -9556,7 +9833,7 @@ sfc /scannow</pre>
 
                     var descText = (currentL === 'nl' && item.Desc_nl) ? item.Desc_nl : item.Desc;
 
-                    bHtml += '<div style="background:' + bBg + '; border:1px solid ' + bBorder + '; border-left:4px solid ' + bColor + '; border-radius:8px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:' + (isInstalled ? '0 0 16px rgba(16,185,129,0.12)' : 'none') + ';">';
+                    bHtml += '<div class="neon-surface" style="--surface-accent:' + bColor + '; background:' + bBg + '; border:1px solid ' + bBorder + '; border-left:4px solid ' + bColor + '; border-radius:8px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:' + (isInstalled ? '0 0 16px rgba(16,185,129,0.12)' : 'none') + ';">';
                     bHtml += '  <div>';
                     bHtml += '    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">';
                     bHtml += '      <strong style="color:#f1f5f9; font-size:14px; font-weight:800;">' + item.Name + '</strong>';
@@ -9583,7 +9860,7 @@ sfc /scannow</pre>
                     var statusColor = isWarning ? '#f43f5e' : '#34d399';
                     var borderCol = isWarning ? 'rgba(244,63,94,0.4)' : 'rgba(56,189,248,0.25)';
 
-                    cHtml += '<div style="background:rgba(15,23,42,0.90); border:1px solid ' + borderCol + '; border-left:4px solid ' + (c.IsEid ? '#38bdf8' : '#64748b') + '; border-radius:8px; padding:16px;">';
+                    cHtml += '<div class="neon-surface" style="--surface-accent:' + (c.IsEid ? '#38bdf8' : '#64748b') + '; background:rgba(15,23,42,0.90); border:1px solid ' + borderCol + '; border-left:4px solid ' + (c.IsEid ? '#38bdf8' : '#64748b') + '; border-radius:8px; padding:16px;">';
                     cHtml += '  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">';
                     cHtml += '    <div style="font-weight:700; color:#f1f5f9; font-size:13px; word-break:break-word;">' + c.Subject + '</div>';
                     cHtml += '    ' + certBadge;
@@ -14739,7 +15016,7 @@ sfc /scannow</pre>
                     var bBg = b.Installed ? 'rgba(16,185,129,0.10)' : 'rgba(15,23,42,0.85)';
                     var bBadgeClass = b.Installed ? 'badge badge-ok' : 'badge';
                     
-                    bHtml += '<div style="background:' + bBg + '; border:1px solid ' + bBorder + '; border-left:4px solid ' + bColor + '; border-radius:6px; padding:14px; display:flex; flex-direction:column; justify-content:space-between;">';
+                    bHtml += '<div class="neon-surface" style="--surface-accent:' + bColor + '; background:' + bBg + '; border:1px solid ' + bBorder + '; border-left:4px solid ' + bColor + '; border-radius:6px; padding:14px; display:flex; flex-direction:column; justify-content:space-between;">';
                     bHtml += '  <div>';
                     bHtml += '    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">';
                     bHtml += '      <strong style="color:#f1f5f9; font-size:13.5px;">' + b.Name + '</strong>';
@@ -14761,7 +15038,7 @@ sfc /scannow</pre>
                     var statusColor = isWarning ? '#f43f5e' : '#34d399';
                     var borderCol = isWarning ? 'rgba(244,63,94,0.4)' : 'rgba(56,189,248,0.2)';
 
-                    cHtml += '<div style="background:rgba(15,23,42,0.90); border:1px solid ' + borderCol + '; border-left:4px solid ' + (c.IsEid ? '#38bdf8' : '#64748b') + '; border-radius:6px; padding:14px;">';
+                    cHtml += '<div class="neon-surface" style="--surface-accent:' + (c.IsEid ? '#38bdf8' : '#64748b') + '; background:rgba(15,23,42,0.90); border:1px solid ' + borderCol + '; border-left:4px solid ' + (c.IsEid ? '#38bdf8' : '#64748b') + '; border-radius:6px; padding:14px;">';
                     cHtml += '  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">';
                     cHtml += '    <div style="font-weight:700; color:#f1f5f9; font-size:12.5px; word-break:break-word;">' + c.Subject + '</div>';
                     cHtml += '    ' + certBadge;
@@ -14973,6 +15250,200 @@ sfc /scannow</pre>
                 businessCatalogItem('PHC CS', 'ERP & gestion PME', 'SME ERP', 'PHC Software', 'ERP portugais pour la gestion commerciale et financière des PME.', 'Portuguese ERP for SME commercial and financial management.', 'https://www.phcsoftware.com/', 'Référence éditeur', false)
             ]
         };
+        function publicService(category, name, url, detail) {
+            return { Category: category, Name: name, Url: url, Detail: detail };
+        }
+
+        // Static catalogue only: these destinations are rendered after an exact HTTPS host allowlist check.
+        // The identity card is guidance for the selected country; it never certifies a local Windows certificate.
+        var businessPublicServiceCatalogs = {
+            be: {
+                identity: { title: 'eID, CSAM & clés numériques', detail: 'Accès aux démarches fédérales avec eID, itsme® ou une autre clé CSAM compatible. Vérifiez les prérequis sur le portail officiel.', url: 'https://www.csam.be/fr.html' },
+                services: [
+                    publicService('Accès & identité', 'Belgium.be', 'https://www.belgium.be/fr/services_en_ligne', 'Point d’entrée fédéral des démarches.'),
+                    publicService('Accès & identité', 'CSAM', 'https://www.csam.be/fr.html', 'Connexion sécurisée à l’administration.'),
+                    publicService('Accès & identité', 'eID Belgique', 'https://eid.belgium.be/fr', 'Carte eID, lecteur et logiciels.'),
+                    publicService('Accès & identité', 'Registre national', 'https://www.ibz.rrn.fgov.be/fr', 'Informations d’identité et registre.'),
+                    publicService('Fiscalité & emploi', 'MyMinfin', 'https://finances.belgium.be/fr/E-services/MyMinfin', 'Espace fiscal personnel et professionnel.'),
+                    publicService('Fiscalité & emploi', 'Tax-on-web', 'https://finances.belgium.be/fr/E-services/Tax-on-web', 'Déclaration fiscale électronique.'),
+                    publicService('Fiscalité & emploi', 'Intervat', 'https://finances.belgium.be/fr/E-services/Intervat', 'TVA et déclarations périodiques.'),
+                    publicService('Fiscalité & emploi', 'MyCareer', 'https://www.mycareer.be/fr/', 'Carrière, pension et données emploi.'),
+                    publicService('Fiscalité & emploi', 'Sécurité sociale', 'https://www.socialsecurity.be/', 'Portail de la sécurité sociale.'),
+                    publicService('Fiscalité & emploi', 'ONSS', 'https://www.rsz.be/', 'Cotisations et services employeurs.'),
+                    publicService('Citoyen & santé', 'MyPension', 'https://www.mypension.be/fr', 'Pension légale et carrière.'),
+                    publicService('Citoyen & santé', 'SPF Santé publique', 'https://www.health.belgium.be/fr', 'Santé, soins et informations publiques.'),
+                    publicService('Citoyen & santé', 'Police fédérale', 'https://www.police.be/', 'Services et informations de police.'),
+                    publicService('Citoyen & santé', 'Justice Belgique', 'https://justice.belgium.be/fr', 'Démarches et informations justice.'),
+                    publicService('Citoyen & santé', 'AFSCA', 'https://www.favv-afsca.be/', 'Sécurité de la chaîne alimentaire.'),
+                    publicService('Régions & entreprises', 'BCE / entreprises', 'https://economie.fgov.be/fr/themes/entreprises/banque-carrefour-des-entreprises', 'Banque-Carrefour des Entreprises.'),
+                    publicService('Régions & entreprises', 'Emploi Belgique', 'https://emploi.belgique.be/fr', 'Travail, contrats et réglementation.'),
+                    publicService('Régions & entreprises', 'BNB', 'https://www.nbb.be/fr/centrale-des-credits-aux-particuliers', 'Crédits et services Banque nationale.'),
+                    publicService('Régions & entreprises', 'Bruxelles', 'https://be.brussels/', 'Services de la Région de Bruxelles-Capitale.'),
+                    publicService('Régions & entreprises', 'Wallonie', 'https://www.wallonie.be/fr/demarches', 'Démarches de la Région wallonne.')
+                ]
+            },
+            fr: {
+                identity: { title: 'FranceConnect & identité numérique', detail: 'FranceConnect relie les démarches publiques à un fournisseur d’identité agréé. Les certificats locaux détectés ci-dessous restent un inventaire Windows séparé.', url: 'https://franceconnect.gouv.fr/' },
+                services: [
+                    publicService('Accès & identité', 'Service-Public.fr', 'https://www.service-public.fr/', 'Guichet national des démarches.'),
+                    publicService('Accès & identité', 'FranceConnect', 'https://franceconnect.gouv.fr/', 'Identité numérique pour services publics.'),
+                    publicService('Accès & identité', 'ANTS', 'https://ants.gouv.fr/', 'Titres sécurisés et immatriculation.'),
+                    publicService('Accès & identité', 'Légifrance', 'https://www.legifrance.gouv.fr/', 'Droit, codes et textes officiels.'),
+                    publicService('Fiscalité & emploi', 'Impôts', 'https://www.impots.gouv.fr/', 'Impôts et espace fiscal.'),
+                    publicService('Fiscalité & emploi', 'URSSAF', 'https://www.urssaf.fr/', 'Cotisations et formalités sociales.'),
+                    publicService('Fiscalité & emploi', 'Net-entreprises', 'https://www.net-entreprises.fr/', 'Déclarations sociales entreprises.'),
+                    publicService('Fiscalité & emploi', 'France Travail', 'https://www.francetravail.fr/', 'Emploi et accompagnement.'),
+                    publicService('Fiscalité & emploi', 'Mon Compte Formation', 'https://www.moncompteformation.gouv.fr/', 'Droits et formations.'),
+                    publicService('Fiscalité & emploi', 'MSA', 'https://www.msa.fr/', 'Protection sociale agricole.'),
+                    publicService('Citoyen & santé', 'Ameli', 'https://www.ameli.fr/', 'Assurance maladie.'),
+                    publicService('Citoyen & santé', 'CAF', 'https://www.caf.fr/', 'Prestations familiales et sociales.'),
+                    publicService('Citoyen & santé', 'Info Retraite', 'https://www.info-retraite.fr/', 'Droits retraite inter-régimes.'),
+                    publicService('Citoyen & santé', 'Assurance retraite', 'https://www.lassuranceretraite.fr/', 'Retraite du régime général.'),
+                    publicService('Citoyen & santé', 'Mon espace santé', 'https://www.monespacesante.fr/', 'Espace numérique de santé.'),
+                    publicService('Données & entreprises', 'Entreprendre', 'https://entreprendre.service-public.fr/', 'Formalités et services entreprises.'),
+                    publicService('Données & entreprises', 'Économie', 'https://www.economie.gouv.fr/', 'Économie et entreprises.'),
+                    publicService('Données & entreprises', 'CNIL', 'https://www.cnil.fr/', 'Données personnelles et droits.'),
+                    publicService('Données & entreprises', 'Data.gouv.fr', 'https://www.data.gouv.fr/', 'Données publiques ouvertes.'),
+                    publicService('Données & entreprises', 'Diplomatie', 'https://www.diplomatie.gouv.fr/', 'Services et informations consulaires.')
+                ]
+            },
+            uk: {
+                identity: { title: 'GOV.UK One Login & Login.gov', detail: 'Ce catalogue combine les portails fédéraux Royaume-Uni et États-Unis. Les mécanismes d’identité sont propres au service : GOV.UK One Login ou Login.gov.', url: 'https://www.gov.uk/one-login' },
+                services: [
+                    publicService('Royaume-Uni', 'GOV.UK services', 'https://www.gov.uk/browse', 'Annuaire des démarches britanniques.'),
+                    publicService('Royaume-Uni', 'GOV.UK One Login', 'https://www.gov.uk/one-login', 'Connexion aux services GOV.UK.'),
+                    publicService('Royaume-Uni', 'HMRC tax', 'https://www.gov.uk/browse/tax', 'Taxes, TVA et obligations.'),
+                    publicService('Royaume-Uni', 'Benefits', 'https://www.gov.uk/browse/benefits', 'Aides et prestations.'),
+                    publicService('Royaume-Uni', 'Driving & transport', 'https://www.gov.uk/browse/driving', 'Permis, véhicules et transport.'),
+                    publicService('Royaume-Uni', 'Passports', 'https://www.gov.uk/browse/abroad/passports', 'Passeports et voyages.'),
+                    publicService('Royaume-Uni', 'Companies House', 'https://www.gov.uk/government/organisations/companies-house', 'Registre des entreprises.'),
+                    publicService('Royaume-Uni', 'Universal Credit', 'https://www.gov.uk/universal-credit', 'Aide au revenu.'),
+                    publicService('Royaume-Uni', 'NHS services', 'https://www.gov.uk/browse/health', 'Orientation santé publique.'),
+                    publicService('Royaume-Uni', 'Right to work', 'https://www.gov.uk/prove-right-to-work', 'Justificatif du droit au travail.'),
+                    publicService('États-Unis', 'USA.gov', 'https://www.usa.gov/', 'Portail fédéral des services.'),
+                    publicService('États-Unis', 'Login.gov', 'https://login.gov/', 'Compte sécurisé fédéral.'),
+                    publicService('États-Unis', 'IRS', 'https://www.usa.gov/agency/internal-revenue-service', 'Fiscalité fédérale.'),
+                    publicService('États-Unis', 'Social Security', 'https://www.usa.gov/agency/social-security-administration', 'Prestations et sécurité sociale.'),
+                    publicService('États-Unis', 'Medicare', 'https://www.usa.gov/medicare', 'Couverture Medicare.'),
+                    publicService('États-Unis', 'Immigration', 'https://www.usa.gov/immigration', 'Immigration et citoyenneté.'),
+                    publicService('États-Unis', 'Benefits finder', 'https://www.usa.gov/benefits', 'Aides publiques.'),
+                    publicService('États-Unis', 'Jobs', 'https://www.usa.gov/find-government-jobs', 'Emplois fédéraux.'),
+                    publicService('États-Unis', 'Small business', 'https://www.usa.gov/business', 'Services aux entreprises.'),
+                    publicService('États-Unis', 'State Department', 'https://travel.state.gov/', 'Voyage et services consulaires.')
+                ]
+            },
+            de: {
+                identity: { title: 'BundID & eID (AusweisApp)', detail: 'BundID et la fonction eID de la carte d’identité permettent l’accès aux démarches compatibles. AusweisApp décrit les prérequis matériels et logiciels.', url: 'https://www.ausweisapp.bund.de/' },
+                services: [
+                    publicService('Accès & identité', 'Bund.de', 'https://www.bund.de/', 'Portail fédéral des démarches.'),
+                    publicService('Accès & identité', 'BundID', 'https://id.bund.de/de/web/login', 'Compte pour services fédéraux.'),
+                    publicService('Accès & identité', 'AusweisApp', 'https://www.ausweisapp.bund.de/', 'eID et carte d’identité.'),
+                    publicService('Accès & identité', 'Servicesuche', 'https://servicesuche.bund.de/', 'Recherche de services publics.'),
+                    publicService('Fiscalité & emploi', 'ELSTER', 'https://www.elster.de/eportal/start', 'Déclarations fiscales électroniques.'),
+                    publicService('Fiscalité & emploi', 'Bundesagentur für Arbeit', 'https://www.arbeitsagentur.de/eservices', 'Emploi et indemnisation.'),
+                    publicService('Fiscalité & emploi', 'Deutsche Rentenversicherung', 'https://www.deutsche-rentenversicherung.de/DRV/DE/Online-Dienste/online-dienste_node.html', 'Services retraite.'),
+                    publicService('Fiscalité & emploi', 'BZSt', 'https://www.bzst.de/', 'Fiscalité fédérale.'),
+                    publicService('Fiscalité & emploi', 'BAföG', 'https://www.bafoeg.de/', 'Aides aux études.'),
+                    publicService('Fiscalité & emploi', 'KBA', 'https://www.kba.de/DE/', 'Véhicules et permis.'),
+                    publicService('Citoyen & santé', 'Gesund.bund.de', 'https://gesund.bund.de/', 'Information santé officielle.'),
+                    publicService('Citoyen & santé', 'BMI', 'https://www.bmi.bund.de/', 'Intérieur et identité.'),
+                    publicService('Citoyen & santé', 'Bundesregierung', 'https://www.bundesregierung.de/', 'Gouvernement fédéral.'),
+                    publicService('Citoyen & santé', 'Bundesjustizamt', 'https://www.bundesjustizamt.de/', 'Démarches judiciaires fédérales.'),
+                    publicService('Citoyen & santé', 'Bundesministerium der Justiz', 'https://www.bmj.de/', 'Justice et droit.'),
+                    publicService('Données & entreprises', 'Destatis', 'https://www.destatis.de/', 'Statistiques fédérales.'),
+                    publicService('Données & entreprises', 'Unternehmensregister', 'https://www.unternehmensregister.de/', 'Registre des entreprises.'),
+                    publicService('Données & entreprises', 'Deutsche Bundesbank', 'https://www.bundesbank.de/', 'Banque centrale.'),
+                    publicService('Données & entreprises', 'BSI', 'https://www.bsi.bund.de/', 'Sécurité numérique fédérale.'),
+                    publicService('Données & entreprises', 'Datenportal', 'https://www.govdata.de/', 'Données publiques.')
+                ]
+            },
+            es: {
+                identity: { title: 'Cl@ve & certificat électronique', detail: 'Cl@ve centralise l’identité numérique de nombreuses administrations. Certains services demandent aussi DNIe ou un certificat électronique reconnu.', url: 'https://clave.gob.es/' },
+                services: [
+                    publicService('Accès & identité', 'Administración.gob.es', 'https://administracion.gob.es/', 'Point d’accès général.'),
+                    publicService('Accès & identité', 'Cl@ve', 'https://clave.gob.es/', 'Identité numérique publique.'),
+                    publicService('Accès & identité', 'Policía Nacional', 'https://sede.policia.gob.es/', 'DNI, passeport et démarches police.'),
+                    publicService('Accès & identité', 'Ministerio del Interior', 'https://www.interior.gob.es/', 'Services de l’intérieur.'),
+                    publicService('Fiscalité & emploi', 'Agencia Tributaria', 'https://sede.agenciatributaria.gob.es/', 'Impôts et télédéclarations.'),
+                    publicService('Fiscalité & emploi', 'Seguridad Social', 'https://sede.seg-social.gob.es/', 'Services sociaux électroniques.'),
+                    publicService('Fiscalité & emploi', 'SEPE', 'https://sede.sepe.gob.es/', 'Emploi et prestations.'),
+                    publicService('Fiscalité & emploi', 'Trabajo', 'https://www.mites.gob.es/', 'Travail et économie sociale.'),
+                    publicService('Fiscalité & emploi', 'Inclusión', 'https://www.inclusion.gob.es/', 'Inclusion et sécurité sociale.'),
+                    publicService('Fiscalité & emploi', 'DGT', 'https://sede.dgt.gob.es/', 'Permis et véhicules.'),
+                    publicService('Citoyen & santé', 'Sanidad', 'https://www.sanidad.gob.es/', 'Santé publique.'),
+                    publicService('Citoyen & santé', 'Justicia', 'https://sede.mjusticia.gob.es/', 'Démarches justice.'),
+                    publicService('Citoyen & santé', 'Educación', 'https://www.educacionfpydeportes.gob.es/', 'Éducation et formation.'),
+                    publicService('Citoyen & santé', 'Extranjería', 'https://extranjeros.inclusion.gob.es/', 'Immigration et étrangers.'),
+                    publicService('Citoyen & santé', 'Seg-Social', 'https://www.seg-social.es/', 'Information sécurité sociale.'),
+                    publicService('Données & entreprises', 'BOE', 'https://www.boe.es/', 'Journal officiel.'),
+                    publicService('Données & entreprises', 'INE', 'https://www.ine.es/', 'Statistiques nationales.'),
+                    publicService('Données & entreprises', 'AEPD', 'https://www.aepd.es/', 'Protection des données.'),
+                    publicService('Données & entreprises', 'INCIBE', 'https://www.incibe.es/', 'Cybersécurité nationale.'),
+                    publicService('Données & entreprises', 'Red.es', 'https://www.red.es/', 'Transformation numérique.')
+                ]
+            },
+            it: {
+                identity: { title: 'SPID, CIE & Carta Nazionale dei Servizi', detail: 'Les portails italiens utilisent selon le service SPID, la carte d’identité électronique (CIE) ou la Carta Nazionale dei Servizi. Consultez le portail officiel avant d’installer un middleware.', url: 'https://www.spid.gov.it/' },
+                services: [
+                    publicService('Accès & identité', 'Governo Italiano', 'https://www.gov.it/', 'Portail du gouvernement.'),
+                    publicService('Accès & identité', 'SPID', 'https://www.spid.gov.it/', 'Identité numérique publique.'),
+                    publicService('Accès & identité', 'Carta d’Identità Elettronica', 'https://www.cartaidentita.interno.gov.it/', 'CIE et identité électronique.'),
+                    publicService('Accès & identité', 'ANPR', 'https://www.anagrafenazionale.interno.it/', 'Registre national de la population.'),
+                    publicService('Fiscalité & emploi', 'INPS', 'https://www.inps.it/', 'Protection sociale et retraite.'),
+                    publicService('Fiscalité & emploi', 'INAIL', 'https://www.inail.it/', 'Assurance accidents du travail.'),
+                    publicService('Fiscalité & emploi', 'Agenzia delle Entrate', 'https://www.agenziaentrate.gov.it/', 'Fiscalité et déclarations.'),
+                    publicService('Fiscalité & emploi', 'Agenzia Dogane e Monopoli', 'https://www.agenziadoganemonopoli.gov.it/', 'Douanes et monopoles.'),
+                    publicService('Fiscalité & emploi', 'Agenzia Entrate Riscossione', 'https://www.agenziaentrateriscossione.gov.it/', 'Recouvrement fiscal.'),
+                    publicService('Fiscalité & emploi', 'Lavoro', 'https://www.lavoro.gov.it/', 'Travail et politiques sociales.'),
+                    publicService('Citoyen & santé', 'Ministero della Salute', 'https://www.salute.gov.it/', 'Santé publique.'),
+                    publicService('Citoyen & santé', 'Fascicolo Sanitario', 'https://www.fascicolosanitario.gov.it/', 'Dossier de santé numérique.'),
+                    publicService('Citoyen & santé', 'Giustizia', 'https://www.giustizia.it/', 'Justice et services judiciaires.'),
+                    publicService('Citoyen & santé', 'ACI', 'https://www.aci.it/', 'Automobile et mobilité.'),
+                    publicService('Citoyen & santé', 'Istruzione', 'https://www.istruzione.it/', 'Éducation.'),
+                    publicService('Données & entreprises', 'PagoPA', 'https://www.pagopa.gov.it/', 'Paiements à l’administration.'),
+                    publicService('Données & entreprises', 'Registro Imprese', 'https://www.registroimprese.it/', 'Registre des entreprises.'),
+                    publicService('Données & entreprises', 'ISTAT', 'https://www.istat.it/', 'Statistiques nationales.'),
+                    publicService('Données & entreprises', 'Interno', 'https://www.interno.gov.it/', 'Intérieur et sécurité.'),
+                    publicService('Données & entreprises', 'Universitaly', 'https://www.universitaly.it/', 'Services universitaires.')
+                ]
+            },
+            pt: {
+                identity: { title: 'Cartão de Cidadão & Chave Móvel Digital', detail: 'Autenticação.gov explique l’usage de la carte de citoyen et de la Chave Móvel Digital. Les certificats visibles dans le magasin Windows ne sont pas une validation de ces identifiants.', url: 'https://www.autenticacao.gov.pt/' },
+                services: [
+                    publicService('Accès & identité', 'gov.pt', 'https://www.gov.pt/', 'Portail national des services.'),
+                    publicService('Accès & identité', 'Autenticação.gov', 'https://www.autenticacao.gov.pt/', 'Identité numérique et signature.'),
+                    publicService('Accès & identité', 'Espaços Cidadão', 'https://eportugal.gov.pt/', 'Démarches et services citoyens.'),
+                    publicService('Accès & identité', 'Cartão de Cidadão', 'https://www.gov.pt/servicos/pedir-o-cartao-de-cidadao', 'Carte nationale d’identité.'),
+                    publicService('Fiscalité & emploi', 'Portal das Finanças', 'https://www.portaldasfinancas.gov.pt/', 'Fiscalité et espace contribuable.'),
+                    publicService('Fiscalité & emploi', 'e-Fatura', 'https://faturas.portaldasfinancas.gov.pt/', 'Factures et TVA.'),
+                    publicService('Fiscalité & emploi', 'Segurança Social', 'https://www.seg-social.pt/', 'Protection sociale.'),
+                    publicService('Fiscalité & emploi', 'IEFP', 'https://www.iefp.pt/', 'Emploi et formation.'),
+                    publicService('Fiscalité & emploi', 'Banco de Portugal', 'https://www.bportugal.pt/', 'Banque centrale et services.'),
+                    publicService('Fiscalité & emploi', 'DGAE', 'https://www.dgae.gov.pt/', 'Activités économiques.'),
+                    publicService('Citoyen & santé', 'SNS', 'https://www.sns.gov.pt/', 'Service national de santé.'),
+                    publicService('Citoyen & santé', 'SNS 24', 'https://www.sns24.gov.pt/', 'Services de santé numériques.'),
+                    publicService('Citoyen & santé', 'IMT', 'https://www.imt-ip.pt/', 'Mobilité et transports.'),
+                    publicService('Citoyen & santé', 'Justiça', 'https://justica.gov.pt/', 'Justice et état civil.'),
+                    publicService('Citoyen & santé', 'IRN', 'https://irn.justica.gov.pt/', 'Registres et notariat.'),
+                    publicService('Données & entreprises', 'AMA', 'https://www.ama.gov.pt/', 'Modernisation administrative.'),
+                    publicService('Données & entreprises', 'BASE', 'https://www.base.gov.pt/', 'Marchés publics.'),
+                    publicService('Données & entreprises', 'INE', 'https://www.ine.pt/', 'Statistiques nationales.'),
+                    publicService('Données & entreprises', 'AIMA', 'https://aima.gov.pt/', 'Migration et intégration.'),
+                    publicService('Données & entreprises', 'Portal da Justiça', 'https://justica.gov.pt/Servicos', 'Services de justice.')
+                ]
+            }
+        };
+
+        var officialServiceHostAllowlist = {
+            be: ['www.belgium.be', 'www.csam.be', 'eid.belgium.be', 'www.ibz.rrn.fgov.be', 'finances.belgium.be', 'www.mycareer.be', 'www.socialsecurity.be', 'www.rsz.be', 'www.mypension.be', 'www.health.belgium.be', 'www.police.be', 'justice.belgium.be', 'www.favv-afsca.be', 'economie.fgov.be', 'emploi.belgique.be', 'www.nbb.be', 'be.brussels', 'www.wallonie.be'],
+            fr: ['www.service-public.fr', 'franceconnect.gouv.fr', 'ants.gouv.fr', 'www.legifrance.gouv.fr', 'www.impots.gouv.fr', 'www.urssaf.fr', 'www.net-entreprises.fr', 'www.francetravail.fr', 'www.moncompteformation.gouv.fr', 'www.msa.fr', 'www.ameli.fr', 'www.caf.fr', 'www.info-retraite.fr', 'www.lassuranceretraite.fr', 'www.monespacesante.fr', 'entreprendre.service-public.fr', 'www.economie.gouv.fr', 'www.cnil.fr', 'www.data.gouv.fr', 'www.diplomatie.gouv.fr'],
+            uk: ['www.gov.uk', 'www.usa.gov', 'login.gov', 'travel.state.gov'],
+            de: ['www.bund.de', 'id.bund.de', 'www.ausweisapp.bund.de', 'servicesuche.bund.de', 'www.elster.de', 'www.arbeitsagentur.de', 'www.deutsche-rentenversicherung.de', 'www.bzst.de', 'www.bafoeg.de', 'www.kba.de', 'gesund.bund.de', 'www.bmi.bund.de', 'www.bundesregierung.de', 'www.bundesjustizamt.de', 'www.bmj.de', 'www.destatis.de', 'www.unternehmensregister.de', 'www.bundesbank.de', 'www.bsi.bund.de', 'www.govdata.de'],
+            es: ['administracion.gob.es', 'clave.gob.es', 'sede.policia.gob.es', 'www.interior.gob.es', 'sede.agenciatributaria.gob.es', 'sede.seg-social.gob.es', 'sede.sepe.gob.es', 'www.mites.gob.es', 'www.inclusion.gob.es', 'sede.dgt.gob.es', 'www.sanidad.gob.es', 'sede.mjusticia.gob.es', 'www.educacionfpydeportes.gob.es', 'extranjeros.inclusion.gob.es', 'www.seg-social.es', 'www.boe.es', 'www.ine.es', 'www.aepd.es', 'www.incibe.es', 'www.red.es'],
+            it: ['www.gov.it', 'www.spid.gov.it', 'www.cartaidentita.interno.gov.it', 'www.anagrafenazionale.interno.it', 'www.inps.it', 'www.inail.it', 'www.agenziaentrate.gov.it', 'www.agenziadoganemonopoli.gov.it', 'www.agenziaentrateriscossione.gov.it', 'www.lavoro.gov.it', 'www.salute.gov.it', 'www.fascicolosanitario.gov.it', 'www.giustizia.it', 'www.aci.it', 'www.istruzione.it', 'www.pagopa.gov.it', 'www.registroimprese.it', 'www.istat.it', 'www.interno.gov.it', 'www.universitaly.it'],
+            pt: ['www.gov.pt', 'www.autenticacao.gov.pt', 'eportugal.gov.pt', 'www.portaldasfinancas.gov.pt', 'faturas.portaldasfinancas.gov.pt', 'www.seg-social.pt', 'www.iefp.pt', 'www.bportugal.pt', 'www.dgae.gov.pt', 'www.sns.gov.pt', 'www.sns24.gov.pt', 'www.imt-ip.pt', 'justica.gov.pt', 'irn.justica.gov.pt', 'www.ama.gov.pt', 'www.base.gov.pt', 'www.ine.pt', 'aima.gov.pt']
+        };
+
         var countryCatalogs = businessCountryCatalogs;
         var selectedBusinessCountry = 'be';
         var businessUiText = {
@@ -14986,6 +15457,63 @@ sfc /scannow</pre>
             var allowed = { be: true, fr: true, uk: true, de: true, es: true, it: true, pt: true };
             var normalized = String(value || '').toLowerCase();
             return allowed[normalized] ? normalized : 'be';
+        }
+
+        function escapeBusinessHtml(value) {
+            return String(value || '').replace(/[&<>'"]/g, function(character) {
+                return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character];
+            });
+        }
+
+        function isAllowedOfficialServiceUrl(country, value) {
+            try {
+                var parsed = new URL(value);
+                var hosts = officialServiceHostAllowlist[country] || [];
+                return parsed.protocol === 'https:' && hosts.indexOf(parsed.hostname.toLowerCase()) !== -1;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function renderBusinessPublicServices(country) {
+            var catalogKey = normalizeBusinessCountry(country);
+            var catalog = businessPublicServiceCatalogs[catalogKey] || businessPublicServiceCatalogs.be;
+            var servicesGrid = document.getElementById('businessPublicServicesGrid');
+            var identityContainer = document.getElementById('businessCertificateGuidance');
+            var servicesMeta = document.getElementById('businessPublicServicesMeta');
+            var services = (catalog.services || []).filter(function(service) {
+                return isAllowedOfficialServiceUrl(catalogKey, service.Url);
+            });
+
+            if (services.length !== 20) {
+                if (servicesGrid) servicesGrid.innerHTML = '<div style="color:#fda4af; font-size:12px;">Catalogue officiel incomplet : aucune destination non vérifiée n’est affichée.</div>';
+                if (servicesMeta) servicesMeta.textContent = 'Catalogue indisponible';
+                return;
+            }
+
+            if (servicesMeta) servicesMeta.textContent = services.length + ' liens HTTPS institutionnels vérifiés';
+            if (identityContainer) {
+                var identity = catalog.identity || {};
+                var identityUrl = isAllowedOfficialServiceUrl(catalogKey, identity.url) ? identity.url : '';
+                identityContainer.innerHTML = '<div><strong>Identité / certificats : ' + escapeBusinessHtml(identity.title) + '</strong><p>' + escapeBusinessHtml(identity.detail) + '</p></div>' + (identityUrl ? '<a href="' + identityUrl + '" target="_blank" rel="noopener noreferrer">Guide officiel ↗</a>' : '');
+            }
+
+            if (servicesGrid) {
+                var groups = {};
+                services.forEach(function(service) {
+                    if (!groups[service.Category]) groups[service.Category] = [];
+                    groups[service.Category].push(service);
+                });
+                var markup = '';
+                Object.keys(groups).forEach(function(category, index) {
+                    markup += '<details class="public-service-group"' + (index === 0 ? ' open' : '') + '><summary>' + escapeBusinessHtml(category) + '<span>' + groups[category].length + ' services</span></summary><ul class="public-service-links">';
+                    groups[category].forEach(function(service) {
+                        markup += '<li><a href="' + service.Url + '" target="_blank" rel="noopener noreferrer">' + escapeBusinessHtml(service.Name) + ' ↗<small>' + escapeBusinessHtml(service.Detail) + '</small></a></li>';
+                    });
+                    markup += '</ul></details>';
+                });
+                servicesGrid.innerHTML = markup;
+            }
         }
 
         function changeBusinessCountry(value) {
@@ -15005,6 +15533,7 @@ sfc /scannow</pre>
             var catalogMeta = document.getElementById('businessCatalogMeta');
             var ui = businessUiText[currentL] || businessUiText.fr;
             if (countrySelect) countrySelect.value = catalogKey;
+            renderBusinessPublicServices(catalogKey);
             if (catalogMeta) {
                 var officialCount = currentCatalog.filter(function(item) { return item.Official; }).length;
                 var editorCount = currentCatalog.length - officialCount;
@@ -15045,7 +15574,7 @@ sfc /scannow</pre>
                     var descText = (item.Desc && item.Desc[currentL]) ? item.Desc[currentL] : (item.Desc ? item.Desc.fr : '');
                     var sourceKindText = item.Official ? ui.official : (currentL === 'nl' ? 'Uitgeversreferentie' : (currentL === 'en' ? 'Editor reference' : (currentL === 'de' ? 'Herstellerreferenz' : 'Référence éditeur')));
 
-                    bHtml += '<div class="business-catalog-card" style="background:' + bBg + '; border:1px solid ' + bBorder + '; border-left:4px solid ' + bColor + '; border-radius:8px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:' + (isInstalled ? '0 0 16px rgba(16,185,129,0.12)' : 'none') + ';">';
+                    bHtml += '<div class="business-catalog-card" style="--surface-accent:' + bColor + '; background:' + bBg + '; border:1px solid ' + bBorder + '; border-left:4px solid ' + bColor + '; border-radius:8px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:' + (isInstalled ? '0 0 16px rgba(16,185,129,0.12)' : 'none') + ';">';
                     bHtml += '  <div>';
                     bHtml += '    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">';
                     bHtml += '      <strong style="color:#f1f5f9; font-size:14px; font-weight:800;">' + item.Name + '</strong>';
@@ -15073,7 +15602,7 @@ sfc /scannow</pre>
                     var statusColor = isWarning ? '#f43f5e' : '#34d399';
                     var borderCol = isWarning ? 'rgba(244,63,94,0.4)' : 'rgba(56,189,248,0.25)';
 
-                    cHtml += '<div style="background:rgba(15,23,42,0.90); border:1px solid ' + borderCol + '; border-left:4px solid ' + (c.IsEid ? '#38bdf8' : '#64748b') + '; border-radius:8px; padding:16px;">';
+                    cHtml += '<div class="neon-surface" style="--surface-accent:' + (c.IsEid ? '#38bdf8' : '#64748b') + '; background:rgba(15,23,42,0.90); border:1px solid ' + borderCol + '; border-left:4px solid ' + (c.IsEid ? '#38bdf8' : '#64748b') + '; border-radius:8px; padding:16px;">';
                     cHtml += '  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">';
                     cHtml += '    <div style="font-weight:700; color:#f1f5f9; font-size:13px; word-break:break-word;">' + c.Subject + '</div>';
                     cHtml += '    ' + certBadge;
@@ -15160,7 +15689,7 @@ sfc /scannow</pre>
             window.downloadDiagnosticCsv = function() {
                 var csv = "Categorie,Nom,Statut,Details\n";
                 belgianData.forEach(function(b) {
-                    csv += '"Logiciels Belgique","' + b.Name + '","' + b.Status + '","' + b.Vendor + '"\n';
+                    csv += '"Services nationaux & eID","' + b.Name + '","' + b.Status + '","' + b.Vendor + '"\n';
                 });
                 cveData.forEach(function(c) {
                     csv += '"Vulnerabilite CVE","' + c.App + '","' + c.Severity + '","' + c.CVE + ' - ' + c.Desc.replace(/"/g, '""') + '"\n';
@@ -15226,6 +15755,38 @@ sfc /scannow</pre>
                 }
             }
         };
+
+        // Any content card assembled dynamically with a lateral rail joins the same
+        // restrained vertical-neon system. Its original border colour becomes the glow.
+        function harmonizeVerticalNeonRail(element) {
+            if (!element || element.nodeType !== 1 || element.classList.contains('neon-surface')) return;
+            if (element.tagName === 'TD' || element.tagName === 'TH') return;
+            var computed = window.getComputedStyle(element);
+            if (parseFloat(computed.borderLeftWidth || '0') <= 0) return;
+            element.style.setProperty('--surface-accent', computed.borderLeftColor || 'var(--neon-cyan)');
+            element.classList.add('neon-surface');
+        }
+
+        function harmonizeVerticalNeonRails(scope) {
+            if (!scope || !scope.querySelectorAll) return;
+            if (scope.matches && scope.matches('div[style*="border-left"], .drawer-header, .exam-tip-box, .res-card')) {
+                harmonizeVerticalNeonRail(scope);
+            }
+            scope.querySelectorAll('div[style*="border-left"], .drawer-header, .exam-tip-box, .res-card').forEach(harmonizeVerticalNeonRail);
+        }
+        window.harmonizeVerticalNeonRails = harmonizeVerticalNeonRails;
+
+        window.addEventListener('DOMContentLoaded', function() {
+            harmonizeVerticalNeonRails(document);
+            var railObserver = new MutationObserver(function(records) {
+                records.forEach(function(record) {
+                    record.addedNodes.forEach(function(node) {
+                        harmonizeVerticalNeonRails(node);
+                    });
+                });
+            });
+            railObserver.observe(document.body, { childList: true, subtree: true });
+        });
 
     </script>
 </body>

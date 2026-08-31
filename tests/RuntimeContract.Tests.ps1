@@ -95,7 +95,7 @@ Describe 'DiagToolIT runtime contract' {
             if ($report -match '__SMART_JSON__|__GLOBAL_PERF_SCORE__') {
                 throw 'The generated report still contains benchmark replacement tokens.'
             }
-            foreach ($catalogMarker in @('id="businessCountrySelect"', 'value="be"', 'value="fr"', 'value="uk"', 'value="de"', 'value="es"', 'value="it"', 'value="pt"', 'id="businessCatalogMeta"', 'https://www.csam.be/en/index.html')) {
+            foreach ($catalogMarker in @('id="businessCountrySelect"', 'value="be"', 'value="fr"', 'value="uk"', 'value="de"', 'value="es"', 'value="it"', 'value="pt"', 'id="businessCatalogMeta"', 'id="businessPublicServicesGrid"', 'id="businessCertificateGuidance"', 'businessPublicServiceCatalogs', 'https://www.csam.be/en/index.html')) {
                 if ($report.IndexOf($catalogMarker, [StringComparison]::Ordinal) -lt 0) {
                     throw "The generated report is missing business catalogue marker: $catalogMarker"
                 }
@@ -754,7 +754,51 @@ Describe 'DiagToolIT runtime contract' {
         }
     }
 
-    It 'keeps KPI cards centered with a restrained neon accent and soft FOSS titles' {
+    It 'offers twenty official public-service links and identity guidance for every supported country' {
+        $scriptSource = Get-Content -LiteralPath (Join-Path $projectRoot 'Diag-IT-UAA3-V3.ps1') -Raw
+        foreach ($marker in @('id="businessPublicServicesGrid"', 'id="businessCertificateGuidance"', 'businessPublicServiceCatalogs', 'officialServiceHostAllowlist', 'renderBusinessPublicServices')) {
+            if ($scriptSource.IndexOf($marker, [StringComparison]::Ordinal) -lt 0) {
+                throw "The public-services catalogue is missing marker: $marker"
+            }
+        }
+        $countries = @('be', 'fr', 'uk', 'de', 'es', 'it', 'pt')
+        $publicCatalogStart = $scriptSource.IndexOf('var businessPublicServiceCatalogs')
+        for ($index = 0; $index -lt $countries.Count; $index++) {
+            $country = $countries[$index]
+            $start = $scriptSource.IndexOf("            $country`: {", $publicCatalogStart)
+            $nextCountry = if ($index -lt ($countries.Count - 1)) { $countries[$index + 1] } else { $null }
+            $end = if ($nextCountry) { $scriptSource.IndexOf("            $nextCountry`: {", $start + 1) } else { $scriptSource.IndexOf('        var officialServiceHostAllowlist', $start) }
+            if ($start -lt 0 -or $end -lt 0) {
+                throw "The public-services catalogue has no service list for $country."
+            }
+            $countryBlock = $scriptSource.Substring($start, $end - $start)
+            $serviceCount = [regex]::Matches($countryBlock, 'publicService\(').Count
+            if ($serviceCount -ne 20) {
+                throw "The public-services catalogue must expose exactly 20 official links for $country; found $serviceCount."
+            }
+        }
+        foreach ($officialUrl in @(
+            'https://finances\.belgium\.be',
+            'https://www\.service-public\.fr',
+            'https://www\.gov\.uk',
+            'https://www\.bund\.de',
+            'https://administracion\.gob\.es',
+            'https://www\.gov\.it',
+            'https://www\.gov\.pt'
+        )) {
+            if ($scriptSource -notmatch $officialUrl) {
+                throw "The public-services catalogue is missing an expected official destination: $officialUrl"
+            }
+        }
+        if ($scriptSource -notmatch 'services\.length !== 20') {
+            throw 'The report does not enforce exactly twenty official destinations per country.'
+        }
+        if ($scriptSource -notmatch 'Certificats locaux Windows détectés') {
+            throw 'The local Windows certificate inventory is not explicitly separated from country guidance.'
+        }
+    }
+
+    It 'keeps KPI cards centered, reuses their neutral neon grammar for tabs and vertical frames, and softens FOSS titles' {
         $scriptSource = Get-Content -LiteralPath (Join-Path $projectRoot 'Diag-IT-UAA3-V3.ps1') -Raw
 
         foreach ($requiredStyle in @(
@@ -764,13 +808,18 @@ Describe 'DiagToolIT runtime contract' {
             '.card:hover::before',
             '--card-accent:',
             '.tab-btn::before',
-            '.btn-primary::before',
-            '.dashboard-neon-button:hover::before',
+            '.tab-btn::after',
+            '.tab-btn.active::before',
+            '.neon-surface::after',
+            'linear-gradient(180deg, transparent, var(--surface-accent)',
+            'border-left-width: 1px !important;',
+            'harmonizeVerticalNeonRails',
+            'MutationObserver',
             '--ui-cyan:',
             '--ui-frame:',
-            'border-left: 4px solid var(--ui-cyan);',
             '.foss-card-title',
-            '.foss-card-description'
+            '.foss-card-description',
+            '.profile-drawer-title'
         )) {
             if ($scriptSource -notmatch [regex]::Escape($requiredStyle)) {
                 throw "Missing KPI/FOSS visual contract: $requiredStyle"
@@ -783,6 +832,11 @@ Describe 'DiagToolIT runtime contract' {
         if ($scriptSource -match 'font-weight:900; color:#34d399') {
             throw 'FOSS titles still rely on the harsh hard-coded green/white contrast.'
         }
+        foreach ($label in @('SERVICES NATIONAUX', 'APPLICATIONS LIBRES 3D', 'color: var(--text);')) {
+            if ($scriptSource -notmatch [regex]::Escape($label)) {
+                throw "Missing clear national/open-source naming or neutral Winget profile title: $label"
+            }
+        }
         foreach ($neonMapping in @(
             '[data-icon="overview"] { --button-accent: var(--neon-cyan); }',
             '[data-icon="health"] { --button-accent: var(--neon-emerald); }',
@@ -791,6 +845,11 @@ Describe 'DiagToolIT runtime contract' {
         )) {
             if ($scriptSource -notmatch [regex]::Escape($neonMapping)) {
                 throw "Missing colour-coded dashboard button contract: $neonMapping"
+            }
+        }
+        foreach ($neutralTab in @('docs', 'archive', 'relaunch', 'print')) {
+            if ($scriptSource -match ('<button class="tab-btn"[^>]*data-icon="{0}"[^>]*style=' -f $neutralTab)) {
+                throw "Dashboard tab '$neutralTab' still overrides the shared neutral background inline."
             }
         }
     }
@@ -822,6 +881,18 @@ Describe 'DiagToolIT runtime contract' {
             if ([regex]::Matches($row.Value, '<br>').Count -lt 2) {
                 throw "README module $($row.Groups['id'].Value) must have at least three concise documentation lines."
             }
+        }
+    }
+
+    It 'provides twelve copyable SysAdmin utilities, including eight read-only diagnostic aids' {
+        $scriptSource = Get-Content -LiteralPath (Join-Path $projectRoot 'Diag-IT-UAA3-V3.ps1') -Raw
+        foreach ($marker in @('id="sysadminToolGrid"', 'data-sysadmin-tool=', 'Pilotes en erreur', 'Erreurs disque / contrôleur', 'Services automatiques arrêtés', 'Chiffrement BitLocker', 'Journaux Windows Update', 'Écoute TCP locale', 'Résolution DNS & Internet', 'Événements système critiques')) {
+            if ($scriptSource.IndexOf($marker, [StringComparison]::Ordinal) -lt 0) {
+                throw "The SysAdmin documentation toolbox is missing: $marker"
+            }
+        }
+        if ([regex]::Matches($scriptSource, 'data-sysadmin-tool=').Count -ne 12) {
+            throw 'The SysAdmin documentation toolbox must expose exactly twelve utility cards.'
         }
     }
 
